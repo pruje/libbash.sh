@@ -19,6 +19,9 @@
 #  INITIALIZATION  #
 ####################
 
+# set version
+libbash_version="0.1.0"
+
 # set echo as default display command
 lb_disp_cmd="echo"
 # set echo as default error display command
@@ -26,7 +29,6 @@ lb_disp_error_cmd=">&2 echo"
 
 lb_error_prefix="[ERROR] "
 
-lb_gui=""
 
 ###############
 #  FUNCTIONS  #
@@ -65,61 +67,62 @@ lb_result() {
 
 
 # Prompt user to confirm an action
-# Args: [option -y: yes by default] <message>
+# Args: [options] <message>
+# Options:
+#    -y, --yes  return yes by default
+#    --yes-str STR  string to use as "YES"
+#    --no-str  STR  string to use as "NO"
 # Return: continue (0:YES / 1:NO)
 lb_yesno() {
 
-	yesstr="y"
-	nostr="n"
+	# default options
+	local lb_yn_defaultyes=false
+	local lb_yn_yesstr="y"
+	local lb_yn_nostr="n"
 
-	if [ "$1" == "-y" ] ; then
-		yesbydefault=true
-		shift
+	# catch options
+	while true ; do
+		case "$1" in
+			--yes|-y)
+				lb_yn_defaultyes=true
+				shift
+				;;
+			--yes-str)
+				lb_yn_yesstr="$2"
+				shift 2
+				;;
+			--no-str)
+				lb_yn_nostr="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# defines choice question
+	if $lb_yn_defaultyes ; then
+		lb_yn_choice="($(echo $lb_yn_yesstr | tr '[:lower:]' '[:upper:]')/$lb_yn_nostr)"
 	else
-		yesbydefault=false
+		lb_yn_choice="($lb_yn_yesstr/$(echo $lb_yn_nostr | tr '[:lower:]' '[:upper:]'))"
 	fi
 
-	if $yesbydefault ; then
-		echo -e -n "$* (${yesstr^^}/$nostr) : "
-	else
-		echo -e -n "$* ($yesstr/${nostr^^}) : "
-	fi
+	# print question
+	echo -e -n "$* $lb_yn_choice: "
 
-	read confirm
+	# read user input
+	read lb_yn_confirm
 
 	# defaut behaviour if input is empty
-	if [ -z $confirm ] ; then
-		if $yesbydefault ; then
-			continue=0
-		else
-			continue=1
+	if [ -z "$lb_yn_confirm" ] ; then
+		if ! $lb_yn_defaultyes ; then
+			return 1
 		fi
 	else
 		# compare to confirmation string
-		if [ ${confirm,,} == $yesstr ] ; then
-			continue=0
-		else
-			continue=1
+		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$lb_yn_yesstr" ] ; then
+			return 1
 		fi
 	fi
-
-	return $continue
-}
-
-
-# Prompt user to confirm an action in graphical mode
-# Args: [option -y: yes by default] <message>
-# Return: continue (0:YES / 1:NO)
-lb_yesno_gui() {
-
-	if [ "$1" == "-y" ] ; then
-		yesbydefault=true
-		shift
-	else
-		yesbydefault=false
-	fi
-
-
-
-	return $continue
 }
