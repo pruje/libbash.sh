@@ -25,7 +25,7 @@ libbash_version="0.1.0"
 # set echo as default display command
 lb_disp_cmd="echo"
 # set echo as default error display command
-lb_disp_error_cmd=">&2 echo"
+lb_disp_error_cmd="echo >&2 "
 
 lb_error_prefix="[ERROR] "
 
@@ -54,7 +54,7 @@ lb_error() {
 
 # Displays command result
 # Args: exitcode (mostly $?)
-# Return: success code
+# Return: exit code (0: yes, 1: no)
 lb_result() {
 	if [ $1 == 0 ] ; then
 		lb_display "... Done"
@@ -72,7 +72,7 @@ lb_result() {
 #    -y, --yes  return yes by default
 #    --yes-str STR  string to use as "YES"
 #    --no-str  STR  string to use as "NO"
-# Return: continue (0:YES / 1:NO)
+# Return: exit code (0: yes, 1: no)
 lb_yesno() {
 
 	# default options
@@ -124,5 +124,20 @@ lb_yesno() {
 		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$lb_yn_yesstr" ] ; then
 			return 1
 		fi
+	fi
+}
+
+
+
+# Test if a variable is integer
+# Arg: value
+# Return: exit code (0: yes, 1: no)
+lb_is_integer() {
+	if [ "$1" == "" ] ; then
+		return 1
+	fi
+
+	if ! [[ $1 =~ ^-?[0-9]+$ ]] ; then
+		return 1
 	fi
 }
