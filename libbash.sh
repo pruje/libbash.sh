@@ -141,3 +141,22 @@ lb_is_integer() {
 		return 1
 	fi
 }
+
+
+################
+#  FILESYSTEM  #
+################
+
+# Get filesystem type
+# Arg: path
+# Return: fs type
+lb_get_fstype() {
+	# test if argument exists
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# get type from df command
+	df --output=fstype $1 2> /dev/null | tail -n 1
+	return ${PIPESTATUS[0]}
+}
