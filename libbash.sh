@@ -133,7 +133,7 @@ lb_yesno() {
 # Arg: value
 # Return: exit code (0: yes, 1: no)
 lb_is_integer() {
-	if [ "$1" == "" ] ; then
+	if [ $# == 0 ] ; then
 		return 1
 	fi
 
@@ -159,4 +159,30 @@ lb_get_fstype() {
 	# get type from df command
 	df --output=fstype $1 2> /dev/null | tail -n 1
 	return ${PIPESTATUS[0]}
+}
+
+
+# Test if a directory is empty
+# Arg: path to directory
+# Return: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
+lb_is_empty() {
+	# test if argument exists
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# test if directory exists
+	if ! [ -d "$1" ] ; then
+		return 1
+	fi
+
+	# test if directory is empty
+	lb_is_res="$(ls -A "$1" 2> /dev/null)"
+	if [ $? != 0 ] ; then
+		return 2
+	fi
+
+	if [ "$lb_is_res" ] ; then
+		return 3
+	fi
 }
