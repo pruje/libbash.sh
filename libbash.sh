@@ -53,7 +53,7 @@ lb_error() {
 
 
 # Displays command result
-# Args: exitcode (mostly $?)
+# Usage: lb_result $result
 # Return: exit code (0: yes, 1: no)
 lb_result() {
 	if [ $1 == 0 ] ; then
@@ -67,7 +67,7 @@ lb_result() {
 
 
 # Prompt user to confirm an action
-# Args: [options] <message>
+# Usage: lb_yesno [options] TEXT
 # Options:
 #    -y, --yes  return yes by default
 #    --yes-str STR  string to use as "YES"
@@ -128,9 +128,12 @@ lb_yesno() {
 }
 
 
+############################
+#  OPERATIONS ON VARIABLES #
+############################
 
 # Test if a variable is integer
-# Arg: value
+# Usage: lb_is_integer VALUE
 # Return: exit code (0: yes, 1: no)
 lb_is_integer() {
 	if [ $# == 0 ] ; then
@@ -143,12 +146,41 @@ lb_is_integer() {
 }
 
 
+# Search if array contains a value
+# Usage: lb_array_contains VALUE "${array[@]}"
+# Warning: put your array between quotes or it will fail if you have spaces in values
+lb_array_contains() {
+	# get usage errors
+	if [ $# -lt 2 ] ; then
+		return 1
+	fi
+
+	# first arg is the value to search
+	lb_ac_search="$1"
+	shift
+
+	# get array to search in
+	lb_ac_array=("$@")
+
+	# parse array to find value
+	for ((lb_ac_i=0 ; lb_ac_i < ${#lb_ac_array[@]} ; lb_ac_i++)) ; do
+		# if found, return 0
+		if [ "${lb_ac_array[$lb_ac_i]}" == "$lb_ac_search" ] ; then
+			return 0
+		fi
+	done
+
+	# if not found, return 2
+	return 2
+}
+
+
 ################
 #  FILESYSTEM  #
 ################
 
 # Get filesystem type
-# Arg: path
+# Usage: lb_get_fstype PATH
 # Return: fs type
 lb_get_fstype() {
 	# test if argument exists
@@ -163,7 +195,7 @@ lb_get_fstype() {
 
 
 # Test if a directory is empty
-# Arg: path to directory
+# Usage: lb_is_empty PATH
 # Return: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
 lb_is_empty() {
 	# test if argument exists
