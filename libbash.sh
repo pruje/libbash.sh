@@ -194,6 +194,22 @@ lb_function_exists() {
 }
 
 
+########
+#  OS  #
+########
+
+# Detect OS
+# Usage: lb_detect_os
+# Return: Linux/macOS
+lb_detect_os() {
+	if [ "$(uname)" == "Darwin" ] ; then
+		echo "macOS"
+	else
+		echo "Linux"
+	fi
+}
+
+
 ################
 #  FILESYSTEM  #
 ################
