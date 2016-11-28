@@ -79,13 +79,13 @@ lbg_set_gui() {
 lbg_yesno() {
 	# default values
 	local lbg_yn_defaultyes=false
-	local lbg_yn_yesstr
-	local lbg_yn_nostr=""
+	local lbg_yn_yeslbl
+	local lbg_yn_nolbl=""
 	local lbg_yn_title="$(basename "$0")"
 	local lbg_yn_cmd=()
 
-	lbg_yn_yesstr=""
-	lbg_yn_nostr=""
+	lbg_yn_yeslbl=""
+	lbg_yn_nolbl=""
 
 	# catch options
 	while true ; do
@@ -94,12 +94,12 @@ lbg_yesno() {
 				lbg_yn_defaultyes=true
 				shift
 				;;
-			--yes-str)
-				lbg_yn_yesstr="$2"
+			--yes-label)
+				lbg_yn_yeslbl="$2"
 				shift 2
 				;;
-			--no-str)
-				lbg_yn_nostr="$2"
+			--no-label)
+				lbg_yn_nolbl="$2"
 				shift 2
 				;;
 			--title|-t)
@@ -115,11 +115,11 @@ lbg_yesno() {
 	case "$lbg_gui" in
 		kdialog)
 			lbg_yn_cmd=(kdialog --title "$lbg_yn_title")
-			if [ -n "$lbg_yn_yesstr" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yesstr")
+			if [ -n "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
 			fi
-			if [ -n "$lbg_yn_nostr" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nostr")
+			if [ -n "$lbg_yn_nolbl" ] ; then
+				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
 			fi
 			lbg_yn_cmd+=(--yesno "$*")
 			;;
@@ -129,11 +129,11 @@ lbg_yesno() {
 			;;
 
 		osascript)
-			if [ -z "$lbg_yn_yesstr" ] ; then
-				lbg_yn_yesstr="Yes"
+			if [ -z "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_yeslbl="Yes"
 			fi
-			if [ -z "$lbg_yn_nostr" ] ; then
-				lbg_yn_nostr="No"
+			if [ -z "$lbg_yn_nolbl" ] ; then
+				lbg_yn_nolbl="No"
 			fi
 
 			#
@@ -145,9 +145,9 @@ lbg_yesno() {
 			fi
 
 			lbg_yn_res=$(osascript << EOF
-set question to (display dialog "$*" with title "$lbg_yn_title" buttons {"$lbg_yn_yesstr", "$lbg_yn_nostr"} $lbg_yn_opts)
+set question to (display dialog "$*" with title "$lbg_yn_title" buttons {"$lbg_yn_yeslbl", "$lbg_yn_nolbl"} $lbg_yn_opts)
 set answer to button returned of question
-if answer is equal to "$lbg_yn_yesstr" then
+if answer is equal to "$lbg_yn_yeslbl" then
 	return 0
 else
 	return 1
@@ -160,11 +160,11 @@ EOF)
 			if ! $lbg_yn_defaultyes ; then
 				lbg_yn_cmd+=(--defaultno)
 			fi
-			if [ -n "$lbg_yn_yesstr" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yesstr")
+			if [ -n "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
 			fi
-			if [ -n "$lbg_yn_nostr" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nostr")
+			if [ -n "$lbg_yn_nolbl" ] ; then
+				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
 			fi
 			lbg_yn_cmd+=(--clear --yesno "$*" 10 100)
 
@@ -183,11 +183,11 @@ EOF)
 			if $lbg_yn_defaultyes ; then
 				lbg_yn_cmd+=(-y)
 			fi
-			if [ -n "$lbg_yn_yesstr" ] ; then
-				lbg_yn_cmd+=(--yes-str "$lbg_yn_yesstr")
+			if [ -n "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
 			fi
-			if [ -n "$lbg_yn_nostr" ] ; then
-				lbg_yn_cmd+=(--no-str "$lbg_yn_nostr")
+			if [ -n "$lbg_yn_nolbl" ] ; then
+				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
 			fi
 			lbg_yn_cmd+=("$*")
 			;;

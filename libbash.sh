@@ -69,16 +69,16 @@ lb_result() {
 # Prompt user to confirm an action
 # Usage: lb_yesno [options] TEXT
 # Options:
-#    -y, --yes  return yes by default
-#    --yes-str STR  string to use as "YES"
-#    --no-str  STR  string to use as "NO"
+#    -y, --yes        return yes by default
+#    --yes-label STR  string to use as "YES"
+#    --no-label  STR  string to use as "NO"
 # Return: exit code (0: yes, 1: no)
 lb_yesno() {
 
 	# default options
 	local lb_yn_defaultyes=false
-	local lb_yn_yesstr="y"
-	local lb_yn_nostr="n"
+	local lb_yn_yeslbl="y"
+	local lb_yn_nolbl="n"
 
 	# catch options
 	while true ; do
@@ -87,12 +87,12 @@ lb_yesno() {
 				lb_yn_defaultyes=true
 				shift
 				;;
-			--yes-str)
-				lb_yn_yesstr="$2"
+			--yes-label)
+				lb_yn_yeslbl="$2"
 				shift 2
 				;;
-			--no-str)
-				lb_yn_nostr="$2"
+			--no-label)
+				lb_yn_nolbl="$2"
 				shift 2
 				;;
 			*)
@@ -103,9 +103,9 @@ lb_yesno() {
 
 	# defines choice question
 	if $lb_yn_defaultyes ; then
-		lb_yn_choice="($(echo $lb_yn_yesstr | tr '[:lower:]' '[:upper:]')/$lb_yn_nostr)"
+		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$lb_yn_nolbl)"
 	else
-		lb_yn_choice="($lb_yn_yesstr/$(echo $lb_yn_nostr | tr '[:lower:]' '[:upper:]'))"
+		lb_yn_choice="($lb_yn_yeslbl/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]'))"
 	fi
 
 	# print question
@@ -121,7 +121,7 @@ lb_yesno() {
 		fi
 	else
 		# compare to confirmation string
-		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$lb_yn_yesstr" ] ; then
+		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$lb_yn_yeslbl" ] ; then
 			return 1
 		fi
 	fi
