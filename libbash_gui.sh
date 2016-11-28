@@ -55,6 +55,28 @@ lbg_get_gui() {
 }
 
 
+# Test GUI display
+# Usage: lbg_test_gui COMMAND
+# Return: 0 if OK, 1 is usage error, 2 if GUI is not supported
+lbg_test_gui() {
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# test if GUI is supported
+	lb_array_contains "$1" "${lbg_supported_gui[@]}"
+	if [ $? == 0 ] ; then
+		# test if command exists
+		which "$1" &> /dev/null
+		if [ $? != 0 ] ; then
+			return 2
+		fi
+	else
+		return 2
+	fi
+}
+
+
 # Set default GUI display
 # Usage: lbg_set_gui COMMAND
 # Return: 0 if OK, 1 is usage error, 2 if GUI is not supported
@@ -64,8 +86,7 @@ lbg_set_gui() {
 	fi
 
 	# test if GUI is supported
-	lb_array_contains "$1" "${lbg_supported_gui[@]}"
-	if [ $? == 0 ] ; then
+	if lbg_test_gui "$1" ; then
 		lbg_gui="$1"
 	else
 		return 2
