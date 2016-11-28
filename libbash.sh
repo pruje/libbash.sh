@@ -175,6 +175,25 @@ lb_array_contains() {
 }
 
 
+# Check if a bash function exists
+# Usage: lb_function_exists FUNCTION_NAME
+# Return: exit codes: 0 if exists, 1 if not, 2 if exists but is not a function
+lb_function_exists() {
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	lb_fe_res="$(type -t $1)"
+	if [ $? != 0 ] ; then
+		return 1
+	fi
+
+	if [ "$lb_fe_res" != "function" ] ; then
+		return 2
+	fi
+}
+
+
 ################
 #  FILESYSTEM  #
 ################
