@@ -285,16 +285,21 @@ lb_yesno() {
 # Return: exit code as option number (0: cancelled / 255: bad option)
 lb_choose_option() {
 
+	# catch bad usage
+	if [ $# -lt 2 ] ; then
+		return 255
+	fi
+
 	# default options and local variables
-	local lb_co_default=0
-	local lb_co_options=("")
-	local lb_co_i
+	local lb_chop_default=0
+	local lb_chop_options=("")
+	local lb_chop_i
 
 	# catch options
 	while true ; do
 		case "$1" in
 			--default|-d)
-				lb_co_default="$2"
+				lb_chop_default="$2"
 				shift 2
 				;;
 			*)
@@ -303,13 +308,13 @@ lb_choose_option() {
 		esac
 	done
 
-	lb_co_text="$1"
+	lb_chop_text="$1"
 	shift
 
 	# prepare options; cannot support more than 254 options
-	for ((lb_co_i=1 ; lb_co_i <= 254 ; lb_co_i++)) ; do
+	for ((lb_chop_i=1 ; lb_chop_i <= 254 ; lb_chop_i++)) ; do
 		if [ -n "$1" ] ; then
-			lb_co_options+=("$1")
+			lb_chop_options+=("$1")
 			shift
 		else
 			break
@@ -317,55 +322,55 @@ lb_choose_option() {
 	done
 
 	# verify default option
-	if [ $lb_co_default != 0 ] ; then
-		if ! lb_is_integer "$lb_co_default" ; then
+	if [ $lb_chop_default != 0 ] ; then
+		if ! lb_is_integer "$lb_chop_default" ; then
 			return 255
 		else
-			if [ $lb_co_default -lt 0 ] || [ $lb_co_default -gt ${#lb_co_options[@]} ] ; then
+			if [ $lb_chop_default -lt 0 ] || [ $lb_chop_default -gt ${#lb_chop_options[@]} ] ; then
 				return 255
 			fi
 		fi
 	fi
 
 	# print question
-	echo -e $lb_co_text
+	echo -e $lb_chop_text
 
 	# print options
-	for ((lb_co_i=1 ; lb_co_i < ${#lb_co_options[@]} ; lb_co_i++)) ; do
-		echo "  $lb_co_i. ${lb_co_options[$lb_co_i]}"
+	for ((lb_chop_i=1 ; lb_chop_i < ${#lb_chop_options[@]} ; lb_chop_i++)) ; do
+		echo "  $lb_chop_i. ${lb_chop_options[$lb_chop_i]}"
 	done
 
 	echo
 
-	if [ $lb_co_default != 0 ] ; then
-		echo -n "[$lb_co_default]"
+	if [ $lb_chop_default != 0 ] ; then
+		echo -n "[$lb_chop_default]"
 	fi
 
 	echo -n ": "
 
 	# read user input
-	read lb_co_choice
+	read lb_chop_choice
 
 	# defaut behaviour if input is empty
-	if [ -z "$lb_co_choice" ] ; then
-		if [ $lb_co_default != 0 ] ; then
+	if [ -z "$lb_chop_choice" ] ; then
+		if [ $lb_chop_default != 0 ] ; then
 			# default option
-			return $lb_co_default
+			return $lb_chop_default
 		else
 			# cancel code
 			return 0
 		fi
 	else
 		# check if user choice is integer
-		if ! lb_is_integer "$lb_co_choice" ; then
+		if ! lb_is_integer "$lb_chop_choice" ; then
 			return 255
 		fi
 
 		# check if user choice is valid
-		if [ $lb_co_choice -lt 0 ] || [ $lb_co_choice -gt ${#lb_co_options[@]} ] ; then
+		if [ $lb_chop_choice -lt 0 ] || [ $lb_chop_choice -gt ${#lb_chop_options[@]} ] ; then
 			return 255
 		fi
 
-		return $lb_co_choice
+		return $lb_chop_choice
 	fi
 }
