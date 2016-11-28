@@ -28,7 +28,7 @@ if [ -z "$libbash_version" ] ; then
 fi
 
 # set supported GUIs
-lbg_supported_gui=(kdialog zenity dialog)
+lbg_supported_gui=(kdialog zenity osascript dialog)
 
 # test GUIs
 lbg_gui=""
@@ -128,6 +128,33 @@ lbg_yesno() {
 			lbg_yn_cmd=(zenity --question --title "$lbg_yn_title" --text "$*")
 			;;
 
+		osascript)
+			if [ -z "$lbg_yn_yesstr" ] ; then
+				lbg_yn_yesstr="Yes"
+			fi
+			if [ -z "$lbg_yn_nostr" ] ; then
+				lbg_yn_nostr="No"
+			fi
+
+			#
+			lbg_yn_opts="default button "
+			if $lbg_yn_defaultyes ; then
+				lbg_yn_opts+="1"
+			else
+				lbg_yn_opts+="2"
+			fi
+
+			lbg_yn_res=$(osascript << EOF
+set question to (display dialog "$*" with title "$lbg_yn_title" buttons {"$lbg_yn_yesstr", "$lbg_yn_nostr"} $lbg_yn_opts)
+set answer to button returned of question
+if answer is equal to "$lbg_yn_yesstr" then
+	return 0
+else
+	return 1
+end if
+EOF)
+			return $lbg_yn_res
+			;;
 		dialog)
 			lbg_yn_cmd=(dialog --title "$lbg_yn_title")
 			if ! $lbg_yn_defaultyes ; then
