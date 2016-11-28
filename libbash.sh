@@ -275,3 +275,97 @@ lb_yesno() {
 		fi
 	fi
 }
+
+
+# Prompt user to choose an option
+# You can use up to 254 options
+# Usage: lb_choose_option [options] TEXT OPTION [OPTION...]
+# Options:
+#    -d, --default ID  option to use by default (1-254)
+# Return: exit code as option number (0: cancelled / 255: bad option)
+lb_choose_option() {
+
+	# default options and local variables
+	local lb_co_default=0
+	local lb_co_options=("")
+	local lb_co_i
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--default|-d)
+				lb_co_default="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	lb_co_text="$1"
+	shift
+
+	# prepare options; cannot support more than 254 options
+	for ((lb_co_i=1 ; lb_co_i <= 254 ; lb_co_i++)) ; do
+		if [ -n "$1" ] ; then
+			lb_co_options+=("$1")
+			shift
+		else
+			break
+		fi
+	done
+
+	# verify default option
+	if [ $lb_co_default != 0 ] ; then
+		if ! lb_is_integer "$lb_co_default" ; then
+			return 255
+		else
+			if [ $lb_co_default -lt 0 ] || [ $lb_co_default -gt ${#lb_co_options[@]} ] ; then
+				return 255
+			fi
+		fi
+	fi
+
+	# print question
+	echo -e $lb_co_text
+
+	# print options
+	for ((lb_co_i=1 ; lb_co_i < ${#lb_co_options[@]} ; lb_co_i++)) ; do
+		echo "  $lb_co_i. ${lb_co_options[$lb_co_i]}"
+	done
+
+	echo
+
+	if [ $lb_co_default != 0 ] ; then
+		echo -n "[$lb_co_default]"
+	fi
+
+	echo -n ": "
+
+	# read user input
+	read lb_co_choice
+
+	# defaut behaviour if input is empty
+	if [ -z "$lb_co_choice" ] ; then
+		if [ $lb_co_default != 0 ] ; then
+			# default option
+			return $lb_co_default
+		else
+			# cancel code
+			return 0
+		fi
+	else
+		# check if user choice is integer
+		if ! lb_is_integer "$lb_co_choice" ; then
+			return 255
+		fi
+
+		# check if user choice is valid
+		if [ $lb_co_choice -lt 0 ] || [ $lb_co_choice -gt ${#lb_co_options[@]} ] ; then
+			return 255
+		fi
+
+		return $lb_co_choice
+	fi
+}
