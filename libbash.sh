@@ -103,9 +103,9 @@ lb_yesno() {
 
 	# defines choice question
 	if $lb_yn_defaultyes ; then
-		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$lb_yn_nolbl)"
+		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$(echo $lb_yn_nolbl | tr '[:upper:]' '[:lower:]'))"
 	else
-		lb_yn_choice="($lb_yn_yeslbl/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]'))"
+		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]'))"
 	fi
 
 	# print question
@@ -121,7 +121,7 @@ lb_yesno() {
 		fi
 	else
 		# compare to confirmation string
-		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$lb_yn_yeslbl" ] ; then
+		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')" ] ; then
 			return 1
 		fi
 	fi
