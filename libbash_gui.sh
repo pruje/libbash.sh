@@ -217,3 +217,144 @@ EOF)
 	# execute Command
 	"${lbg_yn_cmd[@]}"
 }
+
+
+# Prompt user to choose an option in graphical mode
+# Usage: lbg_choose_option [options] TEXT OPTION [OPTION...]
+# Options:
+#    -d, --default ID  option to use by default
+# Return: exit code as option number (0: cancelled, 255: error)
+lbg_choose_option() {
+	# catch usage errors
+	if [ $# -lt 2 ] ; then
+		return 255
+	fi
+
+	# default options and local variables
+	local lbg_chop_default=0
+	local lbg_chop_options=("")
+	local lbg_chop_i
+	local lbg_chop_title="$(basename "$0")"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--default|-d)
+				lbg_chop_default="$2"
+				shift 2
+				;;
+			--title|-t)
+				lbg_chop_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	lbg_chop_text="$1"
+	shift
+
+	# prepare options; cannot support more than 254 options
+	for ((lbg_chop_i=1 ; lbg_chop_i <= 254 ; lbg_chop_i++)) ; do
+		if [ -n "$1" ] ; then
+			lbg_chop_options+=("$1")
+			shift
+		else
+			break
+		fi
+	done
+
+	# verify default option
+	if [ $lbg_chop_default != 0 ] ; then
+		if ! lb_is_integer "$lbg_chop_default" ; then
+			echo >&2 "Error: default option $lbg_chop_default is not a number."
+			return 255
+		else
+			if [ $lbg_chop_default -lt 0 ] || [ $lbg_chop_default -gt ${#lbg_chop_options[@]} ] ; then
+				echo >&2 "Error: default option $lbg_chop_default does not exists."
+				return 255
+			fi
+		fi
+	fi
+
+	case "$lbg_gui" in
+		kdialog)
+			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_text")
+
+			# add options
+			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
+				if [ $lbg_chop_i == $lbg_chop_default ] ; then
+					lbg_chop_cmd+=(on)
+				else
+					lbg_chop_cmd+=(off)
+				fi
+			done
+			;;
+
+		zenity)
+			lbg_chop_cmd=(zenity --list --title "$lbg_chop_title" --text "$lbg_chop_text" --radiolist --column "" --column "" --column "")
+
+			# add options
+			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+				if [ $lbg_chop_i == $lbg_chop_default ] ; then
+					lbg_chop_cmd+=(TRUE)
+				else
+					lbg_chop_cmd+=(FALSE)
+				fi
+
+				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
+			done
+			;;
+
+		osascript)
+			# TODO
+			;;
+		dialog)
+			lbg_chop_cmd=(dialog --title "$lbg_chop_title")
+			lbg_chop_cmd+=(--clear --radiolist "$lbg_chop_text" 30 100 100)
+
+			# add options
+			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
+				if [ $lbg_chop_i == $lbg_chop_default ] ; then
+					lbg_chop_cmd+=(on)
+				else
+					lbg_chop_cmd+=(off)
+				fi
+			done
+
+			# execute dialog (complex case)
+			exec 3>&1
+			lbg_chop_res=$("${lbg_chop_cmd[@]}" 2>&1 1>&3)
+			exec 3>&-
+
+			# clear console
+			clear
+			return $lbg_chop_res
+			;;
+
+		*)
+			# console mode
+			lbg_chop_cmd=(lb_choose_option)
+			if [ $lbg_chop_default != 0 ] ; then
+				lbg_chop_cmd+=(-d $lbg_chop_default)
+			fi
+			lbg_chop_cmd+=("$lbg_chop_text" ${lbg_chop_options[@]})
+
+			# execute console function
+			"${lbg_chop_cmd[@]}"
+			return $?
+			;;
+	esac
+
+	# execute command
+	lbg_chop_res=$("${lbg_chop_cmd[@]}" 2> /dev/null)
+	if [ $? != 0 ] ; then
+		return 0
+	fi
+
+	return $lbg_chop_res
+}
