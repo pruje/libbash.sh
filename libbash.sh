@@ -66,68 +66,6 @@ lb_result() {
 }
 
 
-# Prompt user to confirm an action
-# Usage: lb_yesno [options] TEXT
-# Options:
-#    -y, --yes        return yes by default
-#    --yes-label STR  string to use as "YES"
-#    --no-label  STR  string to use as "NO"
-# Return: exit code (0: yes, 1: no)
-lb_yesno() {
-
-	# default options
-	local lb_yn_defaultyes=false
-	local lb_yn_yeslbl="y"
-	local lb_yn_nolbl="n"
-
-	# catch options
-	while true ; do
-		case "$1" in
-			--yes|-y)
-				lb_yn_defaultyes=true
-				shift
-				;;
-			--yes-label)
-				lb_yn_yeslbl="$2"
-				shift 2
-				;;
-			--no-label)
-				lb_yn_nolbl="$2"
-				shift 2
-				;;
-			*)
-				break
-				;;
-		esac
-	done
-
-	# defines choice question
-	if $lb_yn_defaultyes ; then
-		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$(echo $lb_yn_nolbl | tr '[:upper:]' '[:lower:]'))"
-	else
-		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]'))"
-	fi
-
-	# print question
-	echo -e -n "$* $lb_yn_choice: "
-
-	# read user input
-	read lb_yn_confirm
-
-	# defaut behaviour if input is empty
-	if [ -z "$lb_yn_confirm" ] ; then
-		if ! $lb_yn_defaultyes ; then
-			return 1
-		fi
-	else
-		# compare to confirmation string
-		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')" ] ; then
-			return 1
-		fi
-	fi
-}
-
-
 ############################
 #  OPERATIONS ON VARIABLES #
 ############################
@@ -268,5 +206,72 @@ lb_is_empty() {
 
 	if [ "$lb_is_res" ] ; then
 		return 3
+	fi
+}
+
+
+
+######################
+#  USER INTERACTION  #
+######################
+
+# Prompt user to confirm an action
+# Usage: lb_yesno [options] TEXT
+# Options:
+#    -y, --yes        return yes by default
+#    --yes-label STR  string to use as "YES"
+#    --no-label  STR  string to use as "NO"
+# Return: exit code (0: yes, 1: no)
+lb_yesno() {
+
+	# default options
+	local lb_yn_defaultyes=false
+	local lb_yn_yeslbl="y"
+	local lb_yn_nolbl="n"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--yes|-y)
+				lb_yn_defaultyes=true
+				shift
+				;;
+			--yes-label)
+				lb_yn_yeslbl="$2"
+				shift 2
+				;;
+			--no-label)
+				lb_yn_nolbl="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# defines choice question
+	if $lb_yn_defaultyes ; then
+		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$(echo $lb_yn_nolbl | tr '[:upper:]' '[:lower:]'))"
+	else
+		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]'))"
+	fi
+
+	# print question
+	echo -e -n "$* $lb_yn_choice: "
+
+	# read user input
+	read lb_yn_confirm
+
+	# defaut behaviour if input is empty
+	if [ -z "$lb_yn_confirm" ] ; then
+		if ! $lb_yn_defaultyes ; then
+			return 1
+		fi
+	else
+		# compare to confirmation string
+		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')" ] ; then
+			return 1
+		fi
 	fi
 }
