@@ -213,6 +213,23 @@ lb_get_fstype() {
 }
 
 
+# Get space left on device
+# Usage: lb_space_left PATH
+# Return: bytes available; exit code to 1 if error
+lb_space_left() {
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	lb_sl_size=$(df "$1" | tail -1 | awk '{ print $4 }')
+	if [ $? != 0 ] ; then
+		return 1
+	fi
+
+	echo $lb_sl_size
+}
+
+
 # Test if a directory is empty
 # Usage: lb_is_empty PATH
 # Return: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
