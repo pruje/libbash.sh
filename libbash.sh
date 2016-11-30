@@ -240,6 +240,60 @@ lb_realpath() {
 #  USER INTERACTION  #
 ######################
 
+
+# Prompt user to enter a text
+# Usage: lb_yesno [options] TEXT
+# Options:
+#    -d, --default TEXT  default text
+#    -n                  no newline before input
+# Return: exit code, value is set into $lb_input_text variable
+lb_input_text=""
+lb_input_text() {
+
+	# reset result
+	lb_input_text=""
+
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# default options
+	local lb_inp_default=""
+	local lb_inp_opts=""
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--default|-d)
+				lb_inp_default="$2"
+				shift 2
+				;;
+			-n)
+				lb_inp_opts="-n "
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# print question
+	echo $lb_inp_opts -e "$* "
+
+	# read user input
+	read lb_input_text
+
+	# defaut behaviour if input is empty
+	if [ -z $lb_input_text ] ; then
+		if [ -n $lb_inp_default ] ; then
+			lb_input_text="$lb_inp_default"
+			return
+		fi
+	fi
+}
+
+
 # Prompt user to confirm an action
 # Usage: lb_yesno [options] TEXT
 # Options:
@@ -356,7 +410,7 @@ lb_choose_option() {
 		if ! lb_is_integer "$lb_chop_default" ; then
 			return 1
 		else
-			if [ $lb_chop_default -lt 0 ] || [ $lb_chop_default -gt ${#lb_chop_options[@]} ] ; then
+			if [ $lb_chop_default -lt 1 ] || [ $lb_chop_default -ge ${#lb_chop_options[@]} ] ; then
 				return 1
 			fi
 		fi
@@ -397,7 +451,7 @@ lb_choose_option() {
 		fi
 
 		# check if user choice is valid
-		if [ $lb_choose_option -lt 0 ] || [ $lb_chop_choice -gt ${#lb_chop_options[@]} ] ; then
+		if [ $lb_choose_option -lt 1 ] || [ $lb_choose_option -ge ${#lb_chop_options[@]} ] ; then
 			return 3
 		fi
 	fi
