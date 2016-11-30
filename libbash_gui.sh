@@ -94,6 +94,10 @@ lbg_set_gui() {
 }
 
 
+######################
+#  USER INTERACTION  #
+######################
+
 # Prompt user to confirm an action in graphical mode
 # Args: [options] <message>
 # Return: continue (0:YES / 1:NO)
@@ -223,11 +227,17 @@ EOF)
 # Usage: lbg_choose_option [options] TEXT OPTION [OPTION...]
 # Options:
 #    -d, --default ID  option to use by default
-# Return: exit code as option number (0: cancelled, 255: error)
+# Return: value is set into $lb_choose_option variable
+# Exit codes: 0: OK, 1: usage error, 2: cancelled, 3: bad choice
+lbg_choose_option=""
 lbg_choose_option() {
+
+	# reset result
+	lbg_choose_option=""
+
 	# catch usage errors
 	if [ $# -lt 2 ] ; then
-		return 255
+		return 1
 	fi
 
 	# default options and local variables
@@ -257,7 +267,7 @@ lbg_choose_option() {
 	shift
 
 	# prepare options; cannot support more than 254 options
-	for ((lbg_chop_i=1 ; lbg_chop_i <= 254 ; lbg_chop_i++)) ; do
+	while true ; do
 		if [ -n "$1" ] ; then
 			lbg_chop_options+=("$1")
 			shift
@@ -270,15 +280,16 @@ lbg_choose_option() {
 	if [ $lbg_chop_default != 0 ] ; then
 		if ! lb_is_integer "$lbg_chop_default" ; then
 			echo >&2 "Error: default option $lbg_chop_default is not a number."
-			return 255
+			return 1
 		else
-			if [ $lbg_chop_default -lt 0 ] || [ $lbg_chop_default -gt ${#lbg_chop_options[@]} ] ; then
+			if [ $lbg_chop_default -lt 1 ] || [ $lbg_chop_default -ge ${#lbg_chop_options[@]} ] ; then
 				echo >&2 "Error: default option $lbg_chop_default does not exists."
-				return 255
+				return 1
 			fi
 		fi
 	fi
 
+	# display dialog
 	case "$lbg_gui" in
 		kdialog)
 			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_text")
@@ -292,6 +303,10 @@ lbg_choose_option() {
 					lbg_chop_cmd+=(off)
 				fi
 			done
+
+			# execute command
+			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
+			lbg_chop_res=$?
 			;;
 
 		zenity)
@@ -307,6 +322,10 @@ lbg_choose_option() {
 
 				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
 			done
+
+			# execute command
+			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
+			lbg_chop_res=$?
 			;;
 
 		osascript)
@@ -328,12 +347,12 @@ lbg_choose_option() {
 
 			# execute dialog (complex case)
 			exec 3>&1
-			lbg_chop_res=$("${lbg_chop_cmd[@]}" 2>&1 1>&3)
+			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2>&1 1>&3)
+			lbg_chop_res=$?
 			exec 3>&-
 
 			# clear console
 			clear
-			return $lbg_chop_res
 			;;
 
 		*)
@@ -346,15 +365,20 @@ lbg_choose_option() {
 
 			# execute console function
 			"${lbg_chop_cmd[@]}"
-			return $?
+			lbg_chop_res=$?
+			if [ $lbg_chop_res == 0 ] ; then
+				# forward result
+				lbg_choose_option="$lb_choose_option"
+			fi
 			;;
 	esac
 
-	# execute command
-	lbg_chop_res=$("${lbg_chop_cmd[@]}" 2> /dev/null)
-	if [ $? != 0 ] ; then
-		return 0
+	if [ $lbg_chop_res != 0 ] ; then
+		return lbg_chop_res
 	fi
 
-	return $lbg_chop_res
+	# check if user choice is valid
+	if [ $lbg_choose_option -lt 1 ] || [ $lbg_choose_option -ge ${#lbg_chop_options[@]} ] ; then
+		return 3
+	fi
 }
