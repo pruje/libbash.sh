@@ -210,6 +210,31 @@ lb_is_empty() {
 }
 
 
+# Get realpath of a file
+# Usage: lb_realpath PATH
+# Return: real path; exit codes: 0 if OK, 1 if usage error, 2 if not found
+lb_realpath() {
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# test if path exists
+	if ! [ -e "$1" ] ; then
+		return 1
+	fi
+
+	if [ "$(lb_detect_os)" == "macOS" ] ; then
+		# macOS which does not support readlink -f option
+		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1"
+	else
+		readlink -f "$1"
+	fi
+
+	if [ $? != 0 ] ; then
+		return 2
+	fi
+}
+
 
 ######################
 #  USER INTERACTION  #
