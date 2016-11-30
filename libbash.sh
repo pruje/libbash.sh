@@ -306,13 +306,18 @@ lb_yesno() {
 # You can use up to 254 options
 # Usage: lb_choose_option [options] TEXT OPTION [OPTION...]
 # Options:
-#    -d, --default ID  option to use by default (1-254)
-# Return: exit code as option number (0: cancelled / 255: bad option)
+#    -d, --default ID  option to use by default
+# Return: value is set into $lb_choose_option variable
+# Exit codes: 0: OK, 1: usage error, 2: cancelled, 3: bad choice
+lb_choose_option=""
 lb_choose_option() {
+
+	# reset result
+	lb_choose_option=""
 
 	# catch bad usage
 	if [ $# -lt 2 ] ; then
-		return 255
+		return 1
 	fi
 
 	# default options and local variables
@@ -336,8 +341,8 @@ lb_choose_option() {
 	lb_chop_text="$1"
 	shift
 
-	# prepare options; cannot support more than 254 options
-	for ((lb_chop_i=1 ; lb_chop_i <= 254 ; lb_chop_i++)) ; do
+	# prepare options
+	while true ; do
 		if [ -n "$1" ] ; then
 			lb_chop_options+=("$1")
 			shift
@@ -349,10 +354,10 @@ lb_choose_option() {
 	# verify default option
 	if [ $lb_chop_default != 0 ] ; then
 		if ! lb_is_integer "$lb_chop_default" ; then
-			return 255
+			return 1
 		else
 			if [ $lb_chop_default -lt 0 ] || [ $lb_chop_default -gt ${#lb_chop_options[@]} ] ; then
-				return 255
+				return 1
 			fi
 		fi
 	fi
@@ -374,28 +379,26 @@ lb_choose_option() {
 	echo -n ": "
 
 	# read user input
-	read lb_chop_choice
+	read lb_choose_option
 
 	# defaut behaviour if input is empty
-	if [ -z "$lb_chop_choice" ] ; then
+	if [ -z "$lb_choose_option" ] ; then
 		if [ $lb_chop_default != 0 ] ; then
 			# default option
-			return $lb_chop_default
+			lb_choose_option=$lb_chop_default
 		else
 			# cancel code
-			return 0
+			return 2
 		fi
 	else
 		# check if user choice is integer
-		if ! lb_is_integer "$lb_chop_choice" ; then
-			return 255
+		if ! lb_is_integer "$lb_choose_option" ; then
+			return 3
 		fi
 
 		# check if user choice is valid
-		if [ $lb_chop_choice -lt 0 ] || [ $lb_chop_choice -gt ${#lb_chop_options[@]} ] ; then
-			return 255
+		if [ $lb_choose_option -lt 0 ] || [ $lb_chop_choice -gt ${#lb_chop_options[@]} ] ; then
+			return 3
 		fi
-
-		return $lb_chop_choice
 	fi
 }
