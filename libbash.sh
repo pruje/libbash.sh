@@ -184,6 +184,26 @@ lb_space_left() {
 }
 
 
+###########################
+#  FILES AND DIRECTORIES  #
+###########################
+
+# Get user's home directory
+# Usage: lb_get_home_directory [USER]
+# Options: user (if not set, use current user)
+# Return: path
+lb_homepath() {
+	eval lb_homedir=~$1
+	if [ $? == 0 ] ; then
+		if ! [ -d "$lb_homedir" ] ; then
+			return 1
+		fi
+		# return path
+		echo "$lb_homedir"
+	fi
+}
+
+
 # Test if a directory is empty
 # Usage: lb_is_empty PATH
 # Return: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
@@ -436,7 +456,7 @@ lb_choose_option() {
 	read lb_choose_option
 
 	# defaut behaviour if input is empty
-	if [ -z "$lb_choose_option" ] ; then
+	if [ -z $lb_choose_option ] ; then
 		if [ $lb_chop_default != 0 ] ; then
 			# default option
 			lb_choose_option=$lb_chop_default
