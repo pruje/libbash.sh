@@ -205,9 +205,9 @@ lb_homepath() {
 
 
 # Test if a directory is empty
-# Usage: lb_is_empty PATH
+# Usage: lb_dir_is_empty PATH
 # Return: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
-lb_is_empty() {
+lb_dir_is_empty() {
 	# test if argument exists
 	if [ $# == 0 ] ; then
 		return 1
