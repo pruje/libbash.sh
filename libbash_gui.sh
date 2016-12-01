@@ -19,6 +19,9 @@
 #  INITIALIZATION  #
 ####################
 
+# set version
+libbash_gui_version="0.1.0"
+
 # test dependency
 if [ -z "$libbash_version" ] ; then
 	echo >&2 "Error: libbash core not loaded!"
@@ -97,6 +100,98 @@ lbg_set_gui() {
 ######################
 #  USER INTERACTION  #
 ######################
+
+# Prompt user to enter a text
+# Usage: lbg_input_text [options] TEXT
+# Options:
+#    -d, --default TEXT  default text
+#    -t, --title TEXT    dialog title
+# Return: exit code, value is set into $lbg_input_text variable
+lbg_input_text=""
+lbg_input_text() {
+
+	# reset result
+	lbg_input_text=""
+
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# default options
+	local lbg_inp_default=""
+	local lbg_inp_title="$(basename "$0")"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--default|-d)
+				lbg_inp_default="$2"
+				shift 2
+				;;
+			--title|-t)
+				lbg_inp_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_inp_cmd=(kdialog --title "$lbg_inp_title" --inputbox "$*" "$lbg_inp_default")
+			;;
+
+		zenity)
+			lbg_inp_cmd=(zenity --entry --title "$lbg_inp_title" --entry-text "$lbg_inp_default" --text "$*")
+			;;
+
+		osascript)
+			lbg_input_text=$(osascript 2> /dev/null << EOF
+set answer to the text returned of (display dialog "$*" with title "$lbg_inp_title" default answer "$lbg_inp_default")
+EOF)
+			return $?
+			;;
+
+		dialog)
+			lbg_inp_cmd=(dialog --title "$lbg_inp_title" --clear --inputbox "$*" 10 100 "$lbg_inp_default")
+
+			# execute dialog (complex case)
+			exec 3>&1
+			lbg_input_text=$("${lbg_inp_cmd[@]}" 2>&1 1>&3)
+			lbg_inp_res=$?
+			exec 3>&-
+
+			# clear console
+			clear
+			return $lbg_inp_res
+			;;
+
+		*)
+			# console mode
+			lbg_inp_cmd=(lb_input_text)
+			if [ -n $lbg_inp_default ] ; then
+				lbg_inp_cmd+=(-d "$lbg_inp_default")
+			fi
+			lbg_inp_cmd+=("$*")
+
+			# execute console function
+			"${lbg_inp_cmd[@]}"
+			lbg_inp_res=$?
+			if [ $lbg_inp_res == 0 ] ; then
+				# forward result
+				lbg_input_text="$lb_input_text"
+			fi
+
+			return $lbg_inp_res
+			;;
+	esac
+
+	lbg_input_text=$("${lbg_inp_cmd[@]}" 2> /dev/null)
+}
+
 
 # Prompt user to confirm an action in graphical mode
 # Args: [options] <message>
