@@ -172,7 +172,7 @@ EOF)
 		*)
 			# console mode
 			lbg_inp_cmd=(lb_input_text)
-			if [ -n $lbg_inp_default ] ; then
+			if [ -n "$lbg_inp_default" ] ; then
 				lbg_inp_cmd+=(-d "$lbg_inp_default")
 			fi
 			lbg_inp_cmd+=("$*")

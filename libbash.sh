@@ -308,7 +308,7 @@ lb_input_text() {
 	read lb_input_text
 
 	# defaut behaviour if input is empty
-	if [ -z $lb_input_text ] ; then
+	if [ -z "$lb_input_text" ] ; then
 		if [ -n "$lb_inp_default" ] ; then
 			lb_input_text="$lb_inp_default"
 			return 0
@@ -461,7 +461,7 @@ lb_choose_option() {
 	read lb_choose_option
 
 	# defaut behaviour if input is empty
-	if [ -z $lb_choose_option ] ; then
+	if [ -z "$lb_choose_option" ] ; then
 		if [ $lb_chop_default != 0 ] ; then
 			# default option
 			lb_choose_option=$lb_chop_default
