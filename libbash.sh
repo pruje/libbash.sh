@@ -162,7 +162,7 @@ lb_get_fstype() {
 	fi
 
 	# get type from df command
-	df --output=fstype $1 2> /dev/null | tail -n 1
+	df --output=fstype "$1" | tail -n 1 2> /dev/null
 	return ${PIPESTATUS[0]}
 }
 
@@ -171,16 +171,13 @@ lb_get_fstype() {
 # Usage: lb_space_left PATH
 # Return: bytes available; exit code to 1 if error
 lb_space_left() {
+	# catch errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
-	lb_sl_size=$(df "$1" | tail -1 | awk '{ print $4 }')
-	if [ $? != 0 ] ; then
-		return 1
-	fi
-
-	echo $lb_sl_size
+	df "$1" | tail -n 1 | awk '{ print $4 }' 2> /dev/null
+	return ${PIPESTATUS[0]}
 }
 
 
@@ -262,7 +259,7 @@ lb_realpath() {
 
 
 # Prompt user to enter a text
-# Usage: lb_yesno [options] TEXT
+# Usage: lb_input_text [options] TEXT
 # Options:
 #    -d, --default TEXT  default text
 #    -n                  no newline before input
