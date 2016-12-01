@@ -299,16 +299,24 @@ lb_input_text() {
 	done
 
 	# print question
-	echo $lb_inp_opts -e "$* "
+	echo -n -e $*
+
+	if [ -n "$lb_inp_default" ] ; then
+		echo -n -e " [$lb_inp_default]"
+	fi
+
+	echo $lb_inp_opts " "
 
 	# read user input
 	read lb_input_text
 
 	# defaut behaviour if input is empty
 	if [ -z $lb_input_text ] ; then
-		if [ -n $lb_inp_default ] ; then
+		if [ -n "$lb_inp_default" ] ; then
 			lb_input_text="$lb_inp_default"
-			return
+			return 0
+		else
+			return 255
 		fi
 	fi
 }
