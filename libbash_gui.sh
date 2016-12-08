@@ -314,7 +314,252 @@ EOF)
 	esac
 
 	# execute command
-	"${lbg_yn_cmd[@]}"
+	"${lbg_yn_cmd[@]}" 2> /dev/null
+}
+
+
+# Prompt user to enter a password
+# Usage: lbg_input_password [options]
+# Options:
+#    -l, --label TEXT        label for dialog
+#    -t, --title TEXT        dialog title
+#    -c, --confirm           display a confirmation dialog
+#    --confirm-label TEXT    display a confirmation dialog
+# Return: exit code, value is set into $lbg_input_text variable
+lbg_input_password=""
+lbg_input_password() {
+
+	# reset result
+	lbg_input_password=""
+
+	# default options
+	local lbg_inpw_label="Enter your password:"
+	local lbg_inpw_confirm=false
+	local lbg_inpw_confirm_label="Confirm password:"
+	local lbg_inpw_title="$(basename "$0")"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			-l|--label)
+				lbg_inpw_label="$2"
+				shift 2
+				;;
+			-c|--confirm)
+				lbg_inpw_confirm=true
+				shift
+				;;
+			--confirm-label)
+				lbg_inpw_confirm_label="$2"
+				shift 2
+				;;
+			-t|--title)
+				lbg_inpw_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# display dialog(s)
+	for lbg_inpw_i in $(seq 1 2) ; do
+
+		if [ $lbg_inpw_i -gt 1 ] ; then
+			lbg_inpw_label="$lbg_inpw_confirm_label"
+		fi
+
+		case "$lbg_gui" in
+			kdialog)
+				lbg_inpw_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
+				lbg_inpw_res=$?
+				;;
+
+			zenity)
+				lbg_inpw_password=$(zenity --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
+				lbg_inpw_res=$?
+				;;
+
+			osascript)
+				# TODO
+				;;
+
+			dialog)
+				# execute dialog (complex case)
+				exec 3>&1
+				lbg_inpw_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" 10 50 2>&1 1>&3)
+				lbg_inpw_res=$?
+				exec 3>&-
+
+				# clear console
+				clear
+				;;
+
+			*)
+				# console mode
+				# execute console function
+				lb_input_password --label "$lbg_inpw_label"
+				if [ $? == 0 ] ; then
+					if [ -n "$lb_input_password" ] ; then
+						# forward result
+						lbg_inpw_password="$lb_input_password"
+						lbg_inpw_res=0
+					else
+						lbg_inpw_res=1
+					fi
+				else
+					lbg_inpw_res=1
+				fi
+				;;
+		esac
+
+		if [ $lbg_inpw_res != 0 ] ; then
+			return $lbg_inpw_res
+		fi
+
+		# if no confirm, exit
+		if $lbg_inpw_confirm ; then
+			# if first iteration, continue
+			if [ $lbg_inpw_i == 1 ] ; then
+				lbg_inpw_password_confirm="$lbg_inpw_password"
+				continue
+			fi
+
+			# comparison with confirm password
+			if [ "$lbg_inpw_password" != "$lbg_inpw_password_confirm" ] ; then
+				return 1
+			fi
+		fi
+
+		lbg_input_password="$lbg_inpw_password"
+		return $lbg_inpw_res
+	done
+}
+
+
+# Prompt user to confirm an action in graphical mode
+# Args: [options] <message>
+# Return: continue (0:YES / 1:NO)
+lbg_yesno() {
+	# default values
+	local lbg_yn_defaultyes=false
+	local lbg_yn_yeslbl
+	local lbg_yn_nolbl=""
+	local lbg_yn_title="$(basename "$0")"
+	local lbg_yn_cmd=()
+
+	lbg_yn_yeslbl=""
+	lbg_yn_nolbl=""
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--yes|-y)
+				lbg_yn_defaultyes=true
+				shift
+				;;
+			--yes-label)
+				lbg_yn_yeslbl="$2"
+				shift 2
+				;;
+			--no-label)
+				lbg_yn_nolbl="$2"
+				shift 2
+				;;
+			--title|-t)
+				lbg_yn_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	case "$lbg_gui" in
+		kdialog)
+			lbg_yn_cmd=(kdialog --title "$lbg_yn_title")
+			if [ -n "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
+			fi
+			if [ -n "$lbg_yn_nolbl" ] ; then
+				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
+			fi
+			lbg_yn_cmd+=(--yesno "$*")
+			;;
+
+		zenity)
+			lbg_yn_cmd=(zenity --question --title "$lbg_yn_title" --text "$*")
+			;;
+
+		osascript)
+			if [ -z "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_yeslbl="Yes"
+			fi
+			if [ -z "$lbg_yn_nolbl" ] ; then
+				lbg_yn_nolbl="No"
+			fi
+
+			#
+			lbg_yn_opts="default button "
+			if $lbg_yn_defaultyes ; then
+				lbg_yn_opts+="1"
+			else
+				lbg_yn_opts+="2"
+			fi
+
+			lbg_yn_res=$(osascript << EOF
+set question to (display dialog "$*" with title "$lbg_yn_title" buttons {"$lbg_yn_yeslbl", "$lbg_yn_nolbl"} $lbg_yn_opts)
+set answer to button returned of question
+if answer is equal to "$lbg_yn_yeslbl" then
+	return 0
+else
+	return 1
+end if
+EOF)
+			return $lbg_yn_res
+			;;
+		dialog)
+			lbg_yn_cmd=(dialog --title "$lbg_yn_title")
+			if ! $lbg_yn_defaultyes ; then
+				lbg_yn_cmd+=(--defaultno)
+			fi
+			if [ -n "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
+			fi
+			if [ -n "$lbg_yn_nolbl" ] ; then
+				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
+			fi
+			lbg_yn_cmd+=(--clear --yesno "$*" 10 100)
+
+			# execute dialog
+			"${lbg_yn_cmd[@]}"
+			lbg_yn_res=$?
+
+			# clear console
+			clear
+			return $lbg_yn_res
+			;;
+
+		*)
+			# console mode
+			lbg_yn_cmd=(lb_yesno)
+			if $lbg_yn_defaultyes ; then
+				lbg_yn_cmd+=(-y)
+			fi
+			if [ -n "$lbg_yn_yeslbl" ] ; then
+				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
+			fi
+			if [ -n "$lbg_yn_nolbl" ] ; then
+				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
+			fi
+			lbg_yn_cmd+=("$*")
+			;;
+	esac
+
+	# execute command
+	"${lbg_yn_cmd[@]}" 2> /dev/null
 }
 
 
