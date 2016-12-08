@@ -2,7 +2,7 @@
 
 ####################################################
 #
-#  libbash.sh
+#  libbash
 #
 #  Author: Jean Prunneaux (http://jean.prunneaux.com)
 #
@@ -315,6 +315,64 @@ lb_input_text() {
 		else
 			return 255
 		fi
+	fi
+}
+
+
+# Prompt user to enter a password
+# Usage: lb_input_password [options]
+# Options:
+#    -l, --label TEXT      label for question
+#    -c, --confirm         confirm password
+#    --confirm-label TEXT  confirmation label
+# Return: exit code, value is set into $lb_input_password variable
+lb_input_password=""
+lb_input_password() {
+
+	# reset result
+	lb_input_password=""
+
+	local lb_inpw_label="Password:"
+	local lb_inpw_confirm=false
+	local lb_inpw_confirm_label="Confirm password:"
+
+	while true ; do
+		case "$1" in
+			-l|--label)
+				lb_inpw_label="$2"
+				shift 2
+				;;
+			-c|--confirm)
+				lb_inpw_confirm=true
+				shift
+				;;
+			--confirm-label)
+				lb_inpw_confirm_label="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	read -s -p "$lb_inpw_label " lb_inpw_password
+	echo
+
+	lb_inpw_password_confirm="$lb_inpw_password"
+
+	if [ -n "$lb_inpw_password" ] ; then
+		if $lb_inpw_confirm ; then
+			read -s -p "$lb_inpw_confirm_label " lb_inpw_password_confirm
+			echo
+		fi
+	fi
+
+	if [ "$lb_inpw_password" == "$lb_inpw_password_confirm" ] ; then
+		lb_input_password="$lb_inpw_password"
+		return 0
+	else
+		return 2
 	fi
 }
 
