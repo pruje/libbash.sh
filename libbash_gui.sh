@@ -313,7 +313,7 @@ EOF)
 			;;
 	esac
 
-	# execute Command
+	# execute command
 	"${lbg_yn_cmd[@]}"
 }
 
@@ -426,9 +426,9 @@ lbg_choose_option() {
 		osascript)
 			# TODO
 			;;
+
 		dialog)
-			lbg_chop_cmd=(dialog --title "$lbg_chop_title")
-			lbg_chop_cmd+=(--clear --radiolist "$lbg_chop_text" 30 100 100)
+			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_text" 30 100 100)
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
@@ -476,4 +476,103 @@ lbg_choose_option() {
 	if [ $lbg_choose_option -lt 1 ] || [ $lbg_choose_option -ge ${#lbg_chop_options[@]} ] ; then
 		return 3
 	fi
+}
+
+
+###########################
+#  FILES AND DIRECTORIES  #
+###########################
+
+# Dialog to choose a directory
+# Usage: lbg_choose_directory PATH
+lbg_choose_directory=""
+lbg_choose_directory() {
+
+	# reset result
+	lbg_choose_directory=""
+
+	# catch usage errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	local lbg_chdir_title="$(basename "$0")"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--title|-t)
+				lbg_chdir_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	local lbg_chdir_path="$1"
+
+	if ! [ -d "$lbg_chdir_path" ] ; then
+		echo >&2 "Error: path $lbg_chdir_path does not exists!"
+		return 1
+	fi
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_chdir_cmd=(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path")
+			;;
+
+		zenity)
+			lbg_chdir_cmd=(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path")
+			;;
+
+		osascript)
+			# TODO
+			;;
+
+		dialog)
+			lbg_chdir_cmd=(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" 30 100)
+
+			# execute dialog (complex case)
+			exec 3>&1
+			lbg_choose_directory=$("${lbg_chdir_cmd[@]}" 2>&1 1>&3)
+			lbg_chdir_res=$?
+			exec 3>&-
+
+			# clear console
+			clear
+
+			return $lbg_chdir_res
+			;;
+
+		*)
+			# console mode
+			lbg_chdir_cmd=(lb_input_text -d "$lbg_chdir_path")
+
+			if [ "$lbg_chdir_title" == "$(basename "$0")" ] ; then
+				lbg_chdir_cmd+=("Choose a directory")
+			else
+				lbg_chdir_cmd+=("$lbg_chdir_title")
+			fi
+
+			# execute console function
+			"${lbg_chdir_cmd[@]}"
+			lbg_chdir_res=$?
+			if [ $lbg_chdir_res == 0 ] ; then
+				# if input is not a directory, error
+				if ! [ -d "$lb_input_text" ] ; then
+					return 1
+				fi
+
+				# forward result
+				lbg_choose_directory="$lb_input_text"
+			fi
+			return $lbg_chdir_res
+			;;
+	esac
+
+	# execute command
+	lbg_choose_directory=$("${lbg_chdir_cmd[@]}" 2> /dev/null)
 }
