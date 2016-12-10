@@ -176,7 +176,7 @@ lb_space_left() {
 		return 1
 	fi
 
-	df "$1" | tail -n 1 | awk '{ print $4 }' 2> /dev/null
+	df --output=avail "$1" | tail -n 1 2> /dev/null
 	return ${PIPESTATUS[0]}
 }
 
