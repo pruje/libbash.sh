@@ -56,6 +56,7 @@ lb_loglevels=("$lb_default_error_label" "$lb_default_warning_label" "$lb_default
 # Prints a message to the console, with colors and formatting
 # Usage: lb_print [options] TEXT
 # Options:
+#   -n      no line return
 #   --bold  print in bold format
 #   --cyan, --green, --yellow, --red  print in selected color
 lb_print() {
@@ -65,6 +66,10 @@ lb_print() {
 	# get options
 	while true ; do
 		case "$1" in
+			-n)
+				lb_print_opts+="-n "
+				shift
+				;;
 			--bold)
 				lb_print_format+=(1)
 				shift
@@ -93,7 +98,7 @@ lb_print() {
 
 	# append formatting options
 	if [ ${#lb_print_format[@]} -gt 0 ] ; then
-		lb_print_opts="\e["
+		lb_print_opts+="\e["
 		for lb_print_f in ${lb_print_format[@]} ; do
 			lb_print_opts+=";$lb_print_f"
 		done
@@ -101,13 +106,14 @@ lb_print() {
 	fi
 
 	# print to the console
-	echo -e "$lb_print_opts$*\e[0m"
+	echo -e $lb_print_opts"$*\e[0m"
 }
 
 
 # Print a message to the console, can set a verbose level and can be added to logs
 # Usage: lb_display [options] TEXT
 # Options:
+#   -n                 no line return
 #   -l, --level LEVEL  choose a display level (will be the same for logs)
 #   -p, --prefix       print [LEVEL] prefix before text
 #   --log              append text to log file if defined
@@ -115,14 +121,20 @@ lb_print() {
 #   0: ok
 #   1: logs could not be written
 lb_display() {
+	# default options
 	local lb_dp_log=false
 	local lb_dp_prefix=false
+	local lb_dp_opts=""
 	local lb_dp_level=""
 	local lb_dp_exit=0
 
 	# get options
 	while true ; do
 		case "$1" in
+			-n)
+				lb_dp_opts="-n "
+				shift
+				;;
 			-l|--level)
 				lb_dp_level="$2"
 				shift 2
@@ -166,7 +178,7 @@ lb_display() {
 
 	# print into logfile
 	if $lb_dp_log ; then
-		lb_log --level "$lb_dp_level" "$lb_dp_msgprefix$*"
+		lb_log $lb_dp_opts--level "$lb_dp_level" "$lb_dp_msgprefix$*"
 		lb_dp_exit=$?
 	fi
 
@@ -194,7 +206,7 @@ lb_display() {
 	fi
 
 	# print text
-	lb_print "$lb_dp_msgprefix$*"
+	lb_print $lb_dp_opts"$lb_dp_msgprefix$*"
 
 	return $lb_dp_exit
 }
@@ -427,6 +439,7 @@ lb_set_loglevel() {
 # Print text into log file
 # Usage: lb_log [options] TEXT
 # Options:
+#   -n                  no line return
 #   -l, --level LEVEL   set log level
 #   -p, --level-prefix  print [LEVEL] prefix
 #   -d, --date-prefix   print [date] prefix
@@ -447,11 +460,16 @@ lb_log() {
 	local lb_log_date=false
 	local lb_log_prefix=false
 	local lb_log_erase=false
+	local lb_log_opts=""
 	local lb_log_level=""
 
 	# get options
 	while true ; do
 		case "$1" in
+			-n)
+				lb_log_opts="-n "
+				shift
+				;;
 			-l|--level)
 				lb_log_level="$2"
 				shift 2
@@ -513,9 +531,9 @@ lb_log() {
 
 	# print into log file
 	if $lb_log_erase ; then
-		echo -e $lb_log_text > "$lb_logfile"
+		echo -e $lb_log_opts$lb_log_text > "$lb_logfile"
 	else
-		echo -e $lb_log_text >> "$lb_logfile"
+		echo -e $lb_log_opts$lb_log_text >> "$lb_logfile"
 	fi
 
 	# unknown write error
@@ -587,9 +605,9 @@ lb_print_result() {
 	fi
 
 	if [ $lb_prs_res == 0 ] ; then
-		lb_display "$lb_prs_opts$lb_prs_ok"
+		lb_display $lb_prs_opts"$lb_prs_ok"
 	else
-		lb_display "$lb_prs_opts$lb_prs_failed"
+		lb_display $lb_prs_opts"$lb_prs_failed"
 
 		# if exit on error, exit
 		if $lb_prs_errorexit ; then
@@ -1121,4 +1139,8 @@ lb_log_debug() {
 # See lb_print_result for usage
 lb_result() {
 	lb_print_result $*
+}
+
+lb_short_result() {
+	lb_print_result --ok-label "[  OK  ]" --failed-label "[ FAILED ]" $*
 }
