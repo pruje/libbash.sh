@@ -21,6 +21,8 @@
 
 # set version
 libbash_version="0.1.0"
+
+# set log file and default log levels
 lb_logfile=""
 lb_loglevel=""
 lb_loglevels=(ERROR WARNING INFO DEBUG)
@@ -30,30 +32,32 @@ lb_loglevels=(ERROR WARNING INFO DEBUG)
 #  DISPLAY AND LOGS  #
 ######################
 
-lb_echo() {
-	local lb_echo_format=()
-	local lb_echo_opts=""
+# Prints a message to the console, with colors and formatting
+# Usage: lb_print [options] TEXT
+lb_print() {
+	local lb_print_format=()
+	local lb_print_opts=""
 
 	while true ; do
 		case "$1" in
 			--bold)
-				lb_echo_format+=(1)
+				lb_print_format+=(1)
 				shift
 				;;
 			--cyan)
-				lb_echo_format+=(36)
+				lb_print_format+=(36)
 				shift
 				;;
 			--green)
-				lb_echo_format+=(32)
+				lb_print_format+=(32)
 				shift
 				;;
 			--yellow)
-				lb_echo_format+=(33)
+				lb_print_format+=(33)
 				shift
 				;;
 			--red)
-				lb_echo_format+=(31)
+				lb_print_format+=(31)
 				shift
 				;;
 			*)
@@ -62,16 +66,17 @@ lb_echo() {
 		esac
 	done
 
-	if [ ${#lb_echo_format[@]} -gt 0 ] ; then
-		lb_echo_opts="\e["
-		for lb_echo_f in ${lb_echo_format[@]} ; do
-			lb_echo_opts+=";$lb_echo_f"
+	if [ ${#lb_print_format[@]} -gt 0 ] ; then
+		lb_print_opts="\e["
+		for lb_print_f in ${lb_print_format[@]} ; do
+			lb_print_opts+=";$lb_print_f"
 		done
-		lb_echo_opts+="m"
+		lb_print_opts+="m"
 	fi
 
-	echo -e "$lb_echo_opts$*\e[0m"
+	echo -e "$lb_print_opts$*\e[0m"
 }
+
 
 
 lb_display() {
@@ -129,16 +134,16 @@ lb_display() {
 	if $lb_dp_prefix ; then
 		case "$lb_dp_level" in
 			ERROR)
-				lb_dp_msgprefix="$(lb_echo --red $lb_dp_level)"
+				lb_dp_msgprefix="$(lb_print --red $lb_dp_level)"
 				;;
 			WARNING)
-				lb_dp_msgprefix="$(lb_echo --yellow $lb_dp_level)"
+				lb_dp_msgprefix="$(lb_print --yellow $lb_dp_level)"
 				;;
 			INFO)
-				lb_dp_msgprefix="$(lb_echo --green $lb_dp_level)"
+				lb_dp_msgprefix="$(lb_print --green $lb_dp_level)"
 				;;
 			DEBUG)
-				lb_dp_msgprefix="$(lb_echo --cyan $lb_dp_level)"
+				lb_dp_msgprefix="$(lb_print --cyan $lb_dp_level)"
 				;;
 			*)
 				lb_dp_msgprefix="$lb_dp_level"
@@ -149,24 +154,11 @@ lb_display() {
 	fi
 
 	# print text
-	lb_echo "$lb_dp_msgprefix$*"
+	lb_print "$lb_dp_msgprefix$*"
 }
 
 
-# Common display functions
-# Usage: TEXT
-lb_display_error() {
-	lb_display -p -l ERROR $*
-}
-lb_display_warning() {
-	lb_display -p -l WARNING $*
-}
-lb_display_info() {
-	lb_display -p -l INFO $*
-}
-lb_display_debug() {
-	lb_display -p -l DEBUG $*
-}
+
 
 
 lb_get_logfile() {
@@ -390,22 +382,6 @@ lb_log() {
 	else
 		echo -e $lb_log_text >> "$lb_logfile"
 	fi
-}
-
-
-# Common log functions
-# Usage: TEXT
-lb_log_error() {
-	lb_log -p -l ERROR $*
-}
-lb_log_warning() {
-	lb_log -p -l WARNING $*
-}
-lb_log_info() {
-	lb_log -p -l INFO $*
-}
-lb_log_debug() {
-	lb_log -p -l DEBUG $*
 }
 
 
@@ -895,4 +871,45 @@ lb_choose_option() {
 			return 3
 		fi
 	fi
+}
+
+
+###############################
+#  ALIASES AND COMPATIBILITY  #
+###############################
+
+# Print a message
+# See lb_print for usage
+lb_echo() {
+	lb_print $*
+}
+
+# Common display functions
+# Usage: TEXT
+lb_display_error() {
+	lb_display -p -l ERROR $*
+}
+lb_display_warning() {
+	lb_display -p -l WARNING $*
+}
+lb_display_info() {
+	lb_display -p -l INFO $*
+}
+lb_display_debug() {
+	lb_display -p -l DEBUG $*
+}
+
+# Common log functions
+# Usage: TEXT
+lb_log_error() {
+	lb_log -p -l ERROR $*
+}
+lb_log_warning() {
+	lb_log -p -l WARNING $*
+}
+lb_log_info() {
+	lb_log -p -l INFO $*
+}
+lb_log_debug() {
+	lb_log -p -l DEBUG $*
 }
