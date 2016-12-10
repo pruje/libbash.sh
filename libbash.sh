@@ -22,10 +22,31 @@
 # set version
 libbash_version="0.1.0"
 
+
+####################
+#  DEFAULT VALUES  #
+####################
+
+# default labels
+lb_default_result_ok_label="... Done!"
+lb_default_result_failed_label="... Failed!"
+lb_default_ok_label="OK"
+lb_default_cancel_label="Cancel"
+lb_default_yes_label="Yes"
+lb_default_no_label="No"
+lb_default_y_label="y"
+lb_default_n_label="n"
+lb_default_debug_label="DEBUG"
+lb_default_info_label="INFO"
+lb_default_warning_label="WARNING"
+lb_default_error_label="ERROR"
+
 # set log file and default log levels
 lb_logfile=""
 lb_loglevel=""
-lb_loglevels=(ERROR WARNING INFO DEBUG)
+
+# log levels, by default: ERROR WARNING INFO DEBUG
+lb_loglevels=("$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
 
 ######################
@@ -34,10 +55,14 @@ lb_loglevels=(ERROR WARNING INFO DEBUG)
 
 # Prints a message to the console, with colors and formatting
 # Usage: lb_print [options] TEXT
+# Options:
+#   --bold  print in bold format
+#   --cyan, --green, --yellow, --red  print in selected color
 lb_print() {
 	local lb_print_format=()
 	local lb_print_opts=""
 
+	# get options
 	while true ; do
 		case "$1" in
 			--bold)
@@ -66,6 +91,7 @@ lb_print() {
 		esac
 	done
 
+	# append formatting options
 	if [ ${#lb_print_format[@]} -gt 0 ] ; then
 		lb_print_opts="\e["
 		for lb_print_f in ${lb_print_format[@]} ; do
@@ -74,16 +100,27 @@ lb_print() {
 		lb_print_opts+="m"
 	fi
 
+	# print to the console
 	echo -e "$lb_print_opts$*\e[0m"
 }
 
 
-
+# Print a message to the console, can set a verbose level and can be added to logs
+# Usage: lb_display [options] TEXT
+# Options:
+#   -l, --level LEVEL  choose a display level (will be the same for logs)
+#   -p, --prefix       print [LEVEL] prefix before text
+#   --log              append text to log file if defined
+# Exit codes:
+#   0: ok
+#   1: logs could not be written
 lb_display() {
 	local lb_dp_log=false
 	local lb_dp_prefix=false
 	local lb_dp_level=""
+	local lb_dp_exit=0
 
+	# get options
 	while true ; do
 		case "$1" in
 			-l|--level)
@@ -122,6 +159,7 @@ lb_display() {
 
 	local lb_dp_msgprefix=""
 
+	# add prefix
 	if $lb_dp_prefix ; then
 		lb_dp_msgprefix="[$lb_dp_level]  "
 	fi
@@ -129,20 +167,22 @@ lb_display() {
 	# print into logfile
 	if $lb_dp_log ; then
 		lb_log --level "$lb_dp_level" "$lb_dp_msgprefix$*"
+		lb_dp_exit=$?
 	fi
 
+	# enable coloured prefixes
 	if $lb_dp_prefix ; then
 		case "$lb_dp_level" in
-			ERROR)
+			"$lb_default_error_label")
 				lb_dp_msgprefix="$(lb_print --red $lb_dp_level)"
 				;;
-			WARNING)
+			"$lb_default_warning_label")
 				lb_dp_msgprefix="$(lb_print --yellow $lb_dp_level)"
 				;;
-			INFO)
+			"$lb_default_info_label")
 				lb_dp_msgprefix="$(lb_print --green $lb_dp_level)"
 				;;
-			DEBUG)
+			"$lb_default_debug_label")
 				lb_dp_msgprefix="$(lb_print --cyan $lb_dp_level)"
 				;;
 			*)
@@ -155,29 +195,101 @@ lb_display() {
 
 	# print text
 	lb_print "$lb_dp_msgprefix$*"
+
+	return $lb_dp_exit
 }
 
 
+# Test if logfile exists, or is writable
+# Usage: lb_test_logfile PATH
+# Return: exit codes:
+#   0: file does not exists, but can be created
+#   1: file exists but can be overwritten
+#   2: path exists, but is not a regular file
+#   3: path exists, but is not writable
+#   4: file does not exists, nor the parent directory
+#   5: file does not exists, and parent directory is not writable
+#   255: usage error
+lb_test_logfile() {
+	if [ $# == 0 ] ; then
+		return 255
+	fi
+
+	# if file already exists
+	if [ -e "$1" ] ; then
+		# cancel if is not a regular file
+		if ! [ -f "$1" ] ; then
+			return 2
+		fi
+
+		# cancel if file is not writable
+		if ! [ -w "$1" ] ; then
+			return 3
+		fi
+
+		return 1
+	else
+		# if file does not exists
+		# cancel if directory does not exists
+		if ! [ -d "$(dirname "$1")" ] ; then
+			return 4
+		fi
+
+		# cancel if directory is not writable
+		if ! [ -w "$(dirname "$1")" ] ; then
+			return 5
+		fi
+	fi
+
+	# file is ok
+	return 0
+}
 
 
-
+# Get log file path
+# Return: path of the file, exit codes:
+#   0: file ok
+#   1: log file not defined
+#   2-5: see lb_test_logfile exit codes
 lb_get_logfile() {
 	if [ -z "$lb_logfile" ] ; then
 		return 1
 	fi
 
+	# test log file
+	lb_test_logfile "$lb_logfile"
+	lb_getlog_test=$?
+
+	# if file is not ok, cancel
+	if [ $lb_getlog_test -gt 1 ] ; then
+		return $lb_getlog_test
+	fi
+
+	# return log file path
 	echo $lb_logfile
 }
 
 
+# Set log file path
+# Options:
+#   -a, --append     if file already exists, append to it
+#   -x, --overwrite  if file already exists, overwrite it
+# Return: exit codes:
+#   0: ok
+#   255: usage error
+#   2-5: see lb_test_logfile exit codes
+#   6: file exists and append option is not set
 lb_set_logfile() {
+	# get usage errors
 	if [ $# == 0 ] ; then
-		return 1
+		return 255
 	fi
 
+	# default options
 	local lb_setlog_erase=false
 	local lb_setlog_append=false
 
+	# get options
 	while true ; do
 		case "$1" in
 			-a|--append)
@@ -196,49 +308,53 @@ lb_set_logfile() {
 
 	lb_setlog_file="$*"
 
-	# if file already exists
-	if [ -e "$lb_setlog_file" ] ; then
-		# cancel if is not a regular file
-		if ! [ -f "$lb_setlog_file" ] ; then
-			return 3
-		fi
+	# test log file
+	lb_test_logfile "$lb_setlog_file"
+	lb_setlog_test=$?
 
-		# cancel if file is not writable
-		if ! [ -w "$lb_setlog_file" ] ; then
-			return 4
-		fi
+	# if file is not ok, cancel
+	if [ $lb_setlog_test -gt 1 ] ; then
+		return $lb_setlog_test
+	fi
 
+	# if file exists
+	if [ $lb_setlog_test == 1 ] ; then
 		# overwrite file
 		if $lb_setlog_erase ; then
 			# empty file
 			> "$lb_setlog_file"
 		else
-			# if not append, cancel
+			# if can not be append, cancel
 			if ! $lb_setlog_append ; then
-				return 5
+				return 6
 			fi
-		fi
-	else
-		# if file does not exists
-		# cancel if directory does not exists
-		if ! [ -d "$(dirname "$lb_setlog_file")" ] ; then
-			return 6
-		fi
-
-		# cancel if directory is not writable
-		if ! [ -w "$(dirname "$lb_setlog_file")" ] ; then
-			return 4
 		fi
 	fi
 
+	# set log file path
 	lb_logfile="$lb_setlog_file"
+
+	# set higher log level
+	if [ -z "$lb_loglevel" ] ; then
+		if [ ${#lb_loglevels[@]} -gt 0 ] ; then
+			lb_loglevel=$((${#lb_loglevels[@]} - 1))
+		fi
+	fi
+
+	return 0
 }
 
 
+# Get log level
+# Options:
+#   --id  get log level id instead of name
+# Return: level; exit code to 1 if no log level is set
 lb_get_loglevel() {
+	# default options
 	local lb_gllvl_level=$lb_loglevel
 	local lb_gllvl_getid=false
 
+	# get options
 	while true ; do
 		case "$1" in
 			--id)
@@ -308,16 +424,32 @@ lb_set_loglevel() {
 }
 
 
+# Print text into log file
+# Usage: lb_log [options] TEXT
+# Options:
+#   -l, --level LEVEL   set log level
+#   -p, --level-prefix  print [LEVEL] prefix
+#   -d, --date-prefix   print [date] prefix
+#   -a, --all-prefix    print level and date prefixes
+#   -x, --overwrite     clean before print in log file
+# Exit codes:
+#   0: logged
+#   1: log file is not set
+#   2: error while wrinting into file
 lb_log() {
+
+	# exit if log file is not set
 	if [ -z "$lb_logfile" ] ; then
 		return 1
 	fi
 
+	# default options
 	local lb_log_date=false
 	local lb_log_prefix=false
 	local lb_log_erase=false
 	local lb_log_level=""
 
+	# get options
 	while true ; do
 		case "$1" in
 			-l|--level)
@@ -365,10 +497,12 @@ lb_log() {
 
 	lb_log_text=""
 
+	# add date prefix
 	if $lb_log_date ; then
 		lb_log_text+="[$(date +"%d %b %Y %H:%M:%S %z")] "
 	fi
 
+	# add level prefix
 	if [ -n "$lb_log_level" ] ; then
 		if $lb_log_prefix ; then
 			lb_log_text+="[$lb_log_level] "
@@ -377,25 +511,71 @@ lb_log() {
 
 	lb_log_text+="$*"
 
+	# print into log file
 	if $lb_log_erase ; then
 		echo -e $lb_log_text > "$lb_logfile"
 	else
 		echo -e $lb_log_text >> "$lb_logfile"
 	fi
+
+	# unknown write error
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
-# Displays command result
-# Usage: lb_result $result
-# Return: exit code (0: yes, 1: no)
-lb_result() {
-	if [ $1 == 0 ] ; then
-		lb_display "... Done"
-		return 0
+# Display command result
+# Usage: lb_print_result [options] EXIT_CODE
+# Options:
+#   --ok-label TEXT      set a ok label
+#   --failed-label TEXT  set a ok label
+#   --log                print result into log file
+#   --log-level LEVEL    set a log level
+# Note: a common usage is to do lb_result -f $? after a command
+# Exit code: exit code of the command
+lb_print_result() {
+
+	local lb_prs_ok="$lb_default_result_ok_label"
+	local lb_prs_failed="$lb_default_result_failed_label"
+	local lb_prs_opts=""
+
+	while true ; do
+		case "$1" in
+			--ok-label)
+				lb_prs_ok="$2"
+				shift 2
+				;;
+			--failed-label)
+				lb_prs_failed="$2"
+				shift 2
+				;;
+			-f|--forward)
+				lb_prs_fwd=true
+				shift
+				;;
+			--log)
+				lb_prs_opts="--log"
+				shift
+				;;
+			--log-level)
+				lb_prs_opts="-l $2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	if [ "$1" == "0" ] ; then
+		lb_display "$lb_prs_opts$lb_prs_ok"
 	else
-		lb_display "... Failed!"
-		return $1
+		lb_display "$lb_prs_opts$lb_prs_failed"
 	fi
+
+	# return exit code
+	return "$1"
 }
 
 
@@ -721,8 +901,8 @@ lb_yesno() {
 
 	# default options
 	local lb_yn_defaultyes=false
-	local lb_yn_yeslbl="y"
-	local lb_yn_nolbl="n"
+	local lb_yn_yeslbl="$lb_default_y_label"
+	local lb_yn_nolbl="$lb_default_n_label"
 
 	# catch options
 	while true ; do
@@ -887,29 +1067,35 @@ lb_echo() {
 # Common display functions
 # Usage: TEXT
 lb_display_error() {
-	lb_display -p -l ERROR $*
+	lb_display -p -l "$lb_default_error_label" $*
 }
 lb_display_warning() {
-	lb_display -p -l WARNING $*
+	lb_display -p -l "$lb_default_warning_label" $*
 }
 lb_display_info() {
-	lb_display -p -l INFO $*
+	lb_display -p -l "$lb_default_info_label" $*
 }
 lb_display_debug() {
-	lb_display -p -l DEBUG $*
+	lb_display -p -l "$lb_default_debug_label" $*
 }
 
 # Common log functions
 # Usage: TEXT
 lb_log_error() {
-	lb_log -p -l ERROR $*
+	lb_log -p -l "$lb_default_error_label" $*
 }
 lb_log_warning() {
-	lb_log -p -l WARNING $*
+	lb_log -p -l "$lb_default_warning_label" $*
 }
 lb_log_info() {
-	lb_log -p -l INFO $*
+	lb_log -p -l "$lb_default_info_label" $*
 }
 lb_log_debug() {
-	lb_log -p -l DEBUG $*
+	lb_log -p -l "$lb_default_debug_label" $*
+}
+
+# Print result
+# See lb_print_result for usage
+lb_result() {
+	lb_print_result $*
 }

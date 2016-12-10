@@ -162,13 +162,6 @@ lbg_display_info() {
 }
 
 
-# Display a debug dialog
-# See lbg_display_info for usage
-lbg_display_debug() {
-	lbg_display_info $*
-}
-
-
 # Display a warning message
 # Usage: lbg_display_warning [options] TEXT
 # Options:
@@ -210,7 +203,7 @@ lbg_display_warning() {
 			;;
 
 		dialog)
-			lbg_dwn_cmd=(lbg_display_info "WARNING: $*")
+			lbg_dwn_cmd=(lbg_display_info "$lb_default_warning_label: $*")
 			;;
 
 		*)
@@ -264,7 +257,7 @@ lbg_display_error() {
 			;;
 
 		dialog)
-			lbg_derr_cmd=(lbg_display_info "ERROR: $*")
+			lbg_derr_cmd=(lbg_display_info "$lb_default_error_label: $*")
 			;;
 
 		*)
@@ -374,18 +367,15 @@ EOF)
 
 
 # Prompt user to confirm an action in graphical mode
-# Args: [options] <message>
+# Args: [options] TEXT
 # Return: continue (0:YES / 1:NO)
 lbg_yesno() {
 	# default values
 	local lbg_yn_defaultyes=false
-	local lbg_yn_yeslbl
+	local lbg_yn_yeslbl=""
 	local lbg_yn_nolbl=""
 	local lbg_yn_title="$(basename "$0")"
 	local lbg_yn_cmd=()
-
-	lbg_yn_yeslbl=""
-	lbg_yn_nolbl=""
 
 	# catch options
 	while true ; do
@@ -430,10 +420,10 @@ lbg_yesno() {
 
 		osascript)
 			if [ -z "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_yeslbl="Yes"
+				lbg_yn_yeslbl="$lb_default_yes_label"
 			fi
 			if [ -z "$lbg_yn_nolbl" ] ; then
-				lbg_yn_nolbl="No"
+				lbg_yn_nolbl="$lb_default_no_label"
 			fi
 
 			#
@@ -615,131 +605,6 @@ lbg_input_password() {
 		lbg_input_password="$lbg_inpw_password"
 		return $lbg_inpw_res
 	done
-}
-
-
-# Prompt user to confirm an action in graphical mode
-# Args: [options] <message>
-# Return: continue (0:YES / 1:NO)
-lbg_yesno() {
-	# default values
-	local lbg_yn_defaultyes=false
-	local lbg_yn_yeslbl
-	local lbg_yn_nolbl=""
-	local lbg_yn_title="$(basename "$0")"
-	local lbg_yn_cmd=()
-
-	lbg_yn_yeslbl=""
-	lbg_yn_nolbl=""
-
-	# catch options
-	while true ; do
-		case "$1" in
-			--yes|-y)
-				lbg_yn_defaultyes=true
-				shift
-				;;
-			--yes-label)
-				lbg_yn_yeslbl="$2"
-				shift 2
-				;;
-			--no-label)
-				lbg_yn_nolbl="$2"
-				shift 2
-				;;
-			--title|-t)
-				lbg_yn_title="$2"
-				shift 2
-				;;
-			*)
-				break
-				;;
-		esac
-	done
-
-	case "$lbg_gui" in
-		kdialog)
-			lbg_yn_cmd=(kdialog --title "$lbg_yn_title")
-			if [ -n "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
-			fi
-			if [ -n "$lbg_yn_nolbl" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
-			fi
-			lbg_yn_cmd+=(--yesno "$*")
-			;;
-
-		zenity)
-			lbg_yn_cmd=(zenity --question --title "$lbg_yn_title" --text "$*")
-			;;
-
-		osascript)
-			if [ -z "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_yeslbl="Yes"
-			fi
-			if [ -z "$lbg_yn_nolbl" ] ; then
-				lbg_yn_nolbl="No"
-			fi
-
-			#
-			lbg_yn_opts="default button "
-			if $lbg_yn_defaultyes ; then
-				lbg_yn_opts+="1"
-			else
-				lbg_yn_opts+="2"
-			fi
-
-			lbg_yn_res=$(osascript << EOF
-set question to (display dialog "$*" with title "$lbg_yn_title" buttons {"$lbg_yn_yeslbl", "$lbg_yn_nolbl"} $lbg_yn_opts)
-set answer to button returned of question
-if answer is equal to "$lbg_yn_yeslbl" then
-	return 0
-else
-	return 1
-end if
-EOF)
-			return $lbg_yn_res
-			;;
-		dialog)
-			lbg_yn_cmd=(dialog --title "$lbg_yn_title")
-			if ! $lbg_yn_defaultyes ; then
-				lbg_yn_cmd+=(--defaultno)
-			fi
-			if [ -n "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
-			fi
-			if [ -n "$lbg_yn_nolbl" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
-			fi
-			lbg_yn_cmd+=(--clear --yesno "$*" 10 100)
-
-			# execute dialog
-			"${lbg_yn_cmd[@]}"
-			lbg_yn_res=$?
-
-			# clear console
-			clear
-			return $lbg_yn_res
-			;;
-
-		*)
-			# console mode
-			lbg_yn_cmd=(lb_yesno)
-			if $lbg_yn_defaultyes ; then
-				lbg_yn_cmd+=(-y)
-			fi
-			if [ -n "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
-			fi
-			if [ -n "$lbg_yn_nolbl" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
-			fi
-			lbg_yn_cmd+=("$*")
-			;;
-	esac
-
-	# execute command
-	"${lbg_yn_cmd[@]}" 2> /dev/null
 }
 
 
@@ -1000,4 +865,15 @@ lbg_choose_directory() {
 
 	# execute command
 	lbg_choose_directory=$("${lbg_chdir_cmd[@]}" 2> /dev/null)
+}
+
+
+###############################
+#  ALIASES AND COMPATIBILITY  #
+###############################
+
+# Display a debug dialog
+# See lbg_display_info for usage
+lbg_display_debug() {
+	lbg_display_info $*
 }
