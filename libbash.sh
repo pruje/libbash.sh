@@ -526,19 +526,23 @@ lb_log() {
 
 
 # Display command result
-# Usage: lb_print_result [options] EXIT_CODE
+# Usage: lb_print_result [options] [EXIT_CODE]
 # Options:
 #   --ok-label TEXT      set a ok label
 #   --failed-label TEXT  set a ok label
 #   --log                print result into log file
 #   --log-level LEVEL    set a log level
-# Note: a common usage is to do lb_result -f $? after a command
+#   -x, --error-exit     exit if result is not ok
+# Note: a very simple usage is to execute lb_result just after a command
+#       and get result with $? just after that
 # Exit code: exit code of the command
 lb_print_result() {
 
+	local lb_prs_lastres=$?
 	local lb_prs_ok="$lb_default_result_ok_label"
 	local lb_prs_failed="$lb_default_result_failed_label"
 	local lb_prs_opts=""
+	local lb_prs_errorexit=false
 
 	while true ; do
 		case "$1" in
@@ -555,12 +559,16 @@ lb_print_result() {
 				shift
 				;;
 			--log)
-				lb_prs_opts="--log"
+				lb_prs_opts="--log "
 				shift
 				;;
 			--log-level)
-				lb_prs_opts="-l $2"
+				lb_prs_opts="-l $2 "
 				shift 2
+				;;
+			-x|--error-exit)
+				lb_prs_errorexit=true
+				shift
 				;;
 			*)
 				break
@@ -568,14 +576,29 @@ lb_print_result() {
 		esac
 	done
 
-	if [ "$1" == "0" ] ; then
+	if [ -z "$1" ] ; then
+		lb_prs_res=$lb_prs_lastres
+	else
+		lb_prs_res=$1
+	fi
+
+	if ! lb_is_integer $lb_prs_res ; then
+		lb_prs_res=1
+	fi
+
+	if [ $lb_prs_res == 0 ] ; then
 		lb_display "$lb_prs_opts$lb_prs_ok"
 	else
 		lb_display "$lb_prs_opts$lb_prs_failed"
+
+		# if exit on error, exit
+		if $lb_prs_errorexit ; then
+			exit $lb_prs_res
+		fi
 	fi
 
 	# return exit code
-	return "$1"
+	return $lb_prs_res
 }
 
 
