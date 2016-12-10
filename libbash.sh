@@ -21,34 +21,391 @@
 
 # set version
 libbash_version="0.1.0"
-
-# set echo as default display command
-lb_disp_cmd="echo"
-# set echo as default error display command
-lb_disp_error_cmd="echo >&2 "
-
-lb_error_prefix="[ERROR] "
+lb_logfile=""
+lb_loglevel=""
+lb_loglevels=(ERROR WARNING INFO DEBUG)
 
 
-###############
-#  FUNCTIONS  #
-###############
+######################
+#  DISPLAY AND LOGS  #
+######################
 
-lb_setdisplay() {
-	lb_disp_cmd=$*
-	return $?
+lb_echo() {
+	local lb_echo_format=()
+	local lb_echo_opts=""
+
+	while true ; do
+		case "$1" in
+			--bold)
+				lb_echo_format+=(1)
+				shift
+				;;
+			--cyan)
+				lb_echo_format+=(36)
+				shift
+				;;
+			--green)
+				lb_echo_format+=(32)
+				shift
+				;;
+			--yellow)
+				lb_echo_format+=(33)
+				shift
+				;;
+			--red)
+				lb_echo_format+=(31)
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	if [ ${#lb_echo_format[@]} -gt 0 ] ; then
+		lb_echo_opts="\e["
+		for lb_echo_f in ${lb_echo_format[@]} ; do
+			lb_echo_opts+=";$lb_echo_f"
+		done
+		lb_echo_opts+="m"
+	fi
+
+	echo -e "$lb_echo_opts$*\e[0m"
 }
 
-# display a text
+
 lb_display() {
-	${lb_disp_cmd[@]} $*
-	return $?
+	local lb_dp_log=false
+	local lb_dp_prefix=false
+	local lb_dp_level=""
+
+	while true ; do
+		case "$1" in
+			-l|--level)
+				lb_dp_level="$2"
+				shift 2
+				;;
+			-p|--prefix)
+				lb_dp_prefix=true
+				shift
+				;;
+			--log)
+				lb_dp_log=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# if a default log level is set,
+	if [ -n "$lb_dp_level" ] ; then
+		# test current log level
+		if [ -n "$lb_loglevel" ] ; then
+			lb_dp_idlvl=$(lb_get_loglevel --id "$lb_dp_level")
+
+			# (if failed, we will continue logging)
+			if [ $? == 0 ] ; then
+				# if log level is higher than default, do not log
+				if [ $lb_dp_idlvl -gt $lb_loglevel ] ; then
+					return 0
+				fi
+			fi
+		fi
+	fi
+
+	local lb_dp_msgprefix=""
+
+	if $lb_dp_prefix ; then
+		lb_dp_msgprefix="[$lb_dp_level]  "
+	fi
+
+	# print into logfile
+	if $lb_dp_log ; then
+		lb_log --level "$lb_dp_level" "$lb_dp_msgprefix$*"
+	fi
+
+	if $lb_dp_prefix ; then
+		case "$lb_dp_level" in
+			ERROR)
+				lb_dp_msgprefix="$(lb_echo --red $lb_dp_level)"
+				;;
+			WARNING)
+				lb_dp_msgprefix="$(lb_echo --yellow $lb_dp_level)"
+				;;
+			INFO)
+				lb_dp_msgprefix="$(lb_echo --green $lb_dp_level)"
+				;;
+			DEBUG)
+				lb_dp_msgprefix="$(lb_echo --cyan $lb_dp_level)"
+				;;
+			*)
+				lb_dp_msgprefix="$lb_dp_level"
+				;;
+		esac
+
+		lb_dp_msgprefix="[$lb_dp_msgprefix]  "
+	fi
+
+	# print text
+	lb_echo "$lb_dp_msgprefix$*"
 }
 
-# display an error
-lb_error() {
-	${lb_disp_error_cmd[@]} "$lb_error_prefix"$*
-	return $?
+
+# Common display functions
+# Usage: TEXT
+lb_display_error() {
+	lb_display -p -l ERROR $*
+}
+lb_display_warning() {
+	lb_display -p -l WARNING $*
+}
+lb_display_info() {
+	lb_display -p -l INFO $*
+}
+lb_display_debug() {
+	lb_display -p -l DEBUG $*
+}
+
+
+lb_get_logfile() {
+	if [ -z "$lb_logfile" ] ; then
+		return 1
+	fi
+
+	echo $lb_logfile
+}
+
+
+lb_set_logfile() {
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	local lb_setlog_erase=false
+	local lb_setlog_append=false
+
+	while true ; do
+		case "$1" in
+			-a|--append)
+				lb_setlog_append=true
+				shift
+				;;
+			-x|--overwrite)
+				lb_setlog_erase=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	lb_setlog_file="$*"
+
+	# if file already exists
+	if [ -e "$lb_setlog_file" ] ; then
+		# cancel if is not a regular file
+		if ! [ -f "$lb_setlog_file" ] ; then
+			return 3
+		fi
+
+		# cancel if file is not writable
+		if ! [ -w "$lb_setlog_file" ] ; then
+			return 4
+		fi
+
+		# overwrite file
+		if $lb_setlog_erase ; then
+			# empty file
+			> "$lb_setlog_file"
+		else
+			# if not append, cancel
+			if ! $lb_setlog_append ; then
+				return 5
+			fi
+		fi
+	else
+		# if file does not exists
+		# cancel if directory does not exists
+		if ! [ -d "$(dirname "$lb_setlog_file")" ] ; then
+			return 6
+		fi
+
+		# cancel if directory is not writable
+		if ! [ -w "$(dirname "$lb_setlog_file")" ] ; then
+			return 4
+		fi
+	fi
+
+	lb_logfile="$lb_setlog_file"
+}
+
+
+lb_get_loglevel() {
+	local lb_gllvl_level=$lb_loglevel
+	local lb_gllvl_getid=false
+
+	while true ; do
+		case "$1" in
+			--id)
+				lb_gllvl_getid=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# if not specified, get actual log level
+	if [ -z "$1" ] ; then
+		if [ -z "$lb_loglevel" ] ; then
+			return 1
+		else
+			# print actual and exit
+			if $lb_gllvl_getid ; then
+				echo $lb_loglevel
+			else
+				echo ${lb_loglevels[$lb_loglevel]}
+			fi
+			return
+		fi
+	else
+		# get gived level name
+		lb_gllvl_level=$1
+	fi
+
+	# search log level id for a gived level name
+	for ((lb_gllvl_i=0 ; lb_gllvl_i < ${#lb_loglevels[@]} ; lb_gllvl_i++)) ; do
+		# if found,
+		if [ "${lb_loglevels[$lb_gllvl_i]}" == "$lb_gllvl_level" ] ; then
+			if $lb_gllvl_getid ; then
+				echo $lb_gllvl_i
+			else
+				echo ${lb_loglevels[$lb_gllvl_i]}
+			fi
+			return
+		fi
+	done
+
+	# if not found, return error
+	return 1
+}
+
+
+# Set log level
+# Usage: lb_set_loglevel LEVEL
+lb_set_loglevel() {
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# search if level exists
+	for ((lb_sllvl_i=0 ; lb_sllvl_i < ${#lb_loglevels[@]} ; lb_sllvl_i++)) ; do
+		# search by name, return level id
+		if [ "${lb_loglevels[$lb_sllvl_i]}" == "$1" ] ; then
+			lb_loglevel=$lb_sllvl_i
+			return 0
+		fi
+	done
+
+	# if not found, error
+	return 1
+}
+
+
+lb_log() {
+	if [ -z "$lb_logfile" ] ; then
+		return 1
+	fi
+
+	local lb_log_date=false
+	local lb_log_prefix=false
+	local lb_log_erase=false
+	local lb_log_level=""
+
+	while true ; do
+		case "$1" in
+			-l|--level)
+				lb_log_level="$2"
+				shift 2
+				;;
+			-p|--level-prefix)
+				lb_log_prefix=true
+				shift
+				;;
+			-d|--date-prefix)
+				lb_log_date=true
+				shift
+				;;
+			-a|--all-prefixes)
+				lb_log_prefix=true
+				lb_log_date=true
+				shift
+				;;
+			-x|--overwrite)
+				lb_log_erase=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# if a default log level is set,
+	if [ -n "$lb_log_level" ] ; then
+		# test current log level
+		if [ -n "$lb_loglevel" ] ; then
+			lb_log_idlvl=$(lb_get_loglevel --id "$lb_log_level")
+
+			# (if failed, we will continue logging)
+			if [ $? == 0 ] ; then
+				# if log level is higher than default, do not log
+				if [ $lb_log_idlvl -gt $lb_loglevel ] ; then
+					return 0
+				fi
+			fi
+		fi
+	fi
+
+	lb_log_text=""
+
+	if $lb_log_date ; then
+		lb_log_text+="[$(date +"%d %b %Y %H:%M:%S %z")] "
+	fi
+
+	if [ -n "$lb_log_level" ] ; then
+		if $lb_log_prefix ; then
+			lb_log_text+="[$lb_log_level] "
+		fi
+	fi
+
+	lb_log_text+="$*"
+
+	if $lb_log_erase ; then
+		echo -e $lb_log_text > "$lb_logfile"
+	else
+		echo -e $lb_log_text >> "$lb_logfile"
+	fi
+}
+
+
+# Common log functions
+# Usage: TEXT
+lb_log_error() {
+	lb_log -p -l ERROR $*
+}
+lb_log_warning() {
+	lb_log -p -l WARNING $*
+}
+lb_log_info() {
+	lb_log -p -l INFO $*
+}
+lb_log_debug() {
+	lb_log -p -l DEBUG $*
 }
 
 
