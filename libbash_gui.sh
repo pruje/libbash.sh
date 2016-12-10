@@ -19,9 +19,6 @@
 #  INITIALIZATION  #
 ####################
 
-# set version
-libbash_gui_version="0.1.0"
-
 # test dependency
 if [ -z "$libbash_version" ] ; then
 	echo >&2 "Error: libbash core not loaded!"
@@ -37,7 +34,7 @@ lbg_supported_gui=(kdialog zenity osascript dialog)
 lbg_gui=""
 for lbg_sgt in ${lbg_supported_gui[@]} ; do
 	# test if command exists
-	which $lbg_sgt &> /dev/null
+	which "$lbg_sgt" &> /dev/null
 	# if exists, set it as default
 	if [ $? == 0 ] ; then
 		lbg_gui=$lbg_sgt
@@ -52,8 +49,11 @@ done
 
 # Get GUI display
 # Usage: lbg_get_gui
-# Return: GUI name
+# Return: GUI name; exit code to 1 if no GUI supported
 lbg_get_gui() {
+	if [ -z "$lbg_gui" ] ; then
+		return 1
+	fi
 	echo $lbg_gui
 }
 
@@ -94,6 +94,186 @@ lbg_set_gui() {
 	else
 		return 2
 	fi
+}
+
+
+################################
+#  MESSAGES AND NOTIFICATIONS  #
+################################
+
+# Display a message
+# Usage: lbg_display_info [options] TEXT
+# Options:
+#   -t, --title TEXT  set dialog title
+lbg_display_info() {
+
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# default options
+	local lbg_dinf_title="$(basename "$0")"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--title|-t)
+				lbg_dinf_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_dinf_cmd=(kdialog --title "$lbg_dinf_title" --msgbox "$*")
+			;;
+
+		zenity)
+			lbg_dinf_cmd=(zenity --title "$lbg_dinf_title" --info --text "$*")
+			;;
+
+		osascript)
+			# TODO
+			;;
+
+		dialog)
+			lbg_dinf_cmd=(dialog --title "$lbg_dinf_title" --clear --msgbox "$*" 10 50)
+
+			"${lbg_dinf_cmd[@]}" 2> /dev/null
+			lbg_dinf_res=$?
+
+			# clear console
+			clear
+			return $lbg_dinf_res
+			;;
+
+		*)
+			# console mode
+			lbg_dinf_cmd=(lb_display_info $*)
+			;;
+	esac
+
+	"${lbg_dinf_cmd[@]}" 2> /dev/null
+}
+
+
+# Display a debug dialog
+# See lbg_display_info for usage
+lbg_display_debug() {
+	lbg_display_info $*
+}
+
+
+# Display a warning message
+# Usage: lbg_display_warning [options] TEXT
+# Options:
+#   -t, --title TEXT  set dialog title
+lbg_display_warning() {
+
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# default options
+	local lbg_dwn_title="$(basename "$0")"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--title|-t)
+				lbg_dwn_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_dwn_cmd=(kdialog --title "$lbg_dwn_title" --sorry "$*")
+			;;
+
+		zenity)
+			lbg_dwn_cmd=(zenity --title "$lbg_dwn_title" --warning --text "$*")
+			;;
+
+		osascript)
+			# TODO
+			;;
+
+		dialog)
+			lbg_dwn_cmd=(lbg_display_info "WARNING: $*")
+			;;
+
+		*)
+			# console mode
+			lbg_dwn_cmd=(lb_display_warning $*)
+			;;
+	esac
+
+	"${lbg_dwn_cmd[@]}" 2> /dev/null
+}
+
+
+# Display an error message
+# Usage: lbg_display_error [options] TEXT
+# Options:
+#   -t, --title TEXT  set dialog title
+lbg_display_error() {
+
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# default options
+	local lbg_derr_title="$(basename "$0")"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			--title|-t)
+				lbg_derr_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_derr_cmd=(kdialog --title "$lbg_derr_title" --error "$*")
+			;;
+
+		zenity)
+			lbg_derr_cmd=(zenity --title "$lbg_derr_title" --error --text "$*")
+			;;
+
+		osascript)
+			# TODO
+			;;
+
+		dialog)
+			lbg_derr_cmd=(lbg_display_info "ERROR: $*")
+			;;
+
+		*)
+			# console mode
+			lbg_derr_cmd=(lb_display_error $*)
+			;;
+	esac
+
+	"${lbg_derr_cmd[@]}" 2> /dev/null
 }
 
 
