@@ -759,11 +759,11 @@ lbg_choose_option() {
 	esac
 
 	if [ $lbg_chop_res != 0 ] ; then
-		return lbg_chop_res
+		return $lbg_chop_res
 	fi
 
 	# check if user choice is valid
-	if [ $lbg_choose_option -lt 1 ] || [ $lbg_choose_option -ge ${#lbg_chop_options[@]} ] ; then
+	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -ge ${#lbg_chop_options[@]} ] ; then
 		return 3
 	fi
 }
