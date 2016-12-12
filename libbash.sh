@@ -707,9 +707,9 @@ lb_detect_os() {
 ################
 
 # Get filesystem type
-# Usage: lb_get_fstype PATH
+# Usage: lb_df_fstype PATH
 # Return: fs type
-lb_get_fstype() {
+lb_df_fstype() {
 	# test if argument exists
 	if [ $# == 0 ] ; then
 		return 1
@@ -722,9 +722,9 @@ lb_get_fstype() {
 
 
 # Get space left on device
-# Usage: lb_space_left PATH
+# Usage: lb_df_space_left PATH
 # Return: bytes available; exit code to 1 if error
-lb_space_left() {
+lb_df_space_left() {
 	# catch errors
 	if [ $# == 0 ] ; then
 		return 1
@@ -732,6 +732,51 @@ lb_space_left() {
 
 	df --output=avail "$1" | tail -n 1 2> /dev/null
 	return ${PIPESTATUS[0]}
+}
+
+
+# Get mount point
+# Usage: lb_df_mountpoint PATH
+# Return: path; exit code to 1 if error
+lb_df_mountpoint() {
+	# catch errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	df --output=target "$1" | tail -n 1 2> /dev/null
+	return ${PIPESTATUS[0]}
+}
+
+
+# Get disk UUID
+# Usage: lb_df_uuid PATH
+# Return: path; exit code to 1 if error
+lb_df_uuid() {
+	# catch errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	lb_duuid=$(df --output=source "$1" | tail -n 1 2> /dev/null)
+	if [ -z "$lb_duuid" ] ; then
+		return 2
+	fi
+
+	if [ "$(lb_detect_os)" != "macOS" ] ; then
+		for f in /dev/disk/by-uuid/* ; do
+			if [ "$(lb_realpath "$f")" == "$lb_duuid" ] ; then
+				echo $f
+				return 0
+			fi
+		done
+	else
+		# TODO: implement macOS
+		echo
+	fi
+
+	# not found
+	return 3
 }
 
 
