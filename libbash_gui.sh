@@ -30,17 +30,7 @@ fi
 # set supported GUIs
 lbg_supported_gui=(kdialog zenity osascript dialog)
 
-# test GUIs
 lbg_gui=""
-for lbg_sgt in ${lbg_supported_gui[@]} ; do
-	# test if command exists
-	which "$lbg_sgt" &> /dev/null
-	# if exists, set it as default
-	if [ $? == 0 ] ; then
-		lbg_gui=$lbg_sgt
-		break
-	fi
-done
 
 
 ###############
@@ -88,9 +78,20 @@ lbg_set_gui() {
 		return 1
 	fi
 
+	# console mode is always OK
+	if [ "$1" == "console" ] ; then
+		lbg_gui="console"
+		return 0
+	fi
+
 	# test if GUI is supported
 	if lbg_test_gui "$1" ; then
-		lbg_gui="$1"
+
+		if [ -n "$DISPLAY" ] ; then
+			lbg_gui="$1"
+		else
+			lbg_gui="console"
+		fi
 	else
 		return 2
 	fi
@@ -806,7 +807,7 @@ lbg_choose_option() {
 			if [ $lbg_chop_default != 0 ] ; then
 				lbg_chop_cmd+=(-d $lbg_chop_default)
 			fi
-			lbg_chop_cmd+=("$lbg_chop_text" ${lbg_chop_options[@]})
+			lbg_chop_cmd+=("$lbg_chop_text" "${lbg_chop_options[@]}")
 
 			# execute console function
 			"${lbg_chop_cmd[@]}"
@@ -945,3 +946,19 @@ lbg_choose_directory() {
 lbg_display_debug() {
 	lbg_display_info $*
 }
+
+
+
+##############
+#  STARTING  #
+##############
+
+# test supported GUIs
+for lbg_sgt in ${lbg_supported_gui[@]} ; do
+	# test GUI
+	lbg_set_gui "$lbg_sgt"
+	# if exists, set it as default
+	if [ $? == 0 ] ; then
+		break
+	fi
+done
