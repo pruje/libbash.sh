@@ -36,6 +36,8 @@ lb_default_yes_label="Yes"
 lb_default_no_label="No"
 lb_default_y_label="y"
 lb_default_n_label="n"
+lb_default_pwd_label="Password:"
+lb_default_pwd_confirm_label="Confirm password:"
 lb_default_debug_label="DEBUG"
 lb_default_info_label="INFO"
 lb_default_warning_label="WARNING"
@@ -136,6 +138,9 @@ lb_display() {
 				shift
 				;;
 			-l|--level)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_dp_level="$2"
 				shift 2
 				;;
@@ -471,6 +476,9 @@ lb_log() {
 				shift
 				;;
 			-l|--level)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_log_level="$2"
 				shift 2
 				;;
@@ -565,10 +573,16 @@ lb_print_result() {
 	while true ; do
 		case "$1" in
 			--ok-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_prs_ok="$2"
 				shift 2
 				;;
 			--failed-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_prs_failed="$2"
 				shift 2
 				;;
@@ -581,6 +595,9 @@ lb_print_result() {
 				shift
 				;;
 			--log-level)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_prs_opts="-l $2 "
 				shift 2
 				;;
@@ -930,6 +947,9 @@ lb_input_text() {
 	while true ; do
 		case "$1" in
 			--default|-d)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_inp_default="$2"
 				shift 2
 				;;
@@ -942,6 +962,11 @@ lb_input_text() {
 				;;
 		esac
 	done
+
+	# usage error if text is not defined
+	if lb_test_arguments -eq 0 $* ; then
+		return 1
+	fi
 
 	# print question
 	echo -n -e $*
@@ -973,20 +998,24 @@ lb_input_text() {
 #    -l, --label TEXT      label for question
 #    -c, --confirm         confirm password
 #    --confirm-label TEXT  confirmation label
-# Return: exit code, value is set into $lb_input_password variable
+# Return: value is set into $lb_input_password variable
+# Exit codes: 0 if ok, 1 if usage error, 2 if passwords mismatch
 lb_input_password=""
 lb_input_password() {
 
 	# reset result
 	lb_input_password=""
 
-	local lb_inpw_label="Password:"
+	local lb_inpw_label="$lb_default_pwd_label"
 	local lb_inpw_confirm=false
-	local lb_inpw_confirm_label="Confirm password:"
+	local lb_inpw_confirm_label="$lb_default_pwd_confirm_label"
 
 	while true ; do
 		case "$1" in
 			-l|--label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_inpw_label="$2"
 				shift 2
 				;;
@@ -995,6 +1024,9 @@ lb_input_password() {
 				shift
 				;;
 			--confirm-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_inpw_confirm_label="$2"
 				shift 2
 				;;
@@ -1031,8 +1063,12 @@ lb_input_password() {
 #    -y, --yes        return yes by default
 #    --yes-label STR  string to use as "YES"
 #    --no-label  STR  string to use as "NO"
-# Return: exit code (0: yes, 1: no)
+# Exit codes: 0 yes, 1 no, 2 usage error
 lb_yesno() {
+
+	if [ $# == 0 ] ; then
+		return 2
+	fi
 
 	# default options
 	local lb_yn_defaultyes=false
@@ -1047,10 +1083,16 @@ lb_yesno() {
 				shift
 				;;
 			--yes-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 2
+				fi
 				lb_yn_yeslbl="$2"
 				shift 2
 				;;
 			--no-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 2
+				fi
 				lb_yn_nolbl="$2"
 				shift 2
 				;;
@@ -1059,6 +1101,11 @@ lb_yesno() {
 				;;
 		esac
 	done
+
+	# usage error if question is missing
+	if lb_test_arguments -eq 0 $* ; then
+		return 2
+	fi
 
 	# defines choice question
 	if $lb_yn_defaultyes ; then
@@ -1088,7 +1135,6 @@ lb_yesno() {
 
 
 # Prompt user to choose an option
-# You can use up to 254 options
 # Usage: lb_choose_option [options] TEXT OPTION [OPTION...]
 # Options:
 #    -d, --default ID  option to use by default
@@ -1114,6 +1160,9 @@ lb_choose_option() {
 	while true ; do
 		case "$1" in
 			--default|-d)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
 				lb_chop_default="$2"
 				shift 2
 				;;
@@ -1122,6 +1171,11 @@ lb_choose_option() {
 				;;
 		esac
 	done
+
+	# usage error if missing text and at least one option
+	if lb_test_arguments -lt 2 $* ; then
+		return 1
+	fi
 
 	lb_chop_text="$1"
 	shift
