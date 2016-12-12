@@ -716,7 +716,7 @@ lb_df_fstype() {
 	fi
 
 	# get type from df command
-	df --output=fstype "$1" | tail -n 1 2> /dev/null
+	df --output=fstype "$1" 2> /dev/null | tail -n 1
 	return ${PIPESTATUS[0]}
 }
 
@@ -730,7 +730,7 @@ lb_df_space_left() {
 		return 1
 	fi
 
-	df --output=avail "$1" | tail -n 1 2> /dev/null
+	df --output=avail "$1" 2> /dev/null | tail -n 1
 	return ${PIPESTATUS[0]}
 }
 
@@ -744,7 +744,7 @@ lb_df_mountpoint() {
 		return 1
 	fi
 
-	df --output=target "$1" | tail -n 1 2> /dev/null
+	df --output=target "$1" 2> /dev/null | tail -n 1
 	return ${PIPESTATUS[0]}
 }
 
@@ -758,7 +758,7 @@ lb_df_uuid() {
 		return 1
 	fi
 
-	lb_duuid=$(df --output=source "$1" | tail -n 1 2> /dev/null)
+	lb_duuid=$(df --output=source "$1" 2> /dev/null | tail -n 1)
 	if [ -z "$lb_duuid" ] ; then
 		return 2
 	fi
