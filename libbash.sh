@@ -626,8 +626,11 @@ lb_print_result() {
 
 # Test if a variable is integer
 # Usage: lb_is_integer VALUE
-# Return: exit code (0: yes, 1: no)
+# Exit codes: 0 if is integer, 1 if not
 lb_is_integer() {
+	# if empty, is not an integer
+	# DO NOT USE lb_test_arguments here or it will do an infinite loop
+	# because it uses this function
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -642,6 +645,7 @@ lb_is_integer() {
 # Usage: lb_array_contains VALUE "${array[@]}"
 # Warning: put your array between quotes or it will fail if you have spaces in values
 lb_array_contains() {
+
 	# get usage errors
 	if [ $# -lt 2 ] ; then
 		return 1
@@ -683,6 +687,51 @@ lb_function_exists() {
 	if [ "$lb_fe_res" != "function" ] ; then
 		return 2
 	fi
+}
+
+
+# Test arguments of a function
+# Usage: lb_test_arguments OPERATOR N [VALUE...]
+# Note: A common usage of this function would be lb_test_arguments -ge 1 $*
+#       to test if user has passed at least one argument to your script.
+# Arguments:
+#    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
+#    N         expected number to compare to
+#    VALUES    your arguments; (e.g. $* without quotes)
+# Exit code: 0 if comparison ok, 1 if not, 255 if usage error
+lb_test_arguments() {
+
+	# NOTE: be careful with improving this function to not use
+	# third-party functions which are using this function to avoid infinite loops
+
+	# we wait for at least an operator and a number
+	if [ $# -lt 2 ] ; then
+		return 255
+	fi
+
+	# arg 2 should be an integer
+	if ! lb_is_integer $2 ; then
+		return 255
+	fi
+
+	local lb_testarg_operator="$1"
+	local lb_testarg_value=$2
+	shift 2
+
+	# test if operator is ok
+	case "$lb_testarg_operator" in
+		-eq|-ne|-lt|-le|-gt|-ge)
+			# execute test on arguments number
+			[ $# $lb_testarg_operator $lb_testarg_value ]
+			;;
+		*)
+			# syntax error
+			return 255
+			;;
+	esac
+
+	# return operation result
+	return $?
 }
 
 
