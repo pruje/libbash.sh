@@ -730,7 +730,7 @@ lb_df_space_left() {
 		return 1
 	fi
 
-	df --output=avail "$1" 2> /dev/null | tail -n 1
+	df -B1 --output=avail "$1" 2> /dev/null | tail -n 1
 	return ${PIPESTATUS[0]}
 }
 
