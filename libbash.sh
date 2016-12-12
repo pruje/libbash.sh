@@ -766,7 +766,7 @@ lb_df_uuid() {
 	if [ "$(lb_detect_os)" != "macOS" ] ; then
 		for f in /dev/disk/by-uuid/* ; do
 			if [ "$(lb_realpath "$f")" == "$lb_duuid" ] ; then
-				echo $f
+				echo $(basename "$f")
 				return 0
 			fi
 		done
