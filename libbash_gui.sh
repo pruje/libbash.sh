@@ -86,7 +86,7 @@ lbg_set_gui() {
 
 	# test if GUI is supported
 	if lbg_test_gui "$1" ; then
-
+		# if no X server started, stay in console mode
 		if [ -n "$DISPLAY" ] ; then
 			lbg_gui="$1"
 		else
@@ -443,7 +443,7 @@ lbg_yesno() {
 
 	# usage error if no text to display
 	if lb_test_arguments -eq 0 $* ; then
-		return 1
+		return 2
 	fi
 
 	case "$lbg_gui" in
@@ -557,7 +557,7 @@ lbg_input_password() {
 		case "$1" in
 			-l|--label)
 				if lb_test_arguments -eq 0 $2 ; then
-					return 1
+					return 2
 				fi
 				lbg_inpw_label="$2"
 				shift 2
@@ -568,7 +568,7 @@ lbg_input_password() {
 				;;
 			--confirm-label)
 				if lb_test_arguments -eq 0 $2 ; then
-					return 1
+					return 2
 				fi
 				lbg_inpw_confirm_label="$2"
 				shift 2
@@ -586,6 +586,7 @@ lbg_input_password() {
 	# display dialog(s)
 	for lbg_inpw_i in $(seq 1 2) ; do
 
+		# if second iteration, it's a confirm dialog
 		if [ $lbg_inpw_i -gt 1 ] ; then
 			lbg_inpw_label="$lbg_inpw_confirm_label"
 		fi
@@ -619,6 +620,7 @@ lbg_input_password() {
 			*)
 				# console mode
 				# execute console function
+				# TODO: improve with options forwarding
 				lb_input_password --label "$lbg_inpw_label"
 				if [ $? == 0 ] ; then
 					if [ -n "$lb_input_password" ] ; then
@@ -937,6 +939,102 @@ lbg_choose_directory() {
 }
 
 
+###################
+#  NOTIFICATIONS  #
+###################
+
+# Print a notification dialog
+# Usage: lbg_notify [OPTIONS] TEXT
+# Options:
+#   -t, --title TEXT   notification title
+#   --timeout SECONDS  timeout before notification disapears
+# Exit codes: notification command result
+lbg_notify() {
+
+	# catch usage errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	local lbg_notify_title="$(basename "$0")"
+	local lbg_notify_timeout=""
+
+	# catch options
+	while true ; do
+		case "$1" in
+			-t|--title)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_notify_title="$2"
+				shift 2
+				;;
+			--timeout)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				if ! lb_is_integer $2 ; then
+					return 1
+				fi
+				lbg_notify_timeout="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# usage error if no text
+	if lb_test_arguments -eq 0 $* ; then
+		return 1
+	fi
+
+	# if notify-send is installed, use it
+	which notify-send &> /dev/null
+	if [ $? == 0 ] ; then
+		# if X server started,
+		if [ -n "$DISPLAY" ] ; then
+			# execute command with timeout in milliseconds
+			if [ -n "$lbg_notify_timeout" ] ; then
+				lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
+			fi
+
+			# push notification and return
+			notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
+			return $?
+		fi
+	fi
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_notify_cmd=(kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout)
+			;;
+
+		zenity)
+			# TODO: improve with listen option: https://help.gnome.org/users/zenity/stable/notification.html
+			zenity --notification --text="$*"
+  			return $?
+			;;
+
+		osascript)
+			# TODO
+			;;
+
+		# no dialog system,  because it doesn't make sense in console
+		*)
+			# console mode
+			lb_display_info $*
+			return
+			;;
+	esac
+
+	# execute command
+	"${lbg_notify_cmd[@]}" 2> /dev/null
+}
+
+
 ###############################
 #  ALIASES AND COMPATIBILITY  #
 ###############################
@@ -948,10 +1046,9 @@ lbg_display_debug() {
 }
 
 
-
-##############
-#  STARTING  #
-##############
+###########################
+#  DEFAULT GUI SELECTION  #
+###########################
 
 # test supported GUIs
 for lbg_sgt in ${lbg_supported_gui[@]} ; do
