@@ -51,6 +51,77 @@ lb_loglevel=""
 lb_loglevels=("$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
 
+##########################
+#  BASIC BASH UTILITIES  #
+##########################
+
+# Check if a bash function exists
+# Usage: lb_function_exists FUNCTION_NAME
+# Return: exit codes: 0 if exists, 1 if not, 2 if exists but is not a function
+lb_function_exists() {
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# get type of argument
+	lb_function_exists_res="$(type -t "$1")"
+	if [ $? != 0 ] ; then
+		# if failed to get type, it does not exists
+		return 1
+	fi
+
+	# if not a function
+	if [ "$lb_function_exists_res" != "function" ] ; then
+		return 2
+	fi
+}
+
+
+# Test arguments of a function
+# Usage: lb_test_arguments OPERATOR N [VALUE...]
+# Note: A common usage of this function would be lb_test_arguments -ge 1 $*
+#       to test if user has passed at least one argument to your script.
+# Arguments:
+#    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
+#    N         expected number to compare to
+#    VALUES    your arguments; (e.g. $* without quotes)
+# Exit code: 0 if comparison ok, 1 if not, 255 if usage error
+lb_test_arguments() {
+
+	# NOTE: be careful with improving this function to not use
+	# third-party functions which are using this function to avoid infinite loops
+
+	# we wait for at least an operator and a number
+	if [ $# -lt 2 ] ; then
+		return 255
+	fi
+
+	# arg 2 should be an integer
+	if ! lb_is_integer $2 ; then
+		return 255
+	fi
+
+	local lb_testarg_operator="$1"
+	local lb_testarg_value=$2
+	shift 2
+
+	# test if operator is ok
+	case "$lb_testarg_operator" in
+		-eq|-ne|-lt|-le|-gt|-ge)
+			# execute test on arguments number
+			[ $# $lb_testarg_operator $lb_testarg_value ]
+			;;
+		*)
+			# syntax error
+			return 255
+			;;
+	esac
+
+	# return operation result
+	return $?
+}
+
+
 ######################
 #  DISPLAY AND LOGS  #
 ######################
@@ -685,70 +756,6 @@ lb_array_contains() {
 
 	# if not found, return 2
 	return 2
-}
-
-
-# Check if a bash function exists
-# Usage: lb_function_exists FUNCTION_NAME
-# Return: exit codes: 0 if exists, 1 if not, 2 if exists but is not a function
-lb_function_exists() {
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
-	lb_fe_res="$(type -t $1)"
-	if [ $? != 0 ] ; then
-		return 1
-	fi
-
-	if [ "$lb_fe_res" != "function" ] ; then
-		return 2
-	fi
-}
-
-
-# Test arguments of a function
-# Usage: lb_test_arguments OPERATOR N [VALUE...]
-# Note: A common usage of this function would be lb_test_arguments -ge 1 $*
-#       to test if user has passed at least one argument to your script.
-# Arguments:
-#    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
-#    N         expected number to compare to
-#    VALUES    your arguments; (e.g. $* without quotes)
-# Exit code: 0 if comparison ok, 1 if not, 255 if usage error
-lb_test_arguments() {
-
-	# NOTE: be careful with improving this function to not use
-	# third-party functions which are using this function to avoid infinite loops
-
-	# we wait for at least an operator and a number
-	if [ $# -lt 2 ] ; then
-		return 255
-	fi
-
-	# arg 2 should be an integer
-	if ! lb_is_integer $2 ; then
-		return 255
-	fi
-
-	local lb_testarg_operator="$1"
-	local lb_testarg_value=$2
-	shift 2
-
-	# test if operator is ok
-	case "$lb_testarg_operator" in
-		-eq|-ne|-lt|-le|-gt|-ge)
-			# execute test on arguments number
-			[ $# $lb_testarg_operator $lb_testarg_value ]
-			;;
-		*)
-			# syntax error
-			return 255
-			;;
-	esac
-
-	# return operation result
-	return $?
 }
 
 
