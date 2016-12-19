@@ -14,13 +14,18 @@ Then call the functions described below.
 All functions are named with the `lb_` prefix. See documentation below for each function.
 
 ### Table of content
-- [lb_function_exists](#lb_function_exists)
-- [lb_test_arguments](#lb_test_arguments)
+- Basic bash functions
+  - [lb_function_exists](#lb_function_exists)
+  - [lb_test_arguments](#lb_test_arguments)
+- Filesystem
+  - [lb_df_fstype](#lb_df_fstype)*
+
+Functions with a `*` are not yet supported on every OS.
+
 -----------------------------------------------------------
 
 <a name="lb_function_exists"></a>
 ### lb_function_exists
-#### Description
 Test if a function exists.
 
 #### Usage
@@ -36,7 +41,6 @@ lb_function_exists FUNCTION_NAME
 
 <a name="lb_test_arguments"></a>
 ### lb_test_arguments
-#### Description
 Test number of arguments passed to a function.
 
 #### Usage
@@ -56,3 +60,20 @@ VALUE     your arguments; (e.g. $* without quotes)
 - 0: arguments OK
 - 1: no
 - 255: usage error
+
+
+<a name="lb_df_fstype"></a>
+### lb_df_fstype
+Give the filesystem type of a path.
+
+**NOT COMPATIBILE YET WITH macOS**
+
+#### Usage
+```bash
+myfilesystem=$(lb_df_fstype PATH)
+```
+
+#### Exit codes
+- 0: OK
+- 1: error
+- 2: usage error

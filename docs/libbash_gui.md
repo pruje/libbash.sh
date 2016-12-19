@@ -29,7 +29,6 @@ All libbash GUI functions are named with the `lbg_` prefix. See documentation be
 
 <a name="lbg_yesno"></a>
 ### lbg_yesno
-#### Description
 Displays a dialog to ask a question to user.
 
 #### Usage
@@ -53,7 +52,6 @@ lbg_yesno [OPTIONS] TEXT
 
 <a name="lbg_input_password"></a>
 ### lbg_input_password
-#### Description
 Displays a dialog to ask user to input a password.
 
 #### Usage

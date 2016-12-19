@@ -785,7 +785,7 @@ lb_detect_os() {
 lb_df_fstype() {
 	# test if argument exists
 	if [ $# == 0 ] ; then
-		return 1
+		return 2
 	fi
 
 	# get type from df command
