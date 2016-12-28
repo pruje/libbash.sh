@@ -20,7 +20,7 @@
 ####################
 
 # set version
-libbash_version="0.1.0"
+lb_version="0.1.0"
 
 
 ####################
@@ -1258,6 +1258,12 @@ lb_choose_option() {
 # See lb_print for usage
 lb_echo() {
 	lb_print $*
+}
+
+# Print an error
+# See lb_print for usage
+lb_error() {
+	>&2 lb_print $*
 }
 
 # Common display functions

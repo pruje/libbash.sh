@@ -20,7 +20,7 @@
 ####################
 
 # test dependency
-if [ -z "$libbash_version" ] ; then
+if [ -z "$lb_version" ] ; then
 	echo >&2 "Error: libbash core not loaded!"
 	echo >&2 "Please load it in your script before loading this library with command:"
 	echo >&2 "   source \"/path/to/libbash.sh\""
