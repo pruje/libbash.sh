@@ -32,6 +32,7 @@ lb_default_result_ok_label="... Done!"
 lb_default_result_failed_label="... Failed!"
 lb_default_ok_label="OK"
 lb_default_cancel_label="Cancel"
+lb_default_failed_label="Failed"
 lb_default_yes_label="Yes"
 lb_default_no_label="No"
 lb_default_y_label="y"
@@ -665,7 +666,7 @@ lb_print_result() {
 				lb_prs_opts="--log "
 				shift
 				;;
-			--log-level)
+			-l|--log-level)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -1303,5 +1304,6 @@ lb_result() {
 }
 
 lb_short_result() {
-	lb_print_result --ok-label "[  OK  ]" --failed-label "[ FAILED ]" $*
+	lb_print_result --ok-label "[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]" \
+	                --failed-label "[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]" $*
 }
