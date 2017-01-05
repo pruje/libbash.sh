@@ -57,11 +57,9 @@ lbg_test_gui() {
 	fi
 
 	# test if GUI is supported
-	lb_array_contains "$1" "${lbg_supported_gui[@]}"
-	if [ $? == 0 ] ; then
+	if lb_array_contains "$1" "${lbg_supported_gui[@]}" ; then
 		# test if command exists
-		which "$1" &> /dev/null
-		if [ $? != 0 ] ; then
+		if ! lb_command_exists "$1" ; then
 			return 2
 		fi
 	else
@@ -86,11 +84,13 @@ lbg_set_gui() {
 
 	# test if GUI is supported
 	if lbg_test_gui "$1" ; then
-		# if no X server started, stay in console mode
-		if [ -n "$DISPLAY" ] ; then
-			lbg_gui="$1"
-		else
-			lbg_gui="console"
+		if [ "$(lb_detect_os)" != "macOS" ] ; then
+			# if no X server started, stay in console mode
+			if [ -n "$DISPLAY" ] ; then
+				lbg_gui="$1"
+			else
+				lbg_gui="console"
+			fi
 		fi
 	else
 		return 2
@@ -958,6 +958,7 @@ lbg_notify() {
 
 	local lbg_notify_title="$(basename "$0")"
 	local lbg_notify_timeout=""
+	local lbg_notify_use_notifysend=true
 
 	# catch options
 	while true ; do
@@ -979,6 +980,11 @@ lbg_notify() {
 				lbg_notify_timeout="$2"
 				shift 2
 				;;
+			--no-notify-send)
+				# do not use notify-send command if available
+				lbg_notify_use_notifysend=false
+				shift
+				;;
 			*)
 				break
 				;;
@@ -990,19 +996,23 @@ lbg_notify() {
 		return 1
 	fi
 
-	# if notify-send is installed, use it
-	which notify-send &> /dev/null
-	if [ $? == 0 ] ; then
-		# if X server started,
-		if [ -n "$DISPLAY" ] ; then
-			# execute command with timeout in milliseconds
-			if [ -n "$lbg_notify_timeout" ] ; then
-				lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
-			fi
+	# if notify-send is installed, use it by default,
+	# as it is better than any other system
+	if lb_command_exists notify-send ; then
+		if $lbg_notify_use_notifysend ; then
+			if [ "$(lb_detect_os)" != "macOS" ] ; then
+				# if X server started,
+				if [ -n "$DISPLAY" ] ; then
+					# execute command with timeout in milliseconds
+					if [ -n "$lbg_notify_timeout" ] ; then
+						lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
+					fi
 
-			# push notification and return
-			notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
-			return $?
+					# push notification and return
+					notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
+					return $?
+				fi
+			fi
 		fi
 	fi
 
@@ -1026,7 +1036,7 @@ lbg_notify() {
 		*)
 			# console mode
 			lb_display_info $*
-			return
+			return $?
 			;;
 	esac
 
@@ -1050,12 +1060,10 @@ lbg_display_debug() {
 #  DEFAULT GUI SELECTION  #
 ###########################
 
-# test supported GUIs
+# test supported GUI tools
 for lbg_sgt in ${lbg_supported_gui[@]} ; do
-	# test GUI
-	lbg_set_gui "$lbg_sgt"
-	# if exists, set it as default
-	if [ $? == 0 ] ; then
+	# set first available as default
+	if lbg_set_gui "$lbg_sgt" ; then
 		break
 	fi
 done
