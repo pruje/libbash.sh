@@ -56,6 +56,19 @@ lb_loglevels=("$lb_default_error_label" "$lb_default_warning_label" "$lb_default
 #  BASIC BASH UTILITIES  #
 ##########################
 
+# Check if a command exists
+# Usage: lb_command_exists COMMAND
+# Exit codes: 0 if exists, 1 if not, 255 if usage error
+lb_command_exists() {
+	if [ $# == 0 ] ; then
+		return 255
+	fi
+
+	which "$1" &> /dev/null
+	return $?
+}
+
+
 # Check if a bash function exists
 # Usage: lb_function_exists FUNCTION_NAME
 # Return: exit codes: 0 if exists, 1 if not, 2 if exists but is not a function
