@@ -23,7 +23,6 @@ All functions are named with the `lb_` prefix. See documentation below for each 
 Functions with a `*` are not yet supported on every OS.
 
 -----------------------------------------------------------
-
 <a name="lb_function_exists"></a>
 ### lb_function_exists
 Test if a function exists.
@@ -38,7 +37,7 @@ lb_function_exists FUNCTION_NAME
 - 1: function does not exists
 - 2: command exists, but it's not a function
 
-
+---------------------------------------------------------------
 <a name="lb_test_arguments"></a>
 ### lb_test_arguments
 Test number of arguments passed to a function.
@@ -61,7 +60,7 @@ VALUE     your arguments; (e.g. $* without quotes)
 - 1: no
 - 255: usage error
 
-
+---------------------------------------------------------------
 <a name="lb_df_fstype"></a>
 ### lb_df_fstype
 Give the filesystem type of a path.

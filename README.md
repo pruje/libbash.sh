@@ -13,8 +13,8 @@ source "/path/to/libbash.sh"
 
 Then just call libbash functions!
 
-**Note: DO NOT USE** in your script variables or functions with `lb_` prefix
-(nor `lbg_` if you use libbash GUI) as you could override or broke some libbash features.
+**Note: DO NOT USE** variables or functions with `lb_` prefix in your scripts
+(nor `lbg_` if you use libbash.sh GUI) as you could override or broke some libbash.sh features.
 
 ## Documentation
 - [libbash](docs/libbash.md)

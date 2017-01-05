@@ -1,12 +1,12 @@
 #!/bin/bash
 
-####################################################
-#
-#  libbash GUI
-#
-#  Author: Jean Prunneaux (http://jean.prunneaux.com)
-#
-#######################################################
+########################################################
+#                                                      #
+#  libbash.sh GUI                                      #
+#                                                      #
+#  Author: Jean Prunneaux (http://jean.prunneaux.com)  #
+#                                                      #
+########################################################
 
 ################################
 #                              #
@@ -37,7 +37,7 @@ lbg_gui=""
 #  FUNCTIONS  #
 ###############
 
-# Get GUI display
+# Get GUI tool
 # Usage: lbg_get_gui
 # Return: GUI name; exit code to 1 if no GUI supported
 lbg_get_gui() {
@@ -48,8 +48,8 @@ lbg_get_gui() {
 }
 
 
-# Test GUI display
-# Usage: lbg_test_gui COMMAND
+# Test GUI tool
+# Usage: lbg_test_gui GUI_TOOL
 # Return: 0 if OK, 1 is usage error, 2 if GUI is not supported
 lbg_test_gui() {
 	if [ $# == 0 ] ; then
@@ -71,7 +71,7 @@ lbg_test_gui() {
 
 
 # Set default GUI display
-# Usage: lbg_set_gui COMMAND
+# Usage: lbg_set_gui GUI_TOOL
 # Return: 0 if OK, 1 is usage error, 2 if GUI is not supported
 lbg_set_gui() {
 	if [ $# == 0 ] ; then
