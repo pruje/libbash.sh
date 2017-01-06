@@ -10,16 +10,10 @@
 
 ################################
 #                              #
-#  Version 0.1.0 (2017-01-05)  #
+#  Version 0.1.0 (2017-01-06)  #
 #                              #
 ################################
 
-
-####################
-#  INITIALIZATION  #
-####################
-
-# set version
 lb_version="0.1.0"
 
 
@@ -51,6 +45,9 @@ lb_loglevel=""
 # log levels, by default: ERROR WARNING INFO DEBUG
 lb_loglevels=("$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
+# print format
+lb_format_print=true
+
 
 ##########################
 #  BASIC BASH UTILITIES  #
@@ -65,13 +62,12 @@ lb_command_exists() {
 	fi
 
 	which "$1" &> /dev/null
-	return $?
 }
 
 
 # Check if a bash function exists
-# Usage: lb_function_exists FUNCTION_NAME
-# Return: exit codes: 0 if exists, 1 if not, 2 if exists but is not a function
+# Usage: lb_function_exists FUNCTION
+# Exit codes: 0 if exists, 1 if usage error, 2 if not, 3 if exists but is not a function
 lb_function_exists() {
 	if [ $# == 0 ] ; then
 		return 1
@@ -81,12 +77,12 @@ lb_function_exists() {
 	lb_function_exists_res="$(type -t "$1")"
 	if [ $? != 0 ] ; then
 		# if failed to get type, it does not exists
-		return 1
+		return 2
 	fi
 
 	# if not a function
 	if [ "$lb_function_exists_res" != "function" ] ; then
-		return 2
+		return 3
 	fi
 }
 
@@ -149,6 +145,7 @@ lb_test_arguments() {
 lb_print() {
 	local lb_print_format=()
 	local lb_print_opts=""
+	local lb_print_resetcolor=""
 
 	# get options
 	while true ; do
@@ -184,16 +181,20 @@ lb_print() {
 	done
 
 	# append formatting options
-	if [ ${#lb_print_format[@]} -gt 0 ] ; then
-		lb_print_opts+="\e["
-		for lb_print_f in ${lb_print_format[@]} ; do
-			lb_print_opts+=";$lb_print_f"
-		done
-		lb_print_opts+="m"
+	if $lb_format_print ; then
+		if [ ${#lb_print_format[@]} -gt 0 ] ; then
+			lb_print_opts+="\e["
+			for lb_print_f in ${lb_print_format[@]} ; do
+				lb_print_opts+=";$lb_print_f"
+			done
+			lb_print_opts+="m"
+
+			lb_print_resetcolor="\e[0m"
+		fi
 	fi
 
 	# print to the console
-	echo -e $lb_print_opts"$*\e[0m"
+	echo -e $lb_print_opts$*$lb_print_resetcolor
 }
 
 
@@ -204,9 +205,7 @@ lb_print() {
 #   -l, --level LEVEL  choose a display level (will be the same for logs)
 #   -p, --prefix       print [LEVEL] prefix before text
 #   --log              append text to log file if defined
-# Exit codes:
-#   0: ok
-#   1: logs could not be written
+# Exit codes: 0: OK, 1: logs could not be written
 lb_display() {
 	# default options
 	local lb_dp_log=false
@@ -304,7 +303,7 @@ lb_display() {
 
 # Test if logfile exists, or is writable
 # Usage: lb_test_logfile PATH
-# Return: exit codes:
+# Exit codes:
 #   0: file does not exists, but can be created
 #   1: file exists but can be overwritten
 #   2: path exists, but is not a regular file
@@ -313,6 +312,7 @@ lb_display() {
 #   5: file does not exists, and parent directory is not writable
 #   255: usage error
 lb_test_logfile() {
+
 	if [ $# == 0 ] ; then
 		return 255
 	fi
@@ -349,11 +349,14 @@ lb_test_logfile() {
 
 
 # Get log file path
-# Return: path of the file, exit codes:
+# Usage: lb_get_logfile
+# Return: path of the file
+# Exit codes:
 #   0: file ok
 #   1: log file not defined
 #   2-5: see lb_test_logfile exit codes
 lb_get_logfile() {
+
 	if [ -z "$lb_logfile" ] ; then
 		return 1
 	fi
@@ -450,7 +453,8 @@ lb_set_logfile() {
 # Get log level
 # Options:
 #   --id  get log level id instead of name
-# Return: level; exit code to 1 if no log level is set
+# Return: level
+# Exit code: 1 if no log level is set
 lb_get_loglevel() {
 	# default options
 	local lb_gllvl_level=$lb_loglevel
@@ -496,7 +500,7 @@ lb_get_loglevel() {
 			else
 				echo ${lb_loglevels[$lb_gllvl_i]}
 			fi
-			return
+			return 0
 		fi
 	done
 
@@ -507,6 +511,7 @@ lb_get_loglevel() {
 
 # Set log level
 # Usage: lb_set_loglevel LEVEL
+# Exit codes: 0 if OK, 1 if usage error, 2 if level not found
 lb_set_loglevel() {
 	if [ $# == 0 ] ; then
 		return 1
@@ -522,7 +527,7 @@ lb_set_loglevel() {
 	done
 
 	# if not found, error
-	return 1
+	return 2
 }
 
 
@@ -637,7 +642,7 @@ lb_log() {
 
 
 # Display command result
-# Usage: lb_print_result [options] [EXIT_CODE]
+# Usage: lb_print_result [OPTIONS] [EXIT_CODE]
 # Options:
 #   --ok-label TEXT      set a ok label
 #   --failed-label TEXT  set a ok label
@@ -646,9 +651,10 @@ lb_log() {
 #   -x, --error-exit     exit if result is not ok
 # Note: a very simple usage is to execute lb_result just after a command
 #       and get result with $? just after that
-# Exit code: exit code of the command
+# Exit code: exit code of lb_display
 lb_print_result() {
 
+	# get last command result
 	local lb_prs_lastres=$?
 	local lb_prs_ok="$lb_default_result_ok_label"
 	local lb_prs_failed="$lb_default_result_failed_label"
@@ -746,6 +752,7 @@ lb_is_integer() {
 # Search if array contains a value
 # Usage: lb_array_contains VALUE "${array[@]}"
 # Warning: put your array between quotes or it will fail if you have spaces in values
+# Exit codes: 0 if OK, 1: usage error, 2: not found
 lb_array_contains() {
 
 	# get usage errors
@@ -796,10 +803,11 @@ lb_detect_os() {
 # Get filesystem type
 # Usage: lb_df_fstype PATH
 # Return: fs type
+# Exit codes: df exit code; 255 if usage error
 lb_df_fstype() {
 	# test if argument exists
 	if [ $# == 0 ] ; then
-		return 2
+		return 255
 	fi
 
 	# get type from df command
@@ -810,11 +818,12 @@ lb_df_fstype() {
 
 # Get space left on device
 # Usage: lb_df_space_left PATH
-# Return: bytes available; exit code to 1 if error
+# Return: bytes available
+# Exit codes: df exit code; 255 if usage error
 lb_df_space_left() {
 	# catch errors
 	if [ $# == 0 ] ; then
-		return 1
+		return 255
 	fi
 
 	df -B1 --output=avail "$1" 2> /dev/null | tail -n 1
@@ -824,11 +833,12 @@ lb_df_space_left() {
 
 # Get mount point
 # Usage: lb_df_mountpoint PATH
-# Return: path; exit code to 1 if error
+# Return: path
+# Exit codes: df exit code; 255 if usage error
 lb_df_mountpoint() {
 	# catch errors
 	if [ $# == 0 ] ; then
-		return 1
+		return 255
 	fi
 
 	df --output=target "$1" 2> /dev/null | tail -n 1
@@ -838,7 +848,8 @@ lb_df_mountpoint() {
 
 # Get disk UUID
 # Usage: lb_df_uuid PATH
-# Return: path; exit code to 1 if error
+# Return: UUID
+# Exit codes: O if OK, 1 if usage error, 2 if path does not exists, 3 if UUID not found
 lb_df_uuid() {
 	# catch errors
 	if [ $# == 0 ] ; then
@@ -875,6 +886,7 @@ lb_df_uuid() {
 # Usage: lb_get_home_directory [USER]
 # Options: user (if not set, use current user)
 # Return: path
+# Exit codes: 1 if not found
 lb_homepath() {
 	eval lb_homedir=~$1
 	if [ $? == 0 ] ; then
@@ -889,8 +901,9 @@ lb_homepath() {
 
 # Test if a directory is empty
 # Usage: lb_dir_is_empty PATH
-# Return: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
+# Exit codes: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
 lb_dir_is_empty() {
+
 	# test if argument exists
 	if [ $# == 0 ] ; then
 		return 1
@@ -902,12 +915,14 @@ lb_dir_is_empty() {
 	fi
 
 	# test if directory is empty
-	lb_is_res="$(ls -A "$1" 2> /dev/null)"
+	lb_dir_is_empty_res="$(ls -A "$1" 2> /dev/null)"
 	if [ $? != 0 ] ; then
+		# ls error means an access rights error
 		return 2
 	fi
 
-	if [ "$lb_is_res" ] ; then
+	# directory is not empty
+	if [ "$lb_dir_is_empty_res" ] ; then
 		return 3
 	fi
 }
@@ -915,7 +930,8 @@ lb_dir_is_empty() {
 
 # Get realpath of a file
 # Usage: lb_realpath PATH
-# Return: real path; exit codes: 0 if OK, 1 if usage error, 2 if not found
+# Return: path
+# Exit codes: 0 if OK, 1 if usage error, 2 if not found
 lb_realpath() {
 	if [ $# == 0 ] ; then
 		return 1
@@ -1320,3 +1336,13 @@ lb_short_result() {
 	lb_print_result --ok-label "[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]" \
 	                --failed-label "[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]" $*
 }
+
+
+####################
+#  INITIALIZATION  #
+####################
+
+# if macOS, do not print with colours
+if [ "$(lb_detect_os)" == "macOS" ] ; then
+	lb_format_print=false
+fi

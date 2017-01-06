@@ -10,7 +10,7 @@
 
 ################################
 #                              #
-#  Version 0.1.0 (2016-11-24)  #
+#  Version 0.1.0 (2017-01-06)  #
 #                              #
 ################################
 
@@ -34,7 +34,7 @@ lbg_gui=""
 
 
 ###############
-#  FUNCTIONS  #
+#  GUI TOOLS  #
 ###############
 
 # Get GUI tool
@@ -85,7 +85,9 @@ lbg_set_gui() {
 
 	# test if GUI is supported
 	if lbg_test_gui "$1" ; then
-		if [ "$(lb_detect_os)" != "macOS" ] ; then
+		if [ "$(lb_detect_os)" == "macOS" ] ; then
+			lbg_gui="$1"
+		else
 			# if no X server started, stay in console mode
 			if [ -n "$DISPLAY" ] ; then
 				lbg_gui="$1"
@@ -149,7 +151,10 @@ lbg_display_info() {
 			;;
 
 		osascript)
-			# TODO
+			osascript 2> /dev/null << EOF
+display dialog "$*" with title "$lbg_dinf_title" with icon note buttons {"$lb_default_ok_label"} default button 1
+EOF
+			return $?
 			;;
 
 		dialog)
@@ -190,7 +195,7 @@ lbg_display_warning() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--title|-t)
+			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -219,7 +224,10 @@ lbg_display_warning() {
 			;;
 
 		osascript)
-			# TODO
+			osascript 2> /dev/null << EOF
+display dialog "$*" with title "$lbg_dwn_title" with icon caution buttons {"$lb_default_ok_label"} default button 1
+EOF
+			return $?
 			;;
 
 		dialog)
@@ -282,7 +290,10 @@ lbg_display_error() {
 			;;
 
 		osascript)
-			# TODO
+			osascript 2> /dev/null << EOF
+display dialog "$*" with title "$lbg_err_title" with icon stop buttons {"$lb_default_ok_label"} default button 1
+EOF
+			return $?
 			;;
 
 		dialog)
@@ -304,6 +315,7 @@ lbg_display_error() {
 # Options:
 #   -t, --title TEXT   notification title
 #   --timeout SECONDS  timeout before notification disapears
+#                      No available on macOS
 #   --no-notify-send   do not use the notify-send command if exists
 # Exit codes: notification exit code
 lbg_notify() {
@@ -380,13 +392,18 @@ lbg_notify() {
 			;;
 
 		zenity)
-			# TODO: improve with listen option: https://help.gnome.org/users/zenity/stable/notification.html
-			zenity --notification --text="$*"
-  			return $?
+			if [ -n "$lbg_notify_timeout" ] ; then
+				lbg_notify_opts="--timeout=$lbg_notify_timeout"
+			fi
+			# Execute immediately without put in variable because of a bug
+			echo "message:$*" | zenity --notification $lbg_notify_opts --listen
+			return $?
 			;;
 
 		osascript)
-			# TODO
+			osascript 2> /dev/null << EOF
+display notification "$*" with title "$lbg_notify_title"
+EOF
 			;;
 
 		# no dialog system,  because it doesn't make sense in console
@@ -411,7 +428,7 @@ lbg_notify() {
 # Options:
 #    -d, --default TEXT  default text
 #    -t, --title TEXT    dialog title
-# Return: exit code, value is set into $lbg_input_text variable
+# Return: value is set into $lbg_input_text variable
 lbg_input_text=""
 lbg_input_text() {
 
@@ -647,6 +664,7 @@ EOF)
 #    -c, --confirm           display a confirmation dialog
 #    --confirm-label TEXT    display a confirmation dialog
 # Return: exit code, value is set into $lbg_input_text variable
+# Exit code: 0 if OK, 1 if usage error, 2 if mismatch
 lbg_input_password=""
 lbg_input_password() {
 
@@ -664,7 +682,7 @@ lbg_input_password() {
 		case "$1" in
 			-l|--label)
 				if lb_test_arguments -eq 0 $2 ; then
-					return 2
+					return 1
 				fi
 				lbg_inpw_label="$2"
 				shift 2
@@ -675,7 +693,7 @@ lbg_input_password() {
 				;;
 			--confirm-label)
 				if lb_test_arguments -eq 0 $2 ; then
-					return 2
+					return 1
 				fi
 				lbg_inpw_confirm_label="$2"
 				shift 2
@@ -710,7 +728,10 @@ lbg_input_password() {
 				;;
 
 			osascript)
-				# TODO
+				lbg_inpw_password=$(osascript 2> /dev/null << EOF
+set answer to the text returned of (display dialog "$lbg_inpw_label" with title "$lbg_inpw_title" default answer "" hidden answer true)
+EOF)
+				lbg_inpw_res=$?
 				;;
 
 			dialog)
@@ -757,7 +778,7 @@ lbg_input_password() {
 
 			# comparison with confirm password
 			if [ "$lbg_inpw_password" != "$lbg_inpw_password_confirm" ] ; then
-				return 1
+				return 2
 			fi
 		fi
 
@@ -884,7 +905,25 @@ lbg_choose_option() {
 			;;
 
 		osascript)
-			# TODO
+			# add options
+			local lbg_chop_opts="{"
+
+			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+				lbg_chop_opts+="\"${lbg_chop_options[$lbg_chop_i]}\","
+			done
+			lbg_chop_opts="${lbg_chop_opts%?}}"
+
+			lbg_chop_choice=$(osascript 2> /dev/null <<EOF
+set answer to (choose from list $lbg_chop_opts with prompt "$lbg_chop_text" with title "$lbg_chop_title")
+EOF)
+			lbg_chop_res=$?
+
+			# find result
+			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+				if [ "$lbg_chop_choice" == "${lbg_chop_options[$lbg_chop_i]}" ] ; then
+					lbg_choose_option=$lbg_chop_i
+				fi
+			done
 			;;
 
 		dialog)
@@ -932,7 +971,15 @@ lbg_choose_option() {
 		return $lbg_chop_res
 	fi
 
+	if [ -z "$lbg_choose_option" ] ; then
+		return 1
+	fi
+
 	# check if user choice is valid
+	if ! lb_is_integer $lbg_choose_option ; then
+		return 3
+	fi
+
 	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -ge ${#lbg_chop_options[@]} ] ; then
 		return 3
 	fi
@@ -989,15 +1036,20 @@ lbg_choose_directory() {
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
-			lbg_chdir_cmd=(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path")
+			lbg_choose_directory=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path")
+			lbg_chdir_res=$?
 			;;
 
 		zenity)
-			lbg_chdir_cmd=(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path")
+			lbg_choose_directory=$(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path")
+			lbg_chdir_res=$?
 			;;
 
 		osascript)
-			# TODO
+			lbg_choose_directory=$(osascript 2> /dev/null <<EOF
+set answer to POSIX path of (choose folder with prompt "$lbg_chdir_title" default location "$lbg_chdir_path")
+EOF)
+			lbg_chdir_res=$?
 			;;
 
 		dialog)
@@ -1011,8 +1063,6 @@ lbg_choose_directory() {
 
 			# clear console
 			clear
-
-			return $lbg_chdir_res
 			;;
 
 		*)
@@ -1041,8 +1091,13 @@ lbg_choose_directory() {
 			;;
 	esac
 
-	# execute command
-	lbg_choose_directory=$("${lbg_chdir_cmd[@]}" 2> /dev/null)
+	if [ $lbg_chdir_res != 0 ] ; then
+		return 1
+	fi
+
+	if ! [ -d "$lbg_choose_directory" ] ; then
+		return 2
+	fi
 }
 
 
