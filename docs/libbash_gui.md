@@ -30,9 +30,15 @@ All libbash.sh GUI functions are named with the `lbg_` prefix. See documentation
 	* [lbg_get_gui](#lbg_get_gui)
 	* [lbg_test_gui](#lbg_test_gui)
 	* [lbg_set_gui](#lbg_set_gui)
+* Messages and notifications
+	* [lbg_display_info](#lbg_display_info)
+	* [lbg_display_warning](#lbg_display_warning)
+	* [lbg_display_error](#lbg_display_error)
+	* [lbg_notify](#lbg_notify)
 * User interaction
+	* [lbg_input_text](#lbg_input_text)
 	* [lbg_yesno](#lbg_yesno)
-	* [lbg_input_password](#lbg_input_password2)
+	* [lbg_input_password](#lbg_input_password)
 
 ---------------------------------------------------------------
 <a name="lbg_get_gui"></a>
@@ -41,7 +47,7 @@ Get the current GUI tool name (see available tools above).
 
 #### Usage
 ```bash
-my_gui_tool=$(lbg_get_gui)
+lbg_get_gui
 ```
 
 #### Exit codes
@@ -81,6 +87,112 @@ lbg_set_gui GUI_TOOL
 - 0: GUI tool set
 - 1: usage error
 - 2: GUI tool not available on the system
+
+---------------------------------------------------------------
+<a name="lbg_display_info"></a>
+### lbg_display_info
+Displays an info dialog.
+
+#### Usage
+```bash
+lbg_display_info [OPTIONS] TEXT
+```
+
+#### Options
+```bash
+-t, --title TEXT  Set a title to the dialog
+```
+
+#### Exit codes
+- Dialog exit codes are forwarded.
+- 1: usage error
+
+---------------------------------------------------------------
+<a name="lbg_display_warning"></a>
+### lbg_display_warning
+Displays a warning dialog.
+
+#### Usage
+```bash
+lbg_display_warning [OPTIONS] TEXT
+```
+
+#### Options
+```bash
+-t, --title TEXT  Set a title to the dialog
+```
+
+#### Exit codes
+- Dialog exit codes are forwarded.
+- 1: usage error
+
+---------------------------------------------------------------
+<a name="lbg_display_error"></a>
+### lbg_display_error
+Displays an error dialog.
+
+#### Usage
+```bash
+lbg_display_error [OPTIONS] TEXT
+```
+
+#### Options
+```bash
+-t, --title TEXT  Set a title to the dialog
+```
+
+#### Exit codes
+- Dialog exit codes are forwarded.
+- 1: usage error
+
+---------------------------------------------------------------
+<a name="lbg_notify"></a>
+### lbg_notify
+Displays a notification.
+
+#### Usage
+```bash
+lbg_notify [OPTIONS] TEXT
+```
+
+#### notify-send
+On Linux systems, the `notify-send` command is used by default over kdialog or zenity commands.
+We choosed it because it is more powerful and have a better integration on every desktop environments.
+But if you want, you can use the `--no-notify-send` option to not use it and use your chosen GUI tool.
+
+#### Options
+```
+-t, --title TEXT   Set a title to the notification
+--timeout SECONDS  Timeout before notification disapears (if not set, use default system)
+--no-notify-send   Do not use the notify-send command if exists*
+```
+
+\* See above for more details
+
+#### Exit codes
+- Dialog exit codes are forwarded
+- 1: usage error
+
+---------------------------------------------------------------
+<a name="lbg_input_text"></a>
+### lbg_input_text
+Displays a dialog to ask user to input a text.
+
+#### Usage
+```bash
+lbg_input_text [OPTIONS] TEXT
+```
+Result is stored into the `$lbg_input_text` variable.
+
+#### Options
+```bash
+-d, --default TEXT  Default value
+-t, --title TEXT    Set a title to the dialog
+```
+
+#### Exit codes
+- Dialog exit codes are forwarded
+- 1: usage error
 
 ---------------------------------------------------------------
 <a name="lbg_yesno"></a>

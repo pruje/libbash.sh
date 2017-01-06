@@ -39,7 +39,8 @@ lbg_gui=""
 
 # Get GUI tool
 # Usage: lbg_get_gui
-# Return: GUI name; exit code to 1 if no GUI supported
+# Return: GUI tool
+# Exit codes: 0 if OK, 1 if no GUI tool available
 lbg_get_gui() {
 	if [ -z "$lbg_gui" ] ; then
 		return 1
@@ -50,7 +51,7 @@ lbg_get_gui() {
 
 # Test GUI tool
 # Usage: lbg_test_gui GUI_TOOL
-# Return: 0 if OK, 1 is usage error, 2 if GUI is not supported
+# Exit codes: 0 if OK, 1 is usage error, 2 if GUI is not supported
 lbg_test_gui() {
 	if [ $# == 0 ] ; then
 		return 1
@@ -70,7 +71,7 @@ lbg_test_gui() {
 
 # Set default GUI display
 # Usage: lbg_set_gui GUI_TOOL
-# Return: 0 if OK, 1 is usage error, 2 if GUI is not supported
+# Exit codes: 0 if OK, 1 is usage error, 2 if GUI is not supported
 lbg_set_gui() {
 	if [ $# == 0 ] ; then
 		return 1
@@ -103,9 +104,10 @@ lbg_set_gui() {
 ################################
 
 # Display a message
-# Usage: lbg_display_info [options] TEXT
+# Usage: lbg_display_info [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT  set dialog title
+# Exit codes: dialog exit code
 lbg_display_info() {
 
 	if [ $# == 0 ] ; then
@@ -118,7 +120,7 @@ lbg_display_info() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--title|-t)
+			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -172,9 +174,10 @@ lbg_display_info() {
 
 
 # Display a warning message
-# Usage: lbg_display_warning [options] TEXT
+# Usage: lbg_display_warning [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT  set dialog title
+# Exit codes: dialog exit code
 lbg_display_warning() {
 
 	if [ $# == 0 ] ; then
@@ -234,9 +237,10 @@ lbg_display_warning() {
 
 
 # Display an error message
-# Usage: lbg_display_error [options] TEXT
+# Usage: lbg_display_error [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT  set dialog title
+# Exit codes: dialog exit code
 lbg_display_error() {
 
 	if [ $# == 0 ] ; then
@@ -295,6 +299,109 @@ lbg_display_error() {
 }
 
 
+# Display a notification
+# Usage: lbg_notify [OPTIONS] TEXT
+# Options:
+#   -t, --title TEXT   notification title
+#   --timeout SECONDS  timeout before notification disapears
+#   --no-notify-send   do not use the notify-send command if exists
+# Exit codes: notification exit code
+lbg_notify() {
+
+	# catch usage errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	local lbg_notify_title="$(basename "$0")"
+	local lbg_notify_timeout=""
+	local lbg_notify_use_notifysend=true
+
+	# catch options
+	while true ; do
+		case "$1" in
+			-t|--title)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_notify_title="$2"
+				shift 2
+				;;
+			--timeout)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				if ! lb_is_integer $2 ; then
+					return 1
+				fi
+				lbg_notify_timeout="$2"
+				shift 2
+				;;
+			--no-notify-send)
+				# do not use notify-send command if available
+				lbg_notify_use_notifysend=false
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# usage error if no text
+	if lb_test_arguments -eq 0 $* ; then
+		return 1
+	fi
+
+	# if notify-send is installed, use it by default,
+	# as it is better than any other system
+	if lb_command_exists notify-send ; then
+		if $lbg_notify_use_notifysend ; then
+			if [ "$(lb_detect_os)" != "macOS" ] ; then
+				# if X server started,
+				if [ -n "$DISPLAY" ] ; then
+					# execute command with timeout in milliseconds
+					if [ -n "$lbg_notify_timeout" ] ; then
+						lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
+					fi
+
+					# push notification and return
+					notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
+					return $?
+				fi
+			fi
+		fi
+	fi
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_notify_cmd=(kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout)
+			;;
+
+		zenity)
+			# TODO: improve with listen option: https://help.gnome.org/users/zenity/stable/notification.html
+			zenity --notification --text="$*"
+  			return $?
+			;;
+
+		osascript)
+			# TODO
+			;;
+
+		# no dialog system,  because it doesn't make sense in console
+		*)
+			# console mode
+			lb_display_info $*
+			return $?
+			;;
+	esac
+
+	# execute command
+	"${lbg_notify_cmd[@]}" 2> /dev/null
+}
+
+
 ######################
 #  USER INTERACTION  #
 ######################
@@ -322,14 +429,14 @@ lbg_input_text() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--default|-d)
+			-d|--default)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
 				lbg_inp_default="$2"
 				shift 2
 				;;
-			--title|-t)
+			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -936,112 +1043,6 @@ lbg_choose_directory() {
 
 	# execute command
 	lbg_choose_directory=$("${lbg_chdir_cmd[@]}" 2> /dev/null)
-}
-
-
-###################
-#  NOTIFICATIONS  #
-###################
-
-# Print a notification dialog
-# Usage: lbg_notify [OPTIONS] TEXT
-# Options:
-#   -t, --title TEXT   notification title
-#   --timeout SECONDS  timeout before notification disapears
-# Exit codes: notification command result
-lbg_notify() {
-
-	# catch usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
-	local lbg_notify_title="$(basename "$0")"
-	local lbg_notify_timeout=""
-	local lbg_notify_use_notifysend=true
-
-	# catch options
-	while true ; do
-		case "$1" in
-			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				lbg_notify_title="$2"
-				shift 2
-				;;
-			--timeout)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				if ! lb_is_integer $2 ; then
-					return 1
-				fi
-				lbg_notify_timeout="$2"
-				shift 2
-				;;
-			--no-notify-send)
-				# do not use notify-send command if available
-				lbg_notify_use_notifysend=false
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-	done
-
-	# usage error if no text
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
-
-	# if notify-send is installed, use it by default,
-	# as it is better than any other system
-	if lb_command_exists notify-send ; then
-		if $lbg_notify_use_notifysend ; then
-			if [ "$(lb_detect_os)" != "macOS" ] ; then
-				# if X server started,
-				if [ -n "$DISPLAY" ] ; then
-					# execute command with timeout in milliseconds
-					if [ -n "$lbg_notify_timeout" ] ; then
-						lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
-					fi
-
-					# push notification and return
-					notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
-					return $?
-				fi
-			fi
-		fi
-	fi
-
-	# display dialog
-	case "$lbg_gui" in
-		kdialog)
-			lbg_notify_cmd=(kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout)
-			;;
-
-		zenity)
-			# TODO: improve with listen option: https://help.gnome.org/users/zenity/stable/notification.html
-			zenity --notification --text="$*"
-  			return $?
-			;;
-
-		osascript)
-			# TODO
-			;;
-
-		# no dialog system,  because it doesn't make sense in console
-		*)
-			# console mode
-			lb_display_info $*
-			return $?
-			;;
-	esac
-
-	# execute command
-	"${lbg_notify_cmd[@]}" 2> /dev/null
 }
 
 
