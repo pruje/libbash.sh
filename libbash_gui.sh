@@ -291,7 +291,7 @@ lbg_display_error() {
 
 		osascript)
 			osascript 2> /dev/null << EOF
-display dialog "$*" with title "$lbg_err_title" with icon stop buttons {"$lb_default_ok_label"} default button 1
+display dialog "$*" with title "$lbg_derr_title" with icon stop buttons {"$lb_default_ok_label"} default button 1
 EOF
 			return $?
 			;;
