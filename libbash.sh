@@ -57,6 +57,7 @@ lb_format_print=true
 # Usage: lb_command_exists COMMAND
 # Exit codes: 0 if exists, 1 if not, 255 if usage error
 lb_command_exists() {
+
 	if [ $# == 0 ] ; then
 		return 255
 	fi
@@ -65,16 +66,17 @@ lb_command_exists() {
 }
 
 
-# Check if a bash function exists
+# Check if a function exists
 # Usage: lb_function_exists FUNCTION
 # Exit codes: 0 if exists, 1 if usage error, 2 if not, 3 if exists but is not a function
 lb_function_exists() {
+
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
 	# get type of argument
-	lb_function_exists_res="$(type -t "$1")"
+	lb_function_exists_res=$(type -t "$1")
 	if [ $? != 0 ] ; then
 		# if failed to get type, it does not exists
 		return 2
@@ -136,8 +138,8 @@ lb_test_arguments() {
 #  DISPLAY AND LOGS  #
 ######################
 
-# Prints a message to the console, with colors and formatting
-# Usage: lb_print [options] TEXT
+# Print a message to the console, with colors and formatting
+# Usage: lb_print [OPTIONS] TEXT
 # Options:
 #   -n      no line return
 #   --bold  print in bold format
@@ -198,7 +200,7 @@ lb_print() {
 }
 
 
-# Print a message to the console, can set a verbose level and can be added to logs
+# Print a message to the console, can set a verbose level and can append to logs
 # Usage: lb_display [options] TEXT
 # Options:
 #   -n                 no line return
@@ -208,32 +210,32 @@ lb_print() {
 # Exit codes: 0: OK, 1: logs could not be written
 lb_display() {
 	# default options
-	local lb_dp_log=false
-	local lb_dp_prefix=false
-	local lb_dp_opts=""
-	local lb_dp_level=""
-	local lb_dp_exit=0
+	local lb_display_log=false
+	local lb_display_prefix=false
+	local lb_display_opts=""
+	local lb_display_level=""
+	local lb_display_exit=0
 
 	# get options
 	while true ; do
 		case "$1" in
 			-n)
-				lb_dp_opts="-n "
+				lb_display_opts="-n "
 				shift
 				;;
 			-l|--level)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
-				lb_dp_level="$2"
+				lb_display_level="$2"
 				shift 2
 				;;
 			-p|--prefix)
-				lb_dp_prefix=true
+				lb_display_prefix=true
 				shift
 				;;
 			--log)
-				lb_dp_log=true
+				lb_display_log=true
 				shift
 				;;
 			*)
@@ -243,61 +245,61 @@ lb_display() {
 	done
 
 	# if a default log level is set,
-	if [ -n "$lb_dp_level" ] ; then
+	if [ -n "$lb_display_level" ] ; then
 		# test current log level
 		if [ -n "$lb_loglevel" ] ; then
-			lb_dp_idlvl=$(lb_get_loglevel --id "$lb_dp_level")
+			lb_display_idlvl=$(lb_get_loglevel --id "$lb_display_level")
 
 			# (if failed, we will continue logging)
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
-				if [ $lb_dp_idlvl -gt $lb_loglevel ] ; then
+				if [ $lb_display_idlvl -gt $lb_loglevel ] ; then
 					return 0
 				fi
 			fi
 		fi
 	fi
 
-	local lb_dp_msgprefix=""
+	local lb_display_msgprefix=""
 
 	# add prefix
-	if $lb_dp_prefix ; then
-		lb_dp_msgprefix="[$lb_dp_level]  "
+	if $lb_display_prefix ; then
+		lb_display_msgprefix="[$lb_display_level]  "
 	fi
 
 	# print into logfile
-	if $lb_dp_log ; then
-		lb_log $lb_dp_opts--level "$lb_dp_level" "$lb_dp_msgprefix$*"
-		lb_dp_exit=$?
+	if $lb_display_log ; then
+		lb_log $lb_display_opts--level "$lb_display_level" "$lb_display_msgprefix$*"
+		lb_display_exit=$?
 	fi
 
 	# enable coloured prefixes
-	if $lb_dp_prefix ; then
-		case "$lb_dp_level" in
+	if $lb_display_prefix ; then
+		case "$lb_display_level" in
 			"$lb_default_error_label")
-				lb_dp_msgprefix="$(lb_print --red $lb_dp_level)"
+				lb_display_msgprefix="$(lb_print --red $lb_display_level)"
 				;;
 			"$lb_default_warning_label")
-				lb_dp_msgprefix="$(lb_print --yellow $lb_dp_level)"
+				lb_display_msgprefix="$(lb_print --yellow $lb_display_level)"
 				;;
 			"$lb_default_info_label")
-				lb_dp_msgprefix="$(lb_print --green $lb_dp_level)"
+				lb_display_msgprefix="$(lb_print --green $lb_display_level)"
 				;;
 			"$lb_default_debug_label")
-				lb_dp_msgprefix="$(lb_print --cyan $lb_dp_level)"
+				lb_display_msgprefix="$(lb_print --cyan $lb_display_level)"
 				;;
 			*)
-				lb_dp_msgprefix="$lb_dp_level"
+				lb_display_msgprefix="$lb_display_level"
 				;;
 		esac
 
-		lb_dp_msgprefix="[$lb_dp_msgprefix]  "
+		lb_display_msgprefix="[$lb_display_msgprefix]  "
 	fi
 
 	# print text
-	lb_print $lb_dp_opts"$lb_dp_msgprefix$*"
+	lb_print $lb_display_opts"$lb_display_msgprefix$*"
 
-	return $lb_dp_exit
+	return $lb_display_exit
 }
 
 
@@ -1451,7 +1453,8 @@ lb_error() {
 }
 
 # Common display functions
-# Usage: TEXT
+# Usage: [OPTIONS] TEXT
+# Options are same as lb_display
 lb_display_error() {
 	lb_display -p -l "$lb_default_error_label" $*
 }
@@ -1466,7 +1469,8 @@ lb_display_debug() {
 }
 
 # Common log functions
-# Usage: TEXT
+# Usage: [OPTIONS] TEXT
+# Options are same as lb_log
 lb_log_error() {
 	lb_log -p -l "$lb_default_error_label" $*
 }
