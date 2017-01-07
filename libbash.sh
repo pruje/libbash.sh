@@ -819,26 +819,33 @@ lb_df_mountpoint() {
 #   1: usage error
 #   2: path does not exists
 #   3: UUID not found
-#   4: function not supported on this system
+#   4: unknown df error
+#   5: function not supported on this system
 lb_df_uuid() {
 
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
-	lb_df_uuid_dev=$(df --output=source "$1" 2> /dev/null | tail -n 1)
-	if [ -z "$lb_df_uuid_dev" ] ; then
+	# if path does not exists, error
+	if ! [ -e "$1" ] ; then
 		return 2
 	fi
 
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
 		# TODO: implement support for macOS
-		return 4
+		return 5
 	else
 		# Linux systems
 
 		# if UUID folder not found, cancel
 		if ! [ -d /dev/disk/by-uuid ] ; then
+			return 5
+		fi
+
+		# get device
+		lb_df_uuid_dev=$(df --output=source "$1" 2> /dev/null | tail -n 1)
+		if [ -z "$lb_df_uuid_dev" ] ; then
 			return 4
 		fi
 
