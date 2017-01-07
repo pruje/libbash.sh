@@ -37,6 +37,9 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_array_contains](#lb_array_contains)
 * Filesystem
 	* [lb_df_fstype](#lb_df_fstype)*
+	* [lb_df_space_left](#lb_df_space_left)
+	* [lb_df_mountpoint](#lb_df_mountpoint)
+	* [lb_df_uuid](#lb_df_uuid)*
 
 ---------------------------------------------------------------
 ## Basic bash functions
@@ -381,6 +384,8 @@ lb_array_contains VALUE "${ARRAY[@]}"
 - 2: value is NOT in array
 
 ---------------------------------------------------------------
+## Basic bash functions
+---------------------------------------------------------------
 <a name="lb_df_fstype"></a>
 ### lb_df_fstype
 Give the filesystem type of a path.
@@ -389,10 +394,60 @@ Give the filesystem type of a path.
 
 #### Usage
 ```bash
-myfilesystem=$(lb_df_fstype PATH)
+lb_df_fstype PATH
 ```
 
 #### Exit codes
 - 0: OK
-- 1: error
-- 2: usage error
+- 255: usage error
+- other: df command exit code
+
+---------------------------------------------------------------
+<a name="lb_df_space_left"></a>
+### lb_df_space_left
+Get space left on partition (in bytes).
+
+#### Usage
+```bash
+lb_df_space_left PATH
+```
+
+#### Exit codes
+- 0: OK
+- 255: usage error
+- other: df command exit code
+
+---------------------------------------------------------------
+<a name="lb_df_mountpoint"></a>
+### lb_df_mountpoint
+Get mount point of a partition.
+
+#### Usage
+```bash
+lb_df_mountpoint PATH
+```
+
+#### Exit codes
+- 0: OK
+- 255: usage error
+- other: df command exit code
+
+---------------------------------------------------------------
+<a name="lb_df_uuid"></a>
+### lb_df_uuid
+Get the disk UUID for a given path.
+
+**NOT COMPATIBILE YET WITH macOS**
+
+#### Usage
+```bash
+lb_df_uuid PATH
+```
+
+#### Exit codes
+- 0: OK
+- 1: usage error
+- 2: path does not exists
+- 3: disk UUID not found
+- 4: unknown df error
+- 5: function not supported on this system
