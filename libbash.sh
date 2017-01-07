@@ -135,9 +135,9 @@ lb_test_arguments() {
 }
 
 
-######################
-#  DISPLAY AND LOGS  #
-######################
+#############
+#  DISPLAY  #
+#############
 
 # Print a message to the console, with colors and formatting
 # Usage: lb_print [OPTIONS] TEXT
@@ -307,13 +307,100 @@ lb_display() {
 }
 
 
+# Display command result
+# Usage: lb_print_result [OPTIONS] [EXIT_CODE]
+# Options:
+#   --ok-label TEXT        set a ok label
+#   --failed-label TEXT    set a failed label
+#   --log                  print result into log file
+#   -l, --log-level LEVEL  set a log level
+#   -x, --error-exit       exit if result is not ok
+# Note: a very simple usage is to execute lb_result just after a command
+#       and get result with $? just after that
+# Exit code: Exit code of the command
+lb_print_result() {
+
+	# get last command result
+	local lb_prs_lastres=$?
+	local lb_prs_ok="$lb_default_result_ok_label"
+	local lb_prs_failed="$lb_default_result_failed_label"
+	local lb_prs_opts=""
+	local lb_prs_errorexit=false
+
+	while true ; do
+		case "$1" in
+			--ok-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_prs_ok="$2"
+				shift 2
+				;;
+			--failed-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_prs_failed="$2"
+				shift 2
+				;;
+			--log)
+				lb_prs_opts="--log "
+				shift
+				;;
+			-l|--log-level)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_prs_opts="-l $2 "
+				shift 2
+				;;
+			-x|--error-exit)
+				lb_prs_errorexit=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	if [ -z "$1" ] ; then
+		lb_prs_res=$lb_prs_lastres
+	else
+		lb_prs_res=$1
+	fi
+
+	if ! lb_is_integer $lb_prs_res ; then
+		lb_prs_res=1
+	fi
+
+	if [ $lb_prs_res == 0 ] ; then
+		lb_display $lb_prs_opts"$lb_prs_ok"
+	else
+		lb_display $lb_prs_opts"$lb_prs_failed"
+
+		# if exit on error, exit
+		if $lb_prs_errorexit ; then
+			exit $lb_prs_res
+		fi
+	fi
+
+	# return exit code
+	return $lb_prs_res
+}
+
+
+##########
+#  LOGS  #
+##########
+
 # Get log file path
 # Usage: lb_get_logfile
 # Return: path of the file
 # Exit codes:
 #   0: file ok
 #   1: log file not defined
-#   2-4: lb_is_writable exit codes
+#   2: log file is not writable
 lb_get_logfile() {
 
 	if [ -z "$lb_logfile" ] ; then
@@ -321,12 +408,8 @@ lb_get_logfile() {
 	fi
 
 	# test if log file is writable
-	lb_is_writable "$lb_logfile"
-	lb_getlog_test=$?
-
-	# if file is not ok, cancel
-	if [ $lb_getlog_test != 0 ] ; then
-		return $lb_getlog_test
+	if ! lb_is_writable "$lb_logfile" ; then
+		return 2
 	fi
 
 	# return log file path
@@ -335,7 +418,7 @@ lb_get_logfile() {
 
 
 # Set log file
-# Usage: lb_set_logfile [OPTIONS] PATH
+# Usage: lb_set_logfile [OPTIONS] FILE
 # Options:
 #   -a, --append     if file already exists, append to it
 #   -x, --overwrite  if file already exists, overwrite it
@@ -343,7 +426,7 @@ lb_get_logfile() {
 #   0: ok
 #   1: usage error
 #   2: file cannot be created or is not writable
-#   3: file already exists and append option is not set
+#   3: file already exists, but append option is not set
 #   4: path exists but is not a regular file
 lb_set_logfile() {
 
@@ -412,12 +495,15 @@ lb_set_logfile() {
 }
 
 
-# Get log level
-# Usage: lb_get_loglevel [OPTIONS]
+# Get current log level
+# Usage: lb_get_loglevel [OPTIONS] [LEVEL]
 # Options:
 #   --id  get log level id instead of name
-# Return: level
-# Exit codes: 1 if no log level is set
+# Return: level (name or id)
+# Exit codes:
+# 0: OK
+# 1: no log level is set
+# 2: specified level not found
 lb_get_loglevel() {
 
 	# default options
@@ -469,7 +555,7 @@ lb_get_loglevel() {
 	done
 
 	# if not found, return error
-	return 1
+	return 2
 }
 
 
@@ -505,9 +591,9 @@ lb_set_loglevel() {
 #   -a, --all-prefix    print level and date prefixes
 #   -x, --overwrite     clean before print in log file
 # Exit codes:
-#   0: logged
+#   0: OK
 #   1: log file is not set
-#   2: error while wrinting into file
+#   2: error while writing into file
 lb_log() {
 
 	# exit if log file is not set
@@ -536,7 +622,7 @@ lb_log() {
 				lb_log_level="$2"
 				shift 2
 				;;
-			-p|--level-prefix)
+			-p|--prefix)
 				lb_log_prefix=true
 				shift
 				;;
@@ -602,93 +688,6 @@ lb_log() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-}
-
-
-# Display command result
-# Usage: lb_print_result [OPTIONS] [EXIT_CODE]
-# Options:
-#   --ok-label TEXT      set a ok label
-#   --failed-label TEXT  set a ok label
-#   --log                print result into log file
-#   --log-level LEVEL    set a log level
-#   -x, --error-exit     exit if result is not ok
-# Note: a very simple usage is to execute lb_result just after a command
-#       and get result with $? just after that
-# Exit code: exit code of lb_display
-lb_print_result() {
-
-	# get last command result
-	local lb_prs_lastres=$?
-	local lb_prs_ok="$lb_default_result_ok_label"
-	local lb_prs_failed="$lb_default_result_failed_label"
-	local lb_prs_opts=""
-	local lb_prs_errorexit=false
-
-	while true ; do
-		case "$1" in
-			--ok-label)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				lb_prs_ok="$2"
-				shift 2
-				;;
-			--failed-label)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				lb_prs_failed="$2"
-				shift 2
-				;;
-			-f|--forward)
-				lb_prs_fwd=true
-				shift
-				;;
-			--log)
-				lb_prs_opts="--log "
-				shift
-				;;
-			-l|--log-level)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				lb_prs_opts="-l $2 "
-				shift 2
-				;;
-			-x|--error-exit)
-				lb_prs_errorexit=true
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-	done
-
-	if [ -z "$1" ] ; then
-		lb_prs_res=$lb_prs_lastres
-	else
-		lb_prs_res=$1
-	fi
-
-	if ! lb_is_integer $lb_prs_res ; then
-		lb_prs_res=1
-	fi
-
-	if [ $lb_prs_res == 0 ] ; then
-		lb_display $lb_prs_opts"$lb_prs_ok"
-	else
-		lb_display $lb_prs_opts"$lb_prs_failed"
-
-		# if exit on error, exit
-		if $lb_prs_errorexit ; then
-			exit $lb_prs_res
-		fi
-	fi
-
-	# return exit code
-	return $lb_prs_res
 }
 
 
