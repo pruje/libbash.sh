@@ -749,32 +749,44 @@ lb_array_contains() {
 ################
 
 # Get filesystem type
+# TODO: add macOS support (-T not supported)
 # Usage: lb_df_fstype PATH
 # Return: fs type
 # Exit codes: df exit code; 255 if usage error
 lb_df_fstype() {
-	# test if argument exists
+
 	if [ $# == 0 ] ; then
 		return 255
 	fi
 
 	# get type from df command
-	df --output=fstype "$1" 2> /dev/null | tail -n 1
+	if [ "$(lb_detect_os)" == "macOS" ] ; then
+		# TODO: implement support for macOS
+		return 2
+	else
+		df --output=fstype "$1" 2> /dev/null | tail -n 1
+	fi
+
 	return ${PIPESTATUS[0]}
 }
 
 
-# Get space left on device
+# Get space left on partition (in bytes)
 # Usage: lb_df_space_left PATH
 # Return: bytes available
 # Exit codes: df exit code; 255 if usage error
 lb_df_space_left() {
-	# catch errors
+
 	if [ $# == 0 ] ; then
 		return 255
 	fi
 
-	df -B1 --output=avail "$1" 2> /dev/null | tail -n 1
+	if [ "$(lb_detect_os)" == "macOS"] ; then
+		df -b "$1" 2> /dev/null | tail -n 1 | awk '{print $4}'
+	else
+		df -B1 --output=avail "$1" 2> /dev/null | tail -n 1
+	fi
+
 	return ${PIPESTATUS[0]}
 }
 
@@ -784,41 +796,58 @@ lb_df_space_left() {
 # Return: path
 # Exit codes: df exit code; 255 if usage error
 lb_df_mountpoint() {
-	# catch errors
+
 	if [ $# == 0 ] ; then
 		return 255
 	fi
 
-	df --output=target "$1" 2> /dev/null | tail -n 1
+	if [ "$(lb_detect_os)" == "macOS"] ; then
+		df "$1" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
+	else
+		df --output=target "$1" 2> /dev/null | tail -n 1
+	fi
+
 	return ${PIPESTATUS[0]}
 }
 
 
 # Get disk UUID
 # Usage: lb_df_uuid PATH
-# Return: UUID
-# Exit codes: O if OK, 1 if usage error, 2 if path does not exists, 3 if UUID not found
+# Return: disk UUID
+# Exit codes:
+#   O: OK
+#   1: usage error
+#   2: path does not exists
+#   3: UUID not found
+#   4: function not supported on this system
 lb_df_uuid() {
-	# catch errors
+
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
-	lb_duuid=$(df --output=source "$1" 2> /dev/null | tail -n 1)
-	if [ -z "$lb_duuid" ] ; then
+	lb_df_uuid_dev=$(df --output=source "$1" 2> /dev/null | tail -n 1)
+	if [ -z "$lb_df_uuid_dev" ] ; then
 		return 2
 	fi
 
-	if [ "$(lb_detect_os)" != "macOS" ] ; then
+	if [ "$(lb_detect_os)" == "macOS" ] ; then
+		# TODO: implement support for macOS
+		return 4
+	else
+		# Linux systems
+
+		# if UUID folder not found, cancel
+		if ! [ -d /dev/disk/by-uuid ] ; then
+			return 4
+		fi
+
 		for f in /dev/disk/by-uuid/* ; do
-			if [ "$(lb_realpath "$f")" == "$lb_duuid" ] ; then
+			if [ "$(lb_realpath "$f")" == "$lb_df_uuid_dev" ] ; then
 				echo $(basename "$f")
 				return 0
 			fi
 		done
-	else
-		# TODO: implement macOS
-		echo
 	fi
 
 	# not found
