@@ -1217,6 +1217,12 @@ lb_choose_option() {
 	lb_chop_text="$1"
 	shift
 
+	# usage error if missing options
+	# could be not detected by test above if text field has some spaces
+	if lb_test_arguments -eq 0 $* ; then
+		return 1
+	fi
+
 	# prepare options
 	while true ; do
 		if [ -n "$1" ] ; then
@@ -1277,6 +1283,154 @@ lb_choose_option() {
 			return 3
 		fi
 	fi
+}
+
+
+###########
+#  EMAIL  #
+###########
+
+# Send an email
+# Usage: lb_email [OPTIONS] "RECIPIENT[,RECIPIENT,...]" MESSAGE
+# TODO: add support for attachments and other commands than sendmail (mail, exim4, ...)
+# Options:
+#   -s, --subject TEXT             Email subject
+#   --sender EMAIL                 Sender email address
+#   -r, --reply-to EMAIL           Email address to reply
+#   -c, --cc "EMAIL[,EMAIL,...]"   Add email addresses in CC
+#   -b, --bcc "EMAIL[,EMAIL,...]"  Add email addresses in BCC
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: no command to send email
+#   other: exit code from email command
+lb_email() {
+
+	# catch bad usage
+	if [ $# -lt 2 ] ; then
+		return 1
+	fi
+
+	# default options and local variables
+	local lb_email_subject=""
+	local lb_email_sender=""
+	local lb_email_replyto=""
+	local lb_email_cc=""
+	local lb_email_bcc=""
+	local lb_email_command=""
+	local lb_email_header=""
+
+	# available commands
+	local lb_email_commands=(/usr/sbin/sendmail)
+
+	# catch options
+	while true ; do
+		case "$1" in
+			-s|--subject)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_email_subject="$2"
+				shift 2
+				;;
+			--sender)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_email_sender="$2"
+				shift 2
+				;;
+			-r|--reply-to)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_email_replyto="$2"
+				shift 2
+				;;
+			-c|--cc)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_email_cc="$2"
+				shift 2
+				;;
+			-b|--bcc)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_email_bcc="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# usage error if missing text and at least one option
+	if lb_test_arguments -lt 2 $* ; then
+		return 1
+	fi
+
+	local lb_email_recepients="$1"
+	shift
+
+	# usage error if missing message
+	# could be not detected by test above if recipents field has some spaces
+	if lb_test_arguments -eq 0 $* ; then
+		return 1
+	fi
+
+	local lb_email_message=$*
+
+	if [ -n "$lb_email_command" ] ; then
+		lb_email_commands=($lb_email_command)
+		lb_email_command=""
+	fi
+
+	for lb_email_c in ${lb_email_commands[@]} ; do
+		if lb_command_exists $lb_email_c ; then
+			lb_email_command=$lb_email_c
+			break
+		fi
+	done
+
+	if [ -z "$lb_email_command" ] ; then
+		return 2
+	fi
+
+	if [ -n "$lb_email_sender" ] ; then
+		lb_email_header+="From: $lb_email_sender\n"
+	fi
+
+	lb_email_header+="To: $lb_email_recepients\n"
+
+	if [ -n "$lb_email_cc" ] ; then
+		lb_email_header+="Cc: $lb_email_cc\n"
+	fi
+
+	if [ -n "$lb_email_bcc" ] ; then
+		lb_email_header+="Bcc: $lb_email_bcc\n"
+	fi
+
+	if [ -n "$lb_email_replyto" ] ; then
+		lb_email_header+="Reply-To: $lb_email_replyto\n"
+	fi
+
+	if [ -n "$lb_email_subject" ] ; then
+		lb_email_header+="Subject: $lb_email_subject\n"
+	fi
+
+	lb_email_header+="MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\n"
+
+	case "$lb_email_command" in
+		/usr/sbin/sendmail)
+			echo -e "$lb_email_header\n$lb_email_message" | /usr/sbin/sendmail -t
+			;;
+		*)
+			return 2
+			;;
+	esac
 }
 
 
