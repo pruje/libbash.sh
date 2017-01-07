@@ -435,18 +435,18 @@ lb_set_logfile() {
 	fi
 
 	# default options
-	local lb_setlog_erase=false
-	local lb_setlog_append=false
+	local lb_setlogfile_erase=false
+	local lb_setlogfile_append=false
 
 	# get options
 	while true ; do
 		case "$1" in
 			-a|--append)
-				lb_setlog_append=true
+				lb_setlogfile_append=true
 				shift
 				;;
 			-x|--overwrite)
-				lb_setlog_erase=true
+				lb_setlogfile_erase=true
 				shift
 				;;
 			*)
@@ -455,36 +455,36 @@ lb_set_logfile() {
 		esac
 	done
 
-	lb_setlog_file="$*"
+	lb_setlogfile_file="$*"
 
 	# cancel if path exists but is not a regular file
-	if [ -e "$lb_setlog_file" ] ; then
-		if ! [ -f "$lb_setlog_file" ] ; then
+	if [ -e "$lb_setlogfile_file" ] ; then
+		if ! [ -f "$lb_setlogfile_file" ] ; then
 			return 4
 		fi
 	fi
 
 	# cancel if file is not writable
-	if ! lb_is_writable "$lb_setlog_file" ; then
+	if ! lb_is_writable "$lb_setlogfile_file" ; then
 		return 2
 	fi
 
 	# if file exists
-	if [ -f "$lb_setlog_file" ] ; then
+	if [ -f "$lb_setlogfile_file" ] ; then
 		# overwrite file
-		if $lb_setlog_erase ; then
+		if $lb_setlogfile_erase ; then
 			# empty file
-			> "$lb_setlog_file"
+			> "$lb_setlogfile_file"
 		else
 			# cancel if can not be append
-			if ! $lb_setlog_append ; then
+			if ! $lb_setlogfile_append ; then
 				return 3
 			fi
 		fi
 	fi
 
 	# set log file path
-	lb_logfile="$lb_setlog_file"
+	lb_logfile="$lb_setlogfile_file"
 
 	# if not set, set higher log level
 	if [ -z "$lb_loglevel" ] ; then
@@ -507,14 +507,14 @@ lb_set_logfile() {
 lb_get_loglevel() {
 
 	# default options
-	local lb_gllvl_level=$lb_loglevel
-	local lb_gllvl_getid=false
+	local lb_getloglevel_level=$lb_loglevel
+	local lb_getloglevel_getid=false
 
 	# get options
 	while true ; do
 		case "$1" in
 			--id)
-				lb_gllvl_getid=true
+				lb_getloglevel_getid=true
 				shift
 				;;
 			*)
@@ -529,7 +529,7 @@ lb_get_loglevel() {
 			return 1
 		else
 			# print actual and exit
-			if $lb_gllvl_getid ; then
+			if $lb_getloglevel_getid ; then
 				echo $lb_loglevel
 			else
 				echo ${lb_loglevels[$lb_loglevel]}
@@ -538,17 +538,17 @@ lb_get_loglevel() {
 		fi
 	else
 		# get gived level name
-		lb_gllvl_level=$1
+		lb_getloglevel_level=$1
 	fi
 
 	# search log level id for a gived level name
-	for ((lb_gllvl_i=0 ; lb_gllvl_i < ${#lb_loglevels[@]} ; lb_gllvl_i++)) ; do
+	for ((lb_getloglevel_i=0 ; lb_getloglevel_i < ${#lb_loglevels[@]} ; lb_getloglevel_i++)) ; do
 		# if found,
-		if [ "${lb_loglevels[$lb_gllvl_i]}" == "$lb_gllvl_level" ] ; then
-			if $lb_gllvl_getid ; then
-				echo $lb_gllvl_i
+		if [ "${lb_loglevels[$lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
+			if $lb_getloglevel_getid ; then
+				echo $lb_getloglevel_i
 			else
-				echo ${lb_loglevels[$lb_gllvl_i]}
+				echo ${lb_loglevels[$lb_getloglevel_i]}
 			fi
 			return 0
 		fi
@@ -563,15 +563,16 @@ lb_get_loglevel() {
 # Usage: lb_set_loglevel LEVEL
 # Exit codes: 0 if OK, 1 if usage error, 2 if level not found
 lb_set_loglevel() {
+
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
 	# search if level exists
-	for ((lb_sllvl_i=0 ; lb_sllvl_i < ${#lb_loglevels[@]} ; lb_sllvl_i++)) ; do
+	for ((lb_setloglevel_i=0 ; lb_setloglevel_i < ${#lb_loglevels[@]} ; lb_setloglevel_i++)) ; do
 		# search by name, return level id
-		if [ "${lb_loglevels[$lb_sllvl_i]}" == "$1" ] ; then
-			lb_loglevel=$lb_sllvl_i
+		if [ "${lb_loglevels[$lb_setloglevel_i]}" == "$1" ] ; then
+			lb_loglevel=$lb_setloglevel_i
 			return 0
 		fi
 	done
@@ -695,13 +696,13 @@ lb_log() {
 #  OPERATIONS ON VARIABLES #
 ############################
 
-# Test if a variable is integer
+# Test if a value is integer
 # Usage: lb_is_integer VALUE
 # Exit codes: 0 if is integer, 1 if not
 lb_is_integer() {
 	# if empty, is not an integer
 	# DO NOT USE lb_test_arguments here or it will do an infinite loop
-	# because it uses this function
+	# because lb_test_arguments uses this function
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -712,7 +713,7 @@ lb_is_integer() {
 }
 
 
-# Search if array contains a value
+# Check if an array contains a value
 # Usage: lb_array_contains VALUE "${array[@]}"
 # Warning: put your array between quotes or it will fail if you have spaces in values
 # Exit codes: 0 if OK, 1: usage error, 2: not found
@@ -724,38 +725,22 @@ lb_array_contains() {
 	fi
 
 	# first arg is the value to search
-	lb_ac_search="$1"
+	lb_arraycontains_search="$1"
 	shift
 
 	# get array to search in
-	lb_ac_array=("$@")
+	lb_arraycontains_array=("$@")
 
 	# parse array to find value
-	for ((lb_ac_i=0 ; lb_ac_i < ${#lb_ac_array[@]} ; lb_ac_i++)) ; do
+	for ((lb_arraycontains_i=0 ; lb_arraycontains_i < ${#lb_arraycontains_array[@]} ; lb_arraycontains_i++)) ; do
 		# if found, return 0
-		if [ "${lb_ac_array[$lb_ac_i]}" == "$lb_ac_search" ] ; then
+		if [ "${lb_arraycontains_array[$lb_arraycontains_i]}" == "$lb_arraycontains_search" ] ; then
 			return 0
 		fi
 	done
 
 	# if not found, return 2
 	return 2
-}
-
-
-########
-#  OS  #
-########
-
-# Detect OS
-# Usage: lb_detect_os
-# Return: Linux/macOS
-lb_detect_os() {
-	if [ "$(uname)" == "Darwin" ] ; then
-		echo "macOS"
-	else
-		echo "Linux"
-	fi
 }
 
 
@@ -1285,9 +1270,21 @@ lb_choose_option() {
 }
 
 
-###########
-#  EMAIL  #
-###########
+######################
+#  SYSTEM UTILITIES  #
+######################
+
+# Detect OS
+# Usage: lb_detect_os
+# Return: Linux/macOS
+lb_detect_os() {
+	if [ "$(uname)" == "Darwin" ] ; then
+		echo "macOS"
+	else
+		echo "Linux"
+	fi
+}
+
 
 # Send an email
 # Usage: lb_email [OPTIONS] "RECIPIENT[,RECIPIENT,...]" MESSAGE
