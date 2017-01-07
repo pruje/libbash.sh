@@ -22,10 +22,10 @@ Then call the functions described below.
 
 **Note:** The `libash_gui.sh` file does not need to be in the same directory than `libbash.sh`.
 
-## Functions
-All libbash.sh GUI functions are named with the `lbg_` prefix. See documentation below for each function.
+## Functions documentation
+All functions are named with the `lbg_` prefix.
+Functions with a `*` are not fully supported on every OS yet (may change in the future).
 
-### Table of content
 * Environment settings
 	* [lbg_get_gui](#lbg_get_gui)
 	* [lbg_test_gui](#lbg_test_gui)
@@ -164,6 +164,7 @@ But if you want, you can use the `--no-notify-send` option to not use it and use
 ```
 -t, --title TEXT   Set a title to the notification
 --timeout SECONDS  Timeout before notification disapears (if not set, use default system)
+                   This option is NOT available on macOS
 --no-notify-send   Do not use the notify-send command if exists*
 ```
 
