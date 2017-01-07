@@ -307,72 +307,25 @@ lb_display() {
 }
 
 
-# Test if logfile exists, or is writable
-# Usage: lb_test_logfile PATH
-# Exit codes:
-#   0: file does not exists, but can be created
-#   1: file exists but can be overwritten
-#   2: path exists, but is not a regular file
-#   3: path exists, but is not writable
-#   4: file does not exists, nor the parent directory
-#   5: file does not exists, and parent directory is not writable
-#   255: usage error
-lb_test_logfile() {
-
-	if [ $# == 0 ] ; then
-		return 255
-	fi
-
-	# if file already exists
-	if [ -e "$1" ] ; then
-		# cancel if is not a regular file
-		if ! [ -f "$1" ] ; then
-			return 2
-		fi
-
-		# cancel if file is not writable
-		if ! [ -w "$1" ] ; then
-			return 3
-		fi
-
-		return 1
-	else
-		# if file does not exists
-		# cancel if directory does not exists
-		if ! [ -d "$(dirname "$1")" ] ; then
-			return 4
-		fi
-
-		# cancel if directory is not writable
-		if ! [ -w "$(dirname "$1")" ] ; then
-			return 5
-		fi
-	fi
-
-	# file is ok
-	return 0
-}
-
-
 # Get log file path
 # Usage: lb_get_logfile
 # Return: path of the file
 # Exit codes:
 #   0: file ok
 #   1: log file not defined
-#   2-5: see lb_test_logfile exit codes
+#   2-4: lb_is_writable exit codes
 lb_get_logfile() {
 
 	if [ -z "$lb_logfile" ] ; then
 		return 1
 	fi
 
-	# test log file
-	lb_test_logfile "$lb_logfile"
+	# test if log file is writable
+	lb_is_writable "$lb_logfile"
 	lb_getlog_test=$?
 
 	# if file is not ok, cancel
-	if [ $lb_getlog_test -gt 1 ] ; then
+	if [ $lb_getlog_test != 0 ] ; then
 		return $lb_getlog_test
 	fi
 
@@ -381,19 +334,21 @@ lb_get_logfile() {
 }
 
 
-# Set log file path
+# Set log file
+# Usage: lb_set_logfile [OPTIONS] PATH
 # Options:
 #   -a, --append     if file already exists, append to it
 #   -x, --overwrite  if file already exists, overwrite it
-# Return: exit codes:
+# Exit codes:
 #   0: ok
-#   255: usage error
-#   2-5: see lb_test_logfile exit codes
-#   6: file exists and append option is not set
+#   1: usage error
+#   2: file cannot be created or is not writable
+#   3: file already exists and append option is not set
+#   4: path exists but is not a regular file
 lb_set_logfile() {
-	# get usage errors
+
 	if [ $# == 0 ] ; then
-		return 255
+		return 1
 	fi
 
 	# default options
@@ -419,25 +374,28 @@ lb_set_logfile() {
 
 	lb_setlog_file="$*"
 
-	# test log file
-	lb_test_logfile "$lb_setlog_file"
-	lb_setlog_test=$?
+	# cancel if path exists but is not a regular file
+	if [ -e "$lb_setlog_file" ] ; then
+		if ! [ -f "$lb_setlog_file" ] ; then
+			return 4
+		fi
+	fi
 
-	# if file is not ok, cancel
-	if [ $lb_setlog_test -gt 1 ] ; then
-		return $lb_setlog_test
+	# cancel if file is not writable
+	if ! lb_is_writable "$lb_setlog_file" ; then
+		return 2
 	fi
 
 	# if file exists
-	if [ $lb_setlog_test == 1 ] ; then
+	if [ -f "$lb_setlog_file" ] ; then
 		# overwrite file
 		if $lb_setlog_erase ; then
 			# empty file
 			> "$lb_setlog_file"
 		else
-			# if can not be append, cancel
+			# cancel if can not be append
 			if ! $lb_setlog_append ; then
-				return 6
+				return 3
 			fi
 		fi
 	fi
@@ -445,23 +403,23 @@ lb_set_logfile() {
 	# set log file path
 	lb_logfile="$lb_setlog_file"
 
-	# set higher log level
+	# if not set, set higher log level
 	if [ -z "$lb_loglevel" ] ; then
 		if [ ${#lb_loglevels[@]} -gt 0 ] ; then
 			lb_loglevel=$((${#lb_loglevels[@]} - 1))
 		fi
 	fi
-
-	return 0
 }
 
 
 # Get log level
+# Usage: lb_get_loglevel [OPTIONS]
 # Options:
 #   --id  get log level id instead of name
 # Return: level
-# Exit code: 1 if no log level is set
+# Exit codes: 1 if no log level is set
 lb_get_loglevel() {
+
 	# default options
 	local lb_gllvl_level=$lb_loglevel
 	local lb_gllvl_getid=false
@@ -957,6 +915,42 @@ lb_realpath() {
 
 	if [ $? != 0 ] ; then
 		return 2
+	fi
+}
+
+
+# Test if a folder or a file is writable
+# Usage: lb_is_writable PATH
+# Exit codes:
+#   0: is writable
+#   1: usage error
+#   2: exists but is not writable
+#   3: does not exists; parent directory is not writable
+#   4: does not exists; parent directory does not exists
+lb_is_writable() {
+
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# if file/folder exists
+	if [ -e "$1" ] ; then
+		# cancel if not writable
+		if ! [ -w "$1" ] ; then
+			return 2
+		fi
+	else
+		# if file/folder does not exists
+
+		# cancel if parent directory does not exists
+		if ! [ -d "$(dirname "$1")" ] ; then
+			return 4
+		fi
+
+		# cancel if parent directory is not writable
+		if ! [ -w "$(dirname "$1")" ] ; then
+			return 3
+		fi
 	fi
 }
 
