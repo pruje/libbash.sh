@@ -1105,6 +1105,12 @@ EOF)
 #  ALIASES AND COMPATIBILITY  #
 ###############################
 
+# Display a critical dialog
+# See lbg_display_error for usage
+lbg_display_critical() {
+	lbg_display_error $*
+}
+
 # Display a debug dialog
 # See lbg_display_info for usage
 lbg_display_debug() {

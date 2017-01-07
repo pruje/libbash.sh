@@ -37,13 +37,14 @@ lb_default_debug_label="DEBUG"
 lb_default_info_label="INFO"
 lb_default_warning_label="WARNING"
 lb_default_error_label="ERROR"
+lb_default_critical_label="CRITICAL"
 
 # set log file and default log levels
 lb_logfile=""
 lb_loglevel=""
 
 # log levels, by default: ERROR WARNING INFO DEBUG
-lb_loglevels=("$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
+lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
 # print format
 lb_format_print=true
@@ -276,6 +277,9 @@ lb_display() {
 	# enable coloured prefixes
 	if $lb_display_prefix ; then
 		case "$lb_display_level" in
+			"$lb_default_critical_label")
+				lb_display_msgprefix="$(lb_print --red $lb_display_level)"
+				;;
 			"$lb_default_error_label")
 				lb_display_msgprefix="$(lb_print --red $lb_display_level)"
 				;;
@@ -1455,6 +1459,9 @@ lb_error() {
 # Common display functions
 # Usage: [OPTIONS] TEXT
 # Options are same as lb_display
+lb_display_critical()) {
+	lb_display -p -l "$lb_default_critical_label" $*
+}
 lb_display_error() {
 	lb_display -p -l "$lb_default_error_label" $*
 }
@@ -1471,6 +1478,9 @@ lb_display_debug() {
 # Common log functions
 # Usage: [OPTIONS] TEXT
 # Options are same as lb_log
+lb_log_critical() {
+	lb_log -p -l "$lb_default_critical_label" $*
+}
 lb_log_error() {
 	lb_log -p -l "$lb_default_error_label" $*
 }
