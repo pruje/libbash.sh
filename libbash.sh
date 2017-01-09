@@ -1468,6 +1468,13 @@ lb_email() {
 }
 
 
+# Exit script with defined exit code
+# Usage: lb_exit
+lb_exit() {
+	exit $lb_exitcode
+}
+
+
 ###############################
 #  ALIASES AND COMPATIBILITY  #
 ###############################
@@ -1548,3 +1555,4 @@ lb_current_script="$0"
 lb_current_script_name="$(basename $0)"
 lb_current_script_directory="$(dirname $0)"
 lb_current_path="$(pwd)"
+lb_exitcode=0
