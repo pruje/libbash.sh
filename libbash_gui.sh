@@ -991,24 +991,27 @@ EOF)
 ###########################
 
 # Dialog to choose a directory
-# Usage: lbg_choose_directory PATH
+# Usage: lbg_choose_directory [PATH]
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: specified path is not a valid directory
+#   3: choosed path is not a directory
+#   other: dialog result
 lbg_choose_directory=""
 lbg_choose_directory() {
 
 	# reset result
 	lbg_choose_directory=""
 
-	# catch usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
+	# default options
 	local lbg_chdir_title="$lb_current_script_name"
+	local lbg_chdir_path=""
 
 	# catch options
 	while true ; do
 		case "$1" in
-			--title|-t)
+			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -1021,27 +1024,26 @@ lbg_choose_directory() {
 		esac
 	done
 
-	# usage error if no path
+	# if no path specified, use current
 	if lb_test_arguments -eq 0 $* ; then
-		return 1
+		lbg_chdir_path="$lb_current_path"
+	else
+		lbg_chdir_path="$*"
 	fi
 
-	local lbg_chdir_path="$1"
-
 	if ! [ -d "$lbg_chdir_path" ] ; then
-		echo >&2 "Error: path $lbg_chdir_path does not exists!"
-		return 1
+		return 2
 	fi
 
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
-			lbg_choose_directory=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path")
+			lbg_choose_directory=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path" 2> /dev/null)
 			lbg_chdir_res=$?
 			;;
 
 		zenity)
-			lbg_choose_directory=$(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path")
+			lbg_choose_directory=$(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path" 2> /dev/null)
 			lbg_chdir_res=$?
 			;;
 
@@ -1053,11 +1055,9 @@ EOF)
 			;;
 
 		dialog)
-			lbg_chdir_cmd=(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" 30 100)
-
 			# execute dialog (complex case)
 			exec 3>&1
-			lbg_choose_directory=$("${lbg_chdir_cmd[@]}" 2>&1 1>&3)
+			lbg_choose_directory=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" 30 100 2>&1 1>&3)
 			lbg_chdir_res=$?
 			exec 3>&-
 
@@ -1078,25 +1078,21 @@ EOF)
 			# execute console function
 			"${lbg_chdir_cmd[@]}"
 			lbg_chdir_res=$?
-			if [ $lbg_chdir_res == 0 ] ; then
-				# if input is not a directory, error
-				if ! [ -d "$lb_input_text" ] ; then
-					return 1
-				fi
 
-				# forward result
-				lbg_choose_directory="$lb_input_text"
-			fi
-			return $lbg_chdir_res
+			# forward result
+			lbg_choose_directory="$lb_input_text"
 			;;
 	esac
 
+	# if error, return command result
 	if [ $lbg_chdir_res != 0 ] ; then
-		return 1
+		return $lbg_chdir_res
 	fi
 
+	# error if result is not a directory
 	if ! [ -d "$lbg_choose_directory" ] ; then
-		return 2
+		lbg_choose_directory=""
+		return 3
 	fi
 }
 
