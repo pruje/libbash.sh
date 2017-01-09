@@ -197,7 +197,7 @@ lb_print() {
 	fi
 
 	# print to the console
-	echo -e $lb_print_opts$*$lb_print_resetcolor
+	echo -e $lb_print_opts"$*"$lb_print_resetcolor
 }
 
 
