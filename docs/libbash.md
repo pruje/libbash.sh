@@ -10,7 +10,26 @@ source "/path/to/libbash.sh"
 ```
 Then call the functions described below.
 
-## Functions documentation
+## Translations
+If you want to, you can also use a translated version of libbash.
+
+To use it, you have to include the locales **after** libbash.sh:
+```bash
+source "/path/to/libbash/locales/LANG.sh"
+```
+
+Supported languages:
+- French (fr)
+
+## Variables
+Some variables can be used in your scripts:
+
+- `$lb_current_script`: your current script (equal to `$0`)
+- `$lb_current_script_name`: your current script name (result of command `basename $0`)
+- `$lb_current_script_directory`: your current script name (result of command `dirname $0`)
+- `$lb_current_path`: your current script name (result of command `pwd`)
+
+## Functions
 All functions are named with the `lb_` prefix.
 Functions with a `*` are not fully supported on every OS yet (may change in the future).
 
