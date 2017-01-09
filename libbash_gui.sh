@@ -991,7 +991,9 @@ EOF)
 ###########################
 
 # Dialog to choose a directory
-# Usage: lbg_choose_directory [PATH]
+# Usage: lbg_choose_directory [OPTIONS] [PATH]
+# Options:
+#   -t, --title TITLE  set dialog title
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -1092,6 +1094,132 @@ EOF)
 	# error if result is not a directory
 	if ! [ -d "$lbg_choose_directory" ] ; then
 		lbg_choose_directory=""
+		return 3
+	fi
+}
+
+
+# Dialog to choose a file
+# Usage: lbg_choose_file [OPTIONS] [PATH]
+# Options:
+#   -t, --title TITLE    set a dialog title
+#   -f, --filter FILTER  set filters (WARNING: does not work with dialog command)
+#                        e.g. -f "*.sh" to filter by bash files
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: specified path does not exists
+#   3: choosed file does not exists
+#   other: dialog result
+lbg_choose_file=""
+lbg_choose_file() {
+
+	# reset result
+	lbg_choose_file=""
+
+	# default options
+	local lbg_choosefile_title="$lb_current_script_name"
+	local lbg_choosefile_path=""
+	local lbg_choosefile_filters=()
+
+	# catch options
+	while true ; do
+		case "$1" in
+			-t|--title)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_choosefile_title="$2"
+				shift 2
+				;;
+			-f|--filter)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_choosefile_filters+=("$2")
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# if no path specified, use current directory
+	if lb_test_arguments -eq 0 $* ; then
+		lbg_choosefile_path="$lb_current_path"
+	else
+		lbg_choosefile_path="$*"
+	fi
+
+	# if path does not exists, error
+	if ! [ -e "$lbg_choosefile_path" ] ; then
+		return 2
+	fi
+
+	# display dialog
+	case "$lbg_gui" in
+		kdialog)
+			lbg_choose_file=$(kdialog --title "$lbg_choosefile_title" --getopenfilename "$lbg_choosefile_path" "${lbg_choosefile_filters[@]}" 2> /dev/null)
+			lbg_choosefile_res=$?
+			;;
+
+		zenity)
+			local lbg_choosefile_opts=""
+			if [ ${#lbg_choosefile_filters[@]} -gt 0 ] ; then
+				lbg_choosefile_opts=--file-filter="${lbg_choosefile_filters[@]}"
+			fi
+
+			lbg_choose_file=$(zenity --title "$lbg_choosefile_title" --file-selection --filename "$lbg_choosefile_path" "$lbg_choosefile_opts" 2> /dev/null)
+			lbg_choosefile_res=$?
+			;;
+
+		osascript)
+			# TODO: test and add filters
+			lbg_choose_file=$(osascript 2> /dev/null <<EOF
+set answer to POSIX path of (choose file with prompt "$lbg_choosefile_title" default location "$lbg_choosefile_path")
+EOF)
+			lbg_choosefile_res=$?
+			;;
+
+		dialog)
+			# execute dialog (complex case)
+			exec 3>&1
+			lbg_choose_file=$(dialog --title "$lbg_choosefile_title" --clear --fselect "$lbg_choosefile_path" 30 100 2>&1 1>&3)
+			lbg_choosefile_res=$?
+			exec 3>&-
+
+			# clear console
+			clear
+			;;
+
+		*)
+			# console mode
+			lbg_choosefile_cmd=(lb_input_text -d "$lbg_choosefile_path")
+
+			if [ "$lbg_choosefile_title" == "$lb_current_script_name" ] ; then
+				lbg_choosefile_cmd+=("$lb_default_chfile_label")
+			else
+				lbg_choosefile_cmd+=("$lbg_choosefile_title")
+			fi
+
+			# execute console function
+			"${lbg_choosefile_cmd[@]}"
+			lbg_choosefile_res=$?
+
+			# forward result
+			lbg_choose_file="$lb_input_text"
+			;;
+	esac
+
+	# if error, return command result
+	if [ $lbg_choosefile_res != 0 ] ; then
+		return $lbg_choosefile_res
+	fi
+
+	# error if result is not a file
+	if ! [ -f "$lbg_choose_file" ] ; then
+		lbg_choose_file=""
 		return 3
 	fi
 }
