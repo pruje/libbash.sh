@@ -316,7 +316,8 @@ lb_display() {
 #   --failed-label TEXT    set a failed label
 #   --log                  print result into log file
 #   -l, --log-level LEVEL  set a log level
-#   -x, --error-exit       exit if result is not ok
+#   -e, --save-exit-code   save result to exit code
+#   -x, --exit-on-error    exit if result is not ok
 #   -q, --quiet            quiet mode (do not print anything)
 # Note: a very simple usage is to execute lb_result just after a command
 #       and get result with $? just after that
@@ -329,6 +330,7 @@ lb_result() {
 	local lb_prs_failed="$lb_default_result_failed_label"
 	local lb_prs_opts=""
 	local lb_prs_quiet=false
+	local lb_prs_exitcode=false
 	local lb_prs_errorexit=false
 
 	while true ; do
@@ -358,7 +360,11 @@ lb_result() {
 				lb_prs_opts="-l $2 "
 				shift 2
 				;;
-			-x|--error-exit)
+			-e|--save-exit-code)
+				lb_prs_exitcode=true
+				shift
+				;;
+			-x|--exit-on-error)
 				lb_prs_errorexit=true
 				shift
 				;;
@@ -395,6 +401,11 @@ lb_result() {
 		if $lb_prs_errorexit ; then
 			exit $lb_prs_res
 		fi
+	fi
+
+	# save result to exit code
+	if $lb_prs_exitcode ; then
+		lb_exitcode=$lb_prs_res
 	fi
 
 	# return exit code

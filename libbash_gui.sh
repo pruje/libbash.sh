@@ -814,14 +814,14 @@ lbg_choose_option() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--default|-d)
+			-d|--default)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
 				lbg_chop_default="$2"
 				shift 2
 				;;
-			--title|-t)
+			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -910,6 +910,7 @@ lbg_choose_option() {
 			;;
 
 		osascript)
+			# TODO: add default selection
 			# add options
 			local lbg_chop_opts="{"
 
