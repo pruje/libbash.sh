@@ -842,6 +842,11 @@ lbg_choose_option() {
 	lbg_chop_text="$1"
 	shift
 
+	# usage error if no option
+	if lb_test_arguments -eq 0 $* ; then
+		return 1
+	fi
+
 	# prepare options; cannot support more than 254 options
 	while true ; do
 		if [ -n "$1" ] ; then
@@ -955,7 +960,12 @@ EOF)
 			if [ $lbg_chop_default != 0 ] ; then
 				lbg_chop_cmd+=(-d $lbg_chop_default)
 			fi
-			lbg_chop_cmd+=("$lbg_chop_text" "${lbg_chop_options[@]}")
+			lbg_chop_cmd+=("$lbg_chop_text")
+
+			# add options
+			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+				lbg_chop_cmd+=("${lbg_chop_options[$lbg_chop_i]}")
+			done
 
 			# execute console function
 			"${lbg_chop_cmd[@]}"
