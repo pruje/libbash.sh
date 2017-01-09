@@ -1540,3 +1540,9 @@ lb_short_result() {
 if [ "$(lb_detect_os)" == "macOS" ] ; then
 	lb_format_print=false
 fi
+
+# context variables
+lb_current_script="$0"
+lb_current_script_name="$(basename $0)"
+lb_current_script_directory="$(dirname $0)"
+lb_current_path="$(pwd)"
