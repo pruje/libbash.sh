@@ -117,7 +117,7 @@ lbg_display_info() {
 	fi
 
 	# default options
-	local lbg_dinf_title="$(basename "$0")"
+	local lbg_dinf_title="$lb_current_script_name"
 
 	# catch options
 	while true ; do
@@ -190,7 +190,7 @@ lbg_display_warning() {
 	fi
 
 	# default options
-	local lbg_dwn_title="$(basename "$0")"
+	local lbg_dwn_title="$lb_current_script_name"
 
 	# catch options
 	while true ; do
@@ -256,7 +256,7 @@ lbg_display_error() {
 	fi
 
 	# default options
-	local lbg_derr_title="$(basename "$0")"
+	local lbg_derr_title="$lb_current_script_name"
 
 	# catch options
 	while true ; do
@@ -325,7 +325,7 @@ lbg_notify() {
 		return 1
 	fi
 
-	local lbg_notify_title="$(basename "$0")"
+	local lbg_notify_title="$lb_current_script_name"
 	local lbg_notify_timeout=""
 	local lbg_notify_use_notifysend=true
 
@@ -441,7 +441,7 @@ lbg_input_text() {
 
 	# default options
 	local lbg_inp_default=""
-	local lbg_inp_title="$(basename "$0")"
+	local lbg_inp_title="$lb_current_script_name"
 
 	# catch options
 	while true ; do
@@ -534,7 +534,7 @@ lbg_yesno() {
 	local lbg_yn_defaultyes=false
 	local lbg_yn_yeslbl=""
 	local lbg_yn_nolbl=""
-	local lbg_yn_title="$(basename "$0")"
+	local lbg_yn_title="$lb_current_script_name"
 	local lbg_yn_cmd=()
 
 	# catch options
@@ -675,7 +675,7 @@ lbg_input_password() {
 	local lbg_inpw_label="Enter your password:"
 	local lbg_inpw_confirm=false
 	local lbg_inpw_confirm_label="Confirm password:"
-	local lbg_inpw_title="$(basename "$0")"
+	local lbg_inpw_title="$lb_current_script_name"
 
 	# catch options
 	while true ; do
@@ -809,7 +809,7 @@ lbg_choose_option() {
 	local lbg_chop_default=0
 	local lbg_chop_options=("")
 	local lbg_chop_i
-	local lbg_chop_title="$(basename "$0")"
+	local lbg_chop_title="$lb_current_script_name"
 
 	# catch options
 	while true ; do
@@ -1003,7 +1003,7 @@ lbg_choose_directory() {
 		return 1
 	fi
 
-	local lbg_chdir_title="$(basename "$0")"
+	local lbg_chdir_title="$lb_current_script_name"
 
 	# catch options
 	while true ; do
@@ -1069,8 +1069,8 @@ EOF)
 			# console mode
 			lbg_chdir_cmd=(lb_input_text -d "$lbg_chdir_path")
 
-			if [ "$lbg_chdir_title" == "$(basename "$0")" ] ; then
-				lbg_chdir_cmd+=("Choose a directory")
+			if [ "$lbg_chdir_title" == "$lb_current_script_name" ] ; then
+				lbg_chdir_cmd+=("$lb_default_chdir_label")
 			else
 				lbg_chdir_cmd+=("$lbg_chdir_title")
 			fi
