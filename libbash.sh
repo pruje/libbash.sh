@@ -1485,7 +1485,7 @@ lb_error() {
 # Common display functions
 # Usage: [OPTIONS] TEXT
 # Options are same as lb_display
-lb_display_critical()) {
+lb_display_critical() {
 	lb_display -p -l "$lb_default_critical_label" $*
 }
 lb_display_error() {
