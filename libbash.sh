@@ -793,7 +793,7 @@ lb_df_space_left() {
 		return 255
 	fi
 
-	if [ "$(lb_detect_os)" == "macOS"] ; then
+	if [ "$(lb_detect_os)" == "macOS" ] ; then
 		df -b "$1" 2> /dev/null | tail -n 1 | awk '{print $4}'
 	else
 		df -B1 --output=avail "$1" 2> /dev/null | tail -n 1
@@ -813,7 +813,7 @@ lb_df_mountpoint() {
 		return 255
 	fi
 
-	if [ "$(lb_detect_os)" == "macOS"] ; then
+	if [ "$(lb_detect_os)" == "macOS" ] ; then
 		df "$1" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
 	else
 		df --output=target "$1" 2> /dev/null | tail -n 1
