@@ -43,7 +43,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_error](#lb_error)
 	* [lb_display](#lb_display)
 	* [lb_display_critical, lb_display_error, lb_display_warning, lb_display_info, lb_display_debug](#lb_display_presets)
-	* [lb_print_result, lb_result](#lb_print_result)
+	* [lb_result](#lb_result)
 	* [lb_short_result](#lb_short_result)
 * Logs
 	* [lb_get_logfile](#lb_get_logfile)
@@ -198,15 +198,11 @@ It uses the `lb_display` function with `--prefix` and `--level` options.
 For more informations, see [lb_display](#lb_display) documentation.
 
 ---------------------------------------------------------------
-<a name="lb_print_result"></a>
-### lb_print_result, lb_result
-Print a result label to the console to indicate if a command succeeded or failed.
+<a name="lb_result"></a>
+### lb_result
+Manage a result and print a label to the console to indicate if a command succeeded or failed.
 
 #### Usage
-```bash
-lb_print_result [OPTIONS] [EXIT_CODE]
-```
-or
 ```bash
 lb_result [OPTIONS] [EXIT_CODE]
 ```
@@ -218,6 +214,7 @@ lb_result [OPTIONS] [EXIT_CODE]
 --log                  Append result to log file
 -l, --log-level LEVEL  Choose a display level (will be the same for logs)
 -x, --error-on-exit    Exit if result is not ok (exit code not to 0)
+-q, --quiet            Do not print anything
 
 EXIT_CODE              Specify an exit code. If not set, variable $? will be used.
 ```
@@ -230,9 +227,9 @@ Exit code forwarded of the last command or specified in argument.
 ### lb_short_result
 Print a short result label to the console to indicate if a command succeeded or failed.
 
-It uses the `lb_print_result` function with `--ok-label [  OK  ]` and `--failed-label [ FAILED ]` options.
+It uses the `lb_result` function with `--ok-label [  OK  ]` and `--failed-label [ FAILED ]` options.
 
-For more informations, see [lb_print_result](#lb_print_result) documentation.
+For more informations, see [lb_result](#lb_result) documentation.
 
 ---------------------------------------------------------------
 ## Logs

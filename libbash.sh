@@ -309,24 +309,26 @@ lb_display() {
 }
 
 
-# Display command result
-# Usage: lb_print_result [OPTIONS] [EXIT_CODE]
+# Manage command result and display label
+# Usage: lb_result [OPTIONS] [EXIT_CODE]
 # Options:
 #   --ok-label TEXT        set a ok label
 #   --failed-label TEXT    set a failed label
 #   --log                  print result into log file
 #   -l, --log-level LEVEL  set a log level
 #   -x, --error-exit       exit if result is not ok
+#   -q, --quiet            quiet mode (do not print anything)
 # Note: a very simple usage is to execute lb_result just after a command
 #       and get result with $? just after that
 # Exit code: Exit code of the command
-lb_print_result() {
+lb_result() {
 
 	# get last command result
 	local lb_prs_lastres=$?
 	local lb_prs_ok="$lb_default_result_ok_label"
 	local lb_prs_failed="$lb_default_result_failed_label"
 	local lb_prs_opts=""
+	local lb_prs_quiet=false
 	local lb_prs_errorexit=false
 
 	while true ; do
@@ -360,6 +362,10 @@ lb_print_result() {
 				lb_prs_errorexit=true
 				shift
 				;;
+			-q|--quiet)
+				lb_prs_quiet=true
+				shift
+				;;
 			*)
 				break
 				;;
@@ -377,9 +383,13 @@ lb_print_result() {
 	fi
 
 	if [ $lb_prs_res == 0 ] ; then
-		lb_display $lb_prs_opts"$lb_prs_ok"
+		if ! $lb_prs_quiet ; then
+			lb_display $lb_prs_opts"$lb_prs_ok"
+		fi
 	else
-		lb_display $lb_prs_opts"$lb_prs_failed"
+		if ! $lb_prs_quiet ; then
+			lb_display $lb_prs_opts"$lb_prs_failed"
+		fi
 
 		# if exit on error, exit
 		if $lb_prs_errorexit ; then
@@ -1529,14 +1539,10 @@ lb_log_debug() {
 	lb_log -p -l "$lb_default_debug_label" $*
 }
 
-# Print result
-# See lb_print_result for usage
-lb_result() {
-	lb_print_result $*
-}
-
+# Print result in short mode
+# See lb_result for usage
 lb_short_result() {
-	lb_print_result --ok-label "[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]" \
+	lb_result --ok-label "[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]" \
 	                --failed-label "[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]" $*
 }
 
