@@ -272,7 +272,11 @@ lb_display() {
 
 	# print into logfile
 	if $lb_display_log ; then
-		lb_log $lb_display_opts--level "$lb_display_level" "$lb_display_msgprefix$*"
+		if [ -n "$lb_display_level" ] ; then
+			lb_log $lb_display_opts--level "$lb_display_level" "$lb_display_msgprefix$*"
+		else
+			lb_log $lb_display_opts "$lb_display_msgprefix$*"
+		fi
 		lb_display_exit=$?
 	fi
 
