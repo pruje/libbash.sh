@@ -1086,11 +1086,14 @@ lb_is_writable() {
 
 
 # Prompt user to enter a text
-# Usage: lb_input_text [options] TEXT
+# Usage: lb_input_text [OPTIONS] TEXT
 # Options:
 #    -d, --default TEXT  default text
 #    -n                  no newline before input
-# Return: exit code, value is set into $lb_input_text variable
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: empty text (cancelled)
 lb_input_text=""
 lb_input_text() {
 
@@ -1142,12 +1145,13 @@ lb_input_text() {
 	# read user input
 	read lb_input_text
 
-	# defaut behaviour if input is empty
+	# if empty
 	if [ -z "$lb_input_text" ] ; then
+		# default value if set
 		if [ -n "$lb_inp_default" ] ; then
 			lb_input_text="$lb_inp_default"
 		else
-			return 255
+			return 2
 		fi
 	fi
 }

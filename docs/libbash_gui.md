@@ -192,8 +192,9 @@ Result is stored into the `$lbg_input_text` variable.
 ```
 
 #### Exit codes
-- Dialog exit codes are forwarded
+- 0: OK
 - 1: usage error
+- 2: cancelled
 
 ---------------------------------------------------------------
 <a name="lbg_yesno"></a>

@@ -423,11 +423,14 @@ EOF
 ######################
 
 # Prompt user to enter a text
-# Usage: lbg_input_text [options] TEXT
+# Usage: lbg_input_text [OPTIONS] TEXT
 # Options:
 #    -d, --default TEXT  default text
 #    -t, --title TEXT    dialog title
-# Return: value is set into $lbg_input_text variable
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: cancelled
 lbg_input_text=""
 lbg_input_text() {
 
@@ -484,7 +487,9 @@ lbg_input_text() {
 			lbg_input_text=$(osascript 2> /dev/null << EOF
 set answer to the text returned of (display dialog "$*" with title "$lbg_inp_title" default answer "$lbg_inp_default")
 EOF)
-			return $?
+			if [ -z "$lbg_input_text" ] ; then
+				return 2
+			fi
 			;;
 
 		dialog)
@@ -493,12 +498,17 @@ EOF)
 			# execute dialog (complex case)
 			exec 3>&1
 			lbg_input_text=$("${lbg_inp_cmd[@]}" 2>&1 1>&3)
-			lbg_inp_res=$?
 			exec 3>&-
 
 			# clear console
 			clear
-			return $lbg_inp_res
+
+			if [ -z "$lbg_input_text" ] ; then
+				return 2
+			fi
+
+			# if OK, quit
+			return
 			;;
 
 		*)
@@ -522,6 +532,10 @@ EOF)
 	esac
 
 	lbg_input_text=$("${lbg_inp_cmd[@]}" 2> /dev/null)
+
+	if [ -z "$lbg_input_text" ] ; then
+		return 2
+	fi
 }
 
 
