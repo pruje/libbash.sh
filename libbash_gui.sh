@@ -366,21 +366,20 @@ lbg_notify() {
 	fi
 
 	# if notify-send is installed, use it by default,
-	# as it is better than any other system
+	# as it is better than zenity or other system
 	if lb_command_exists notify-send ; then
 		if $lbg_notify_use_notifysend ; then
-			if [ "$(lb_detect_os)" != "macOS" ] ; then
-				# if X server started,
-				if [ -n "$DISPLAY" ] ; then
-					# execute command with timeout in milliseconds
-					if [ -n "$lbg_notify_timeout" ] ; then
-						lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
-					fi
-
-					# push notification and return
-					notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
-					return $?
+			# do not override kdialog because it has the best integration to KDE desktop
+			# do not use it on macOS nor in console mode
+			if ! lb_array_contains "$lbg_gui" kdialog osascript console ; then
+				# execute command with timeout in milliseconds
+				if [ -n "$lbg_notify_timeout" ] ; then
+					lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
 				fi
+
+				# push notification and return
+				notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
+				return $?
 			fi
 		fi
 	fi
