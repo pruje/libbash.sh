@@ -791,6 +791,7 @@ EOF)
 # Usage: lbg_choose_option [options] TEXT OPTION [OPTION...]
 # Options:
 #    -d, --default ID  option to use by default
+#    -l, --label TEXT  set a question text (default: Choose an option:)
 # Return: value is set into $lb_choose_option variable
 # Exit codes: 0: OK, 1: usage error, 2: cancelled, 3: bad choice
 lbg_choose_option=""
@@ -799,8 +800,8 @@ lbg_choose_option() {
 	# reset result
 	lbg_choose_option=""
 
-	# catch usage errors
-	if [ $# -lt 2 ] ; then
+	# must have at least 1 option
+	if [ $# == 0 ] ; then
 		return 1
 	fi
 
@@ -809,6 +810,7 @@ lbg_choose_option() {
 	local lbg_chop_options=("")
 	local lbg_chop_i
 	local lbg_chop_title="$lb_current_script_name"
+	local lbg_chop_label="$lb_default_chopt_label"
 
 	# catch options
 	while true ; do
@@ -818,6 +820,13 @@ lbg_choose_option() {
 					return 1
 				fi
 				lbg_chop_default="$2"
+				shift 2
+				;;
+			-l|--label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_chop_label="$2"
 				shift 2
 				;;
 			-t|--title)
@@ -833,15 +842,7 @@ lbg_choose_option() {
 		esac
 	done
 
-	# usage error if no text and at least 1 option
-	if lb_test_arguments -lt 2 $* ; then
-		return 1
-	fi
-
-	lbg_chop_text="$1"
-	shift
-
-	# usage error if no option
+	# usage error if missing at least 1 option
 	if lb_test_arguments -eq 0 $* ; then
 		return 1
 	fi
@@ -872,7 +873,7 @@ lbg_choose_option() {
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
-			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_text")
+			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_label")
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
@@ -890,7 +891,7 @@ lbg_choose_option() {
 			;;
 
 		zenity)
-			lbg_chop_cmd=(zenity --list --title "$lbg_chop_title" --text "$lbg_chop_text" --radiolist --column "" --column "" --column "")
+			lbg_chop_cmd=(zenity --list --title "$lbg_chop_title" --text "$lbg_chop_label" --radiolist --column "" --column "" --column "")
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
@@ -919,7 +920,7 @@ lbg_choose_option() {
 			lbg_chop_opts="${lbg_chop_opts%?}}"
 
 			lbg_chop_choice=$(osascript 2> /dev/null <<EOF
-set answer to (choose from list $lbg_chop_opts with prompt "$lbg_chop_text" with title "$lbg_chop_title")
+set answer to (choose from list $lbg_chop_opts with prompt "$lbg_chop_label" with title "$lbg_chop_title")
 EOF)
 			lbg_chop_res=$?
 
@@ -932,7 +933,7 @@ EOF)
 			;;
 
 		dialog)
-			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_text" 30 100 100)
+			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" 30 100 100)
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
@@ -960,7 +961,7 @@ EOF)
 			if [ $lbg_chop_default != 0 ] ; then
 				lbg_chop_cmd+=(-d $lbg_chop_default)
 			fi
-			lbg_chop_cmd+=("$lbg_chop_text")
+			lbg_chop_cmd+=(-l "$lbg_chop_label")
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
