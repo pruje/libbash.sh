@@ -207,16 +207,17 @@ lbg_yesno [OPTIONS] TEXT
 
 #### Options
 ```bash
--t, --title TEXT  Set a title to the dialog
+-y, --yes         Set Yes as selected button (not available on kdialog and zenity)
 --yes-label TEXT  Change Yes label (not available on zenity)
 --no-label TEXT   Change No label (not available on zenity)
--y, --yes         Set Yes as selected button (not available on kdialog and zenity)
+-t, --title TEXT  Set a title to the dialog
 ```
 
 #### Exit codes
 - 0: yes
-- 1: no
-- 2: usage error
+- 1: usage error
+- 2: no
+- 3: cancelled
 
 ---------------------------------------------------------------
 <a name="lbg_input_password"></a>

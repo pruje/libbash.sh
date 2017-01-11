@@ -526,9 +526,20 @@ EOF)
 
 
 # Prompt user to confirm an action in graphical mode
-# Args: [options] TEXT
-# Return: continue (0:YES / 1:NO)
+# TODO: add cancel option
+# Usage: lbg_yesno [OPTIONS] TEXT
+# Options:
+#   -y, --yes         Set Yes as selected button (not available on kdialog and zenity)
+#   --yes-label TEXT  Change Yes label (not available on zenity)
+#   --no-label TEXT   Change No label (not available on zenity)
+#   -t, --title TEXT  Set a title to the dialog
+# Exit codes:
+#   0: yes
+#   1: usage error
+#   2: no
+#   3: cancelled
 lbg_yesno() {
+
 	# default values
 	local lbg_yn_defaultyes=false
 	local lbg_yn_yeslbl=""
@@ -539,7 +550,7 @@ lbg_yesno() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--yes|-y)
+			-y|--yes)
 				lbg_yn_defaultyes=true
 				shift
 				;;
@@ -566,7 +577,7 @@ lbg_yesno() {
 
 	# usage error if no text to display
 	if lb_test_arguments -eq 0 $* ; then
-		return 2
+		return 1
 	fi
 
 	case "$lbg_gui" in
@@ -631,7 +642,19 @@ EOF)
 
 			# clear console
 			clear
-			return $lbg_yn_res
+
+			case $lbg_yn_res in
+				0)
+					return
+					;;
+				255)
+					# cancel
+					return 3
+					;;
+				*)
+					return 2
+					;;
+			esac
 			;;
 
 		*)
@@ -652,6 +675,10 @@ EOF)
 
 	# execute command
 	"${lbg_yn_cmd[@]}" 2> /dev/null
+
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
