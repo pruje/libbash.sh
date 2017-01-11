@@ -26,11 +26,12 @@ lb_default_result_ok_label="... Done!"
 lb_default_result_failed_label="... Failed!"
 lb_default_ok_label="OK"
 lb_default_cancel_label="Cancel"
+lb_default_cancel_shortlabel="c"
 lb_default_failed_label="Failed"
 lb_default_yes_label="Yes"
 lb_default_no_label="No"
-lb_default_y_label="y"
-lb_default_n_label="n"
+lb_default_yes_shortlabel="y"
+lb_default_no_shortlabel="n"
 lb_default_pwd_label="Password:"
 lb_default_pwd_confirm_label="Confirm password:"
 lb_default_chdir_label="Choose a directory:"
@@ -1156,8 +1157,8 @@ lb_yesno() {
 
 	# default options
 	local lb_yn_defaultyes=false
-	local lb_yn_yeslbl="$lb_default_y_label"
-	local lb_yn_nolbl="$lb_default_n_label"
+	local lb_yn_yeslbl="$lb_default_yes_shortlabel"
+	local lb_yn_nolbl="$lb_default_no_shortlabel"
 
 	# catch options
 	while true ; do
