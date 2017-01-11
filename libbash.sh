@@ -1315,8 +1315,9 @@ lb_yesno() {
 # Prompt user to choose an option
 # Usage: lb_choose_option [OPTIONS] OPTION [OPTION...]
 # Options:
-#    -d, --default ID  option to use by default
-#    -l, --label TEXT  set a question text (default: Choose an option:)
+#    -d, --default ID         option to use by default
+#    -l, --label TEXT         set a question text (default: Choose an option:)
+#    -c, --cancel-label TEXT  set a cancel label (default: empty string)
 # Return: value is set into $lb_choose_option variable
 # Exit codes: 0: OK, 1: usage error, 2: cancelled, 3: bad choice
 lb_choose_option=""
@@ -1334,6 +1335,7 @@ lb_choose_option() {
 	local lb_chop_default=0
 	local lb_chop_options=("")
 	local lb_chop_label="$lb_default_chopt_label"
+	local lb_chop_cancel_label="$lb_default_cancel_shortlabel"
 
 	# catch options
 	while true ; do
@@ -1350,6 +1352,13 @@ lb_choose_option() {
 					return 1
 				fi
 				lb_chop_label="$2"
+				shift 2
+				;;
+			-c|--cancel-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_chop_cancel_label="$2"
 				shift 2
 				;;
 			*)
@@ -1396,6 +1405,8 @@ lb_choose_option() {
 
 	if [ $lb_chop_default != 0 ] ; then
 		echo -n "[$lb_chop_default]"
+	else
+		echo -n "[$lb_chop_cancel_label]"
 	fi
 
 	echo -n ": "
@@ -1413,13 +1424,21 @@ lb_choose_option() {
 			return 2
 		fi
 	else
+		# check cancel
+		if [ "$lb_choose_option" == "$lb_chop_cancel_label" ] ; then
+			lb_choose_option=""
+			return 2
+		fi
+
 		# check if user choice is integer
 		if ! lb_is_integer "$lb_choose_option" ; then
+			lb_choose_option=""
 			return 3
 		fi
 
 		# check if user choice is valid
 		if [ $lb_choose_option -lt 1 ] || [ $lb_choose_option -ge ${#lb_chop_options[@]} ] ; then
+			lb_choose_option=""
 			return 3
 		fi
 	fi
