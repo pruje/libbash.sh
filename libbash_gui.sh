@@ -1044,12 +1044,12 @@ EOF)
 # Usage: lbg_choose_directory [OPTIONS] [PATH]
 # Options:
 #   -t, --title TITLE  set dialog title
+#   PATH               starting path (current by default)
 # Exit codes:
 #   0: OK
 #   1: usage error
-#   2: specified path is not a valid directory
+#   2: cancelled
 #   3: choosed path is not a directory
-#   other: dialog result
 lbg_choose_directory=""
 lbg_choose_directory() {
 
@@ -1084,33 +1084,29 @@ lbg_choose_directory() {
 	fi
 
 	if ! [ -d "$lbg_chdir_path" ] ; then
-		return 2
+		return 1
 	fi
 
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
 			lbg_choose_directory=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path" 2> /dev/null)
-			lbg_chdir_res=$?
 			;;
 
 		zenity)
 			lbg_choose_directory=$(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path" 2> /dev/null)
-			lbg_chdir_res=$?
 			;;
 
 		osascript)
 			lbg_choose_directory=$(osascript 2> /dev/null <<EOF
 set answer to POSIX path of (choose folder with prompt "$lbg_chdir_title" default location "$lbg_chdir_path")
 EOF)
-			lbg_chdir_res=$?
 			;;
 
 		dialog)
 			# execute dialog (complex case)
 			exec 3>&1
 			lbg_choose_directory=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" 30 100 2>&1 1>&3)
-			lbg_chdir_res=$?
 			exec 3>&-
 
 			# clear console
@@ -1129,16 +1125,16 @@ EOF)
 
 			# execute console function
 			"${lbg_chdir_cmd[@]}"
-			lbg_chdir_res=$?
-
-			# forward result
-			lbg_choose_directory="$lb_input_text"
+			if [ $? == 0 ] ; then
+				# forward result
+				lbg_choose_directory="$lb_input_text"
+			fi
 			;;
 	esac
 
-	# if error, return command result
-	if [ $lbg_chdir_res != 0 ] ; then
-		return $lbg_chdir_res
+	# if empty, cancelled
+	if [ -z "$lbg_choose_directory" ] ; then
+		return 2
 	fi
 
 	# error if result is not a directory
@@ -1155,12 +1151,12 @@ EOF)
 #   -t, --title TITLE    set a dialog title
 #   -f, --filter FILTER  set filters (WARNING: does not work with dialog command)
 #                        e.g. -f "*.sh" to filter by bash files
+#   PATH                 starting path or selected file (current by default)
 # Exit codes:
 #   0: OK
 #   1: usage error
-#   2: specified path does not exists
+#   2: cancelled
 #   3: choosed file does not exists
-#   other: dialog result
 lbg_choose_file=""
 lbg_choose_file() {
 
@@ -1204,14 +1200,13 @@ lbg_choose_file() {
 
 	# if path does not exists, error
 	if ! [ -e "$lbg_choosefile_path" ] ; then
-		return 2
+		return 1
 	fi
 
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
 			lbg_choose_file=$(kdialog --title "$lbg_choosefile_title" --getopenfilename "$lbg_choosefile_path" "${lbg_choosefile_filters[@]}" 2> /dev/null)
-			lbg_choosefile_res=$?
 			;;
 
 		zenity)
@@ -1221,7 +1216,6 @@ lbg_choose_file() {
 			fi
 
 			lbg_choose_file=$(zenity --title "$lbg_choosefile_title" --file-selection --filename "$lbg_choosefile_path" "$lbg_choosefile_opts" 2> /dev/null)
-			lbg_choosefile_res=$?
 			;;
 
 		osascript)
@@ -1229,14 +1223,12 @@ lbg_choose_file() {
 			lbg_choose_file=$(osascript 2> /dev/null <<EOF
 set answer to POSIX path of (choose file with prompt "$lbg_choosefile_title" default location "$lbg_choosefile_path")
 EOF)
-			lbg_choosefile_res=$?
 			;;
 
 		dialog)
 			# execute dialog (complex case)
 			exec 3>&1
 			lbg_choose_file=$(dialog --title "$lbg_choosefile_title" --clear --fselect "$lbg_choosefile_path" 30 100 2>&1 1>&3)
-			lbg_choosefile_res=$?
 			exec 3>&-
 
 			# clear console
@@ -1255,16 +1247,16 @@ EOF)
 
 			# execute console function
 			"${lbg_choosefile_cmd[@]}"
-			lbg_choosefile_res=$?
-
-			# forward result
-			lbg_choose_file="$lb_input_text"
+			if [ $? == 0 ] ; then
+				# forward result
+				lbg_choose_file="$lb_input_text"
+			fi
 			;;
 	esac
 
-	# if error, return command result
-	if [ $lbg_choosefile_res != 0 ] ; then
-		return $lbg_choosefile_res
+	# if empty, cancelled
+	if [ -z "$lbg_choose_file" ] ; then
+		return 2
 	fi
 
 	# error if result is not a file
