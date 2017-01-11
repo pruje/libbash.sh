@@ -1160,7 +1160,11 @@ lb_input_text() {
 #    -c, --confirm         confirm password
 #    --confirm-label TEXT  confirmation label
 # Return: value is set into $lb_input_password variable
-# Exit codes: 0 if ok, 1 if usage error, 2 if passwords mismatch
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: password is empty (cancelled)
+#   3: passwords mismatch
 lb_input_password=""
 lb_input_password() {
 
@@ -1202,7 +1206,11 @@ lb_input_password() {
 
 	lb_inpw_password_confirm="$lb_inpw_password"
 
-	if [ -n "$lb_inpw_password" ] ; then
+	# if empty
+	if [ -z "$lb_inpw_password" ] ; then
+		return 2
+	else
+		# if confirm
 		if $lb_inpw_confirm ; then
 			read -s -p "$lb_inpw_confirm_label " lb_inpw_password_confirm
 			echo
@@ -1212,7 +1220,8 @@ lb_input_password() {
 	if [ "$lb_inpw_password" == "$lb_inpw_password_confirm" ] ; then
 		lb_input_password="$lb_inpw_password"
 	else
-		return 2
+		# passwords mismatch
+		return 3
 	fi
 }
 

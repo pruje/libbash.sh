@@ -690,7 +690,11 @@ EOF)
 #    -c, --confirm           display a confirmation dialog
 #    --confirm-label TEXT    display a confirmation dialog
 # Return: exit code, value is set into $lbg_input_text variable
-# Exit code: 0 if OK, 1 if usage error, 2 if mismatch
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: cancelled
+#   3: passwords mismatch
 lbg_input_password=""
 lbg_input_password() {
 
@@ -737,34 +741,25 @@ lbg_input_password() {
 	# display dialog(s)
 	for lbg_inpw_i in $(seq 1 2) ; do
 
-		# if second iteration, it's a confirm dialog
-		if [ $lbg_inpw_i -gt 1 ] ; then
-			lbg_inpw_label="$lbg_inpw_confirm_label"
-		fi
-
 		case "$lbg_gui" in
 			kdialog)
 				lbg_inpw_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
-				lbg_inpw_res=$?
 				;;
 
 			zenity)
 				lbg_inpw_password=$(zenity --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
-				lbg_inpw_res=$?
 				;;
 
 			osascript)
 				lbg_inpw_password=$(osascript 2> /dev/null << EOF
 set answer to the text returned of (display dialog "$lbg_inpw_label" with title "$lbg_inpw_title" default answer "" hidden answer true)
 EOF)
-				lbg_inpw_res=$?
 				;;
 
 			dialog)
 				# execute dialog (complex case)
 				exec 3>&1
 				lbg_inpw_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" 10 50 2>&1 1>&3)
-				lbg_inpw_res=$?
 				exec 3>&-
 
 				# clear console
@@ -774,42 +769,45 @@ EOF)
 			*)
 				# console mode
 				# execute console function
-				# TODO: improve with options forwarding
-				lb_input_password --label "$lbg_inpw_label"
+				lbg_inpw_cmd=(lb_input_password --label "$lbg_inpw_label")
+
+				if $lbg_inpw_confirm ; then
+					lbg_inpw_cmd+=(--confirm --confirm-label "$lbg_inpw_confirm_label")
+				fi
+
+				"${lbg_inpw_cmd[@]}"
 				if [ $? == 0 ] ; then
-					if [ -n "$lb_input_password" ] ; then
-						# forward result
-						lbg_inpw_password="$lb_input_password"
-						lbg_inpw_res=0
-					else
-						lbg_inpw_res=1
-					fi
-				else
-					lbg_inpw_res=1
+					# forward result
+					lbg_inpw_password="$lb_input_password"
 				fi
 				;;
 		esac
 
-		if [ $lbg_inpw_res != 0 ] ; then
-			return $lbg_inpw_res
+		# if empty, cancelled
+		if [ -z "$lbg_inpw_password" ] ; then
+			return 2
 		fi
 
-		# if no confirm, exit
+		# if confirm
 		if $lbg_inpw_confirm ; then
 			# if first iteration, continue
 			if [ $lbg_inpw_i == 1 ] ; then
+				# save password
 				lbg_inpw_password_confirm="$lbg_inpw_password"
+
+				# set new confirm label and continue
+				lbg_inpw_label="$lbg_inpw_confirm_label"
 				continue
 			fi
 
 			# comparison with confirm password
 			if [ "$lbg_inpw_password" != "$lbg_inpw_password_confirm" ] ; then
-				return 2
+				return 3
 			fi
 		fi
 
 		lbg_input_password="$lbg_inpw_password"
-		return $lbg_inpw_res
+		return
 	done
 }
 

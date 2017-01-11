@@ -226,19 +226,27 @@ Displays a dialog to ask user to input a password.
 
 #### Usage
 ```bash
-lbg_input_password [options]
+lbg_input_password [OPTIONS]
 ```
 Result is stored into the `$lbg_input_password` variable.
 
 #### Options
 ```bash
--t, --title TEXT      Set a title to the dialog
 -l, --label TEXT      Change label (not available on zenity)
 -c, --confirm         Display a confirm password dialog
 --confirm-label TEXT  Change confirmation label (not available on zenity)
+-t, --title TEXT      Set a title to the dialog
 ```
 
 #### Exit codes
 - 0: OK
-- 1: cancel or failed
-- 2: usage error
+- 1: usage error
+- 2: cancelled
+- 3: passwords mismatch
+
+#### Examples
+```bash
+if lbg_input_password ; then
+	mypassword="$lbg_input_password"
+fi
+```
