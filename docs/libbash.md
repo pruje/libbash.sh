@@ -186,7 +186,9 @@ lb_display [OPTIONS] TEXT
 ```
 
 #### Exit codes
-Exit code of the [lb_print](#lb_print) command.
+- 0: OK
+- 1: usage error
+- 2: logs could not be written
 
 ---------------------------------------------------------------
 <a name="lb_display_presets"></a>

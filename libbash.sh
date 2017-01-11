@@ -150,6 +150,7 @@ lb_test_arguments() {
 #   --bold  print in bold format
 #   --cyan, --green, --yellow, --red  print in selected color
 lb_print() {
+
 	local lb_print_format=()
 	local lb_print_opts=""
 	local lb_print_resetcolor=""
@@ -206,14 +207,19 @@ lb_print() {
 
 
 # Print a message to the console, can set a verbose level and can append to logs
-# Usage: lb_display [options] TEXT
+# Usage: lb_display [OPTIONS] TEXT
 # Options:
 #   -n                 no line return
 #   -l, --level LEVEL  choose a display level (will be the same for logs)
 #   -p, --prefix       print [LEVEL] prefix before text
 #   --log              append text to log file if defined
-# Exit codes: 0: OK, 1: logs could not be written
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: logs could not be written
+#   3: unknown error while printing
 lb_display() {
+
 	# default options
 	local lb_display_log=false
 	local lb_display_prefix=false
@@ -274,12 +280,18 @@ lb_display() {
 
 	# print into logfile
 	if $lb_display_log ; then
+		lb_display_logcmd=(lb_log $lb_display_opts)
+
 		if [ -n "$lb_display_level" ] ; then
-			lb_log $lb_display_opts--level "$lb_display_level" "$lb_display_msgprefix$*"
-		else
-			lb_log $lb_display_opts "$lb_display_msgprefix$*"
+			lb_display_logcmd+=(--level "$lb_display_level")
 		fi
-		lb_display_exit=$?
+
+		lb_display_logcmd+=("$lb_display_msgprefix$*")
+
+		"${lb_display_logcmd[@]}"
+		if [ $? != 0 ] ; then
+			return 2
+		fi
 	fi
 
 	# enable coloured prefixes
@@ -310,8 +322,9 @@ lb_display() {
 
 	# print text
 	lb_print $lb_display_opts"$lb_display_msgprefix$*"
-
-	return $lb_display_exit
+	if [ $? != 0 ] ; then
+		return 3
+	fi
 }
 
 
