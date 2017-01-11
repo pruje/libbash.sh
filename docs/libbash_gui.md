@@ -28,7 +28,6 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 
 * Environment settings
 	* [lbg_get_gui](#lbg_get_gui)
-	* [lbg_test_gui](#lbg_test_gui)
 	* [lbg_set_gui](#lbg_set_gui)
 * Messages and notifications
 	* [lbg_display_info](#lbg_display_info)
@@ -52,22 +51,12 @@ lbg_get_gui
 
 #### Exit codes
 - 0: OK
-- 1: no GUI tool available on the system
+- 1: no GUI tool available on this system
 
----------------------------------------------------------------
-<a name="lbg_test_gui"></a>
-### lbg_test_gui
-Test if a GUI tool is available on your system (see the supported tools above).
-
-#### Usage
+#### Example
 ```bash
-lbg_test_gui GUI_TOOL
+gui_tool=$(lbg_get_gui)
 ```
-
-#### Exit codes
-- 0: GUI tool ready to be used
-- 1: usage error
-- 2: GUI tool not available on the system
 
 ---------------------------------------------------------------
 <a name="lbg_set_gui"></a>
@@ -86,7 +75,15 @@ lbg_set_gui GUI_TOOL
 #### Exit codes
 - 0: GUI tool set
 - 1: usage error
-- 2: GUI tool not available on the system
+- 2: GUI tool not supported on this system
+- 3: GUI tool supported, but no X server is currently running (stay in console mode)
+
+#### Example
+```bash
+if lbg_set_gui zenity ; then
+	echo "Using zenity for dialogs."
+fi
+```
 
 ---------------------------------------------------------------
 <a name="lbg_display_info"></a>
@@ -196,6 +193,13 @@ Result is stored into the `$lbg_input_text` variable.
 - 1: usage error
 - 2: cancelled
 
+#### Example
+```bash
+if lbg_input_text "Please enter your name:" ; then
+	user_name="$lbg_input_text"
+fi
+```
+
 ---------------------------------------------------------------
 <a name="lbg_yesno"></a>
 ### lbg_yesno
@@ -219,6 +223,13 @@ lbg_yesno [OPTIONS] TEXT
 - 1: usage error
 - 2: no
 - 3: cancelled
+
+#### Example
+```bash
+if ! lbg_yesno "Do you want to continue?" ; then
+	exit
+fi
+```
 
 ---------------------------------------------------------------
 <a name="lbg_input_password"></a>
@@ -248,6 +259,6 @@ Result is stored into the `$lbg_input_password` variable.
 #### Example
 ```bash
 if lbg_input_password ; then
-	mypassword="$lbg_input_password"
+	user_password="$lbg_input_password"
 fi
 ```

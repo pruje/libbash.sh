@@ -40,11 +40,16 @@ lbg_gui=""
 # Get GUI tool
 # Usage: lbg_get_gui
 # Return: GUI tool
-# Exit codes: 0 if OK, 1 if no GUI tool available
+# Exit codes:
+#  0: OK
+#  1: no GUI tool available
 lbg_get_gui() {
+
+	# if no GUI tool defined
 	if [ -z "$lbg_gui" ] ; then
 		return 1
 	fi
+
 	echo $lbg_gui
 }
 
@@ -71,28 +76,37 @@ lbg_test_gui() {
 
 # Set default GUI display
 # Usage: lbg_set_gui GUI_TOOL
-# Exit codes: 0 if OK, 1 is usage error, 2 if GUI is not supported
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: GUI tool not supported on this system
+#   3: GUI tool supported, but currently no X server is running
 lbg_set_gui() {
+
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	lbg_setgui_gui="$*"
+
 	# console mode is always OK
-	if [ "$1" == "console" ] ; then
+	if [ "$lbg_setgui_gui" == "console" ] ; then
 		lbg_gui="console"
 		return
 	fi
 
 	# test if GUI is supported
-	if lbg_test_gui "$1" ; then
+	if lbg_test_gui "$lbg_setgui_gui" ; then
 		if [ "$(lb_detect_os)" == "macOS" ] ; then
-			lbg_gui="$1"
+			lbg_gui="$lbg_setgui_gui"
 		else
 			# if no X server started, stay in console mode
 			if [ -n "$DISPLAY" ] ; then
-				lbg_gui="$1"
+				lbg_gui="$lbg_setgui_gui"
 			else
 				lbg_gui="console"
+				return 3
 			fi
 		fi
 	else
