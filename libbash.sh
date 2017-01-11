@@ -60,22 +60,35 @@ lb_format_print=true
 
 # Check if a command exists
 # Usage: lb_command_exists COMMAND
-# Exit codes: 0 if exists, 1 if not, 255 if usage error
+# Exit codes:
+#   0: command exists
+#   1: usage error
+#   2: command does not exists
 lb_command_exists() {
 
+	# usage error
 	if [ $# == 0 ] ; then
-		return 255
+		return 1
 	fi
 
+	# test command
 	which "$1" &> /dev/null
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
 # Check if a function exists
 # Usage: lb_function_exists FUNCTION
-# Exit codes: 0 if exists, 1 if usage error, 2 if not, 3 if exists but is not a function
+# Exit codes:
+#   0: function exists
+#   1: usage error
+#   2: function does not exists
+#   3: command exists, but is not a function
 lb_function_exists() {
 
+	# usage error
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -87,7 +100,7 @@ lb_function_exists() {
 		return 2
 	fi
 
-	# if not a function
+	# test if is not a function
 	if [ "$lb_function_exists_res" != "function" ] ; then
 		return 3
 	fi
@@ -102,7 +115,10 @@ lb_function_exists() {
 #    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
 #    N         expected number to compare to
 #    VALUES    your arguments; (e.g. $* without quotes)
-# Exit code: 0 if comparison ok, 1 if not, 255 if usage error
+# Exit code:
+#   0: arguments OK
+#   1: usage error
+#   2: arguments not OK
 lb_test_arguments() {
 
 	# NOTE: be careful with improving this function to not use
@@ -110,12 +126,12 @@ lb_test_arguments() {
 
 	# we wait for at least an operator and a number
 	if [ $# -lt 2 ] ; then
-		return 255
+		return 1
 	fi
 
 	# arg 2 should be an integer
 	if ! lb_is_integer $2 ; then
-		return 255
+		return 1
 	fi
 
 	local lb_testarg_operator="$1"
@@ -130,12 +146,14 @@ lb_test_arguments() {
 			;;
 		*)
 			# syntax error
-			return 255
+			return 1
 			;;
 	esac
 
-	# return operation result
-	return $?
+	# if test not OK
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
