@@ -34,6 +34,7 @@ lb_default_yes_shortlabel="y"
 lb_default_no_shortlabel="n"
 lb_default_pwd_label="Password:"
 lb_default_pwd_confirm_label="Confirm password:"
+lb_default_chopt_label="Choose an option:"
 lb_default_chdir_label="Choose a directory:"
 lb_default_chfile_label="Choose a file:"
 lb_default_debug_label="DEBUG"
@@ -1312,9 +1313,10 @@ lb_yesno() {
 
 
 # Prompt user to choose an option
-# Usage: lb_choose_option [options] TEXT OPTION [OPTION...]
+# Usage: lb_choose_option [OPTIONS] OPTION [OPTION...]
 # Options:
 #    -d, --default ID  option to use by default
+#    -l, --label TEXT  set a question text (default: Choose an option:)
 # Return: value is set into $lb_choose_option variable
 # Exit codes: 0: OK, 1: usage error, 2: cancelled, 3: bad choice
 lb_choose_option=""
@@ -1323,15 +1325,15 @@ lb_choose_option() {
 	# reset result
 	lb_choose_option=""
 
-	# catch bad usage
-	if [ $# -lt 2 ] ; then
+	# must have at least 1 option
+	if [ $# == 0 ] ; then
 		return 1
 	fi
 
 	# default options and local variables
 	local lb_chop_default=0
 	local lb_chop_options=("")
-	local lb_chop_i
+	local lb_chop_label="$lb_default_chopt_label"
 
 	# catch options
 	while true ; do
@@ -1343,22 +1345,20 @@ lb_choose_option() {
 				lb_chop_default="$2"
 				shift 2
 				;;
+			-l|--label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_chop_label="$2"
+				shift 2
+				;;
 			*)
 				break
 				;;
 		esac
 	done
 
-	# usage error if missing text and at least one option
-	if lb_test_arguments -lt 2 $* ; then
-		return 1
-	fi
-
-	lb_chop_text="$1"
-	shift
-
-	# usage error if missing options
-	# could be not detected by test above if text field has some spaces
+	# usage error if missing at least 1 option
 	if lb_test_arguments -eq 0 $* ; then
 		return 1
 	fi
@@ -1385,7 +1385,7 @@ lb_choose_option() {
 	fi
 
 	# print question
-	echo -e $lb_chop_text
+	echo -e $lb_chop_label
 
 	# print options
 	for ((lb_chop_i=1 ; lb_chop_i < ${#lb_chop_options[@]} ; lb_chop_i++)) ; do
