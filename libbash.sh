@@ -1146,39 +1146,54 @@ lb_input_password() {
 # Usage: lb_yesno [options] TEXT
 # Options:
 #    -y, --yes        return yes by default
+#    -c, --cancel     add a cancel option
 #    --yes-label STR  string to use as "YES"
 #    --no-label  STR  string to use as "NO"
-# Exit codes: 0 yes, 1 no, 2 usage error
+#    --cancel-label STR  string to use as cancel
+# Exit codes: 0: yes, 1: usage error, 2: no, 3: cancel
 lb_yesno() {
 
 	if [ $# == 0 ] ; then
-		return 2
+		return 1
 	fi
 
 	# default options
 	local lb_yn_defaultyes=false
+	local lb_yn_cancel=false
 	local lb_yn_yeslbl="$lb_default_yes_shortlabel"
 	local lb_yn_nolbl="$lb_default_no_shortlabel"
+	local lb_yn_cancellbl="$lb_default_cancel_shortlabel"
 
 	# catch options
 	while true ; do
 		case "$1" in
-			--yes|-y)
+			-y|--yes)
 				lb_yn_defaultyes=true
+				shift
+				;;
+			-c|--cancel)
+				lb_yn_cancel=true
 				shift
 				;;
 			--yes-label)
 				if lb_test_arguments -eq 0 $2 ; then
-					return 2
+					return 1
 				fi
 				lb_yn_yeslbl="$2"
 				shift 2
 				;;
 			--no-label)
 				if lb_test_arguments -eq 0 $2 ; then
-					return 2
+					return 1
 				fi
 				lb_yn_nolbl="$2"
+				shift 2
+				;;
+			--cancel-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_yn_cancellbl="$2"
 				shift 2
 				;;
 			*)
@@ -1189,15 +1204,23 @@ lb_yesno() {
 
 	# usage error if question is missing
 	if lb_test_arguments -eq 0 $* ; then
-		return 2
+		return 1
 	fi
 
 	# defines choice question
 	if $lb_yn_defaultyes ; then
-		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$(echo $lb_yn_nolbl | tr '[:upper:]' '[:lower:]'))"
+		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$(echo $lb_yn_nolbl | tr '[:upper:]' '[:lower:]')"
 	else
-		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]'))"
+		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]')"
 	fi
+
+	# add cancel choice
+	if $lb_yn_cancel ; then
+		lb_yn_choice+="/$(echo $lb_yn_cancellbl | tr '[:upper:]' '[:lower:]')"
+	fi
+
+	# ends question
+	lb_yn_choice+=")"
 
 	# print question
 	echo -e -n "$* $lb_yn_choice: "
@@ -1208,12 +1231,20 @@ lb_yesno() {
 	# defaut behaviour if input is empty
 	if [ -z "$lb_yn_confirm" ] ; then
 		if ! $lb_yn_defaultyes ; then
-			return 1
+			return 2
 		fi
 	else
 		# compare to confirmation string
 		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')" ] ; then
-			return 1
+
+			# cancel case
+			if $lb_yn_cancel ; then
+				if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" == "$(echo $lb_yn_cancellbl | tr '[:upper:]' '[:lower:]')" ] ; then
+					return 3
+				fi
+			fi
+
+			return 2
 		fi
 	fi
 }

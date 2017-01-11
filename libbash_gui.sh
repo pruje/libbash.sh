@@ -672,9 +672,9 @@ lbg_input_password() {
 	lbg_input_password=""
 
 	# default options
-	local lbg_inpw_label="Enter your password:"
+	local lbg_inpw_label="$lb_default_pwd_label"
 	local lbg_inpw_confirm=false
-	local lbg_inpw_confirm_label="Confirm password:"
+	local lbg_inpw_confirm_label="$lb_default_pwd_confirm_label"
 	local lbg_inpw_title="$lb_current_script_name"
 
 	# catch options
