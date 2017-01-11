@@ -10,7 +10,7 @@
 
 ################################
 #                              #
-#  Version 0.1.0 (2017-01-06)  #
+#  Version 0.1.0 (2017-01-11)  #
 #                              #
 ################################
 
@@ -258,7 +258,7 @@ lb_display() {
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
 				if [ $lb_display_idlvl -gt $lb_loglevel ] ; then
-					return 0
+					return
 				fi
 			fi
 		fi
@@ -529,9 +529,9 @@ lb_set_logfile() {
 #   --id  get log level id instead of name
 # Return: level (name or id)
 # Exit codes:
-# 0: OK
-# 1: no log level is set
-# 2: specified level not found
+#   0: OK
+#   1: no log level is set
+#   2: specified level not found
 lb_get_loglevel() {
 
 	# default options
@@ -578,7 +578,7 @@ lb_get_loglevel() {
 			else
 				echo ${lb_loglevels[$lb_getloglevel_i]}
 			fi
-			return 0
+			return
 		fi
 	done
 
@@ -601,7 +601,7 @@ lb_set_loglevel() {
 		# search by name, return level id
 		if [ "${lb_loglevels[$lb_setloglevel_i]}" == "$1" ] ; then
 			lb_loglevel=$lb_setloglevel_i
-			return 0
+			return
 		fi
 	done
 
@@ -684,7 +684,7 @@ lb_log() {
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
 				if [ $lb_log_idlvl -gt $lb_loglevel ] ; then
-					return 0
+					return
 				fi
 			fi
 		fi
@@ -726,15 +726,17 @@ lb_log() {
 
 # Test if a value is integer
 # Usage: lb_is_integer VALUE
-# Exit codes: 0 if is integer, 1 if not
+# Exit codes: 0 if is integer, 1 if not an integer
 lb_is_integer() {
-	# if empty, is not an integer
+
+	# if empty, is not an integer (not an usage error)
 	# DO NOT USE lb_test_arguments here or it will do an infinite loop
 	# because lb_test_arguments uses this function
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	# test if is an integer (also works for negative numbers)
 	if ! [[ $1 =~ ^-?[0-9]+$ ]] ; then
 		return 1
 	fi
@@ -761,9 +763,9 @@ lb_array_contains() {
 
 	# parse array to find value
 	for ((lb_arraycontains_i=0 ; lb_arraycontains_i < ${#lb_arraycontains_array[@]} ; lb_arraycontains_i++)) ; do
-		# if found, return 0
+		# if found, return 0 (implicit)
 		if [ "${lb_arraycontains_array[$lb_arraycontains_i]}" == "$lb_arraycontains_search" ] ; then
-			return 0
+			return
 		fi
 	done
 
@@ -780,62 +782,107 @@ lb_array_contains() {
 # TODO: add macOS support (-T not supported)
 # Usage: lb_df_fstype PATH
 # Return: fs type
-# Exit codes: df exit code; 255 if usage error
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: path does not exists
+#   3: unknown error
+#   4: command not supported on this system
 lb_df_fstype() {
 
 	if [ $# == 0 ] ; then
-		return 255
+		return 1
+	fi
+
+	lb_dffstype_path="$*"
+
+	# test if path exists
+	if ! [ -e "$lb_dffstype_path" ] ; then
+		return 2
 	fi
 
 	# get type from df command
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
 		# TODO: implement support for macOS
-		return 2
+		return 4
 	else
-		df --output=fstype "$1" 2> /dev/null | tail -n 1
+		df --output=fstype "$lb_dffstype_path" 2> /dev/null | tail -n 1
 	fi
 
-	return ${PIPESTATUS[0]}
+	# get df errors
+	if [ ${PIPESTATUS[0]} != 0 ] ; then
+		return 3
+	fi
 }
 
 
 # Get space left on partition (in bytes)
 # Usage: lb_df_space_left PATH
 # Return: bytes available
-# Exit codes: df exit code; 255 if usage error
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: path does not exists
+#   3: unknown error
 lb_df_space_left() {
 
 	if [ $# == 0 ] ; then
-		return 255
+		return 1
 	fi
 
+	lb_dfspaceleft_path="$*"
+
+	# test if path exists
+	if ! [ -e "$lb_dfspaceleft_path" ] ; then
+		return 2
+	fi
+
+	# get space available
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
-		df -b "$1" 2> /dev/null | tail -n 1 | awk '{print $4}'
+		df -b "$lb_dfspaceleft_path" 2> /dev/null | tail -n 1 | awk '{print $4}'
 	else
-		df -B1 --output=avail "$1" 2> /dev/null | tail -n 1
+		df -B1 --output=avail "$lb_dfspaceleft_path" 2> /dev/null | tail -n 1
 	fi
 
-	return ${PIPESTATUS[0]}
+	# get df errors
+	if [ ${PIPESTATUS[0]} != 0 ] ; then
+		return 3
+	fi
 }
 
 
 # Get mount point
 # Usage: lb_df_mountpoint PATH
 # Return: path
-# Exit codes: df exit code; 255 if usage error
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: path does not exists
+#   3: unknown error
 lb_df_mountpoint() {
 
 	if [ $# == 0 ] ; then
-		return 255
+		return 1
 	fi
 
+	lb_dfmountpoint_path="$*"
+
+	# test if path exists
+	if ! [ -e "$lb_dfmountpoint_path" ] ; then
+		return 2
+	fi
+
+	# get mountpoint
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
-		df "$1" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
+		df "$lb_dfmountpoint_path" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
 	else
-		df --output=target "$1" 2> /dev/null | tail -n 1
+		df --output=target "$lb_dfmountpoint_path" 2> /dev/null | tail -n 1
 	fi
 
-	return ${PIPESTATUS[0]}
+	# get df errors
+	if [ ${PIPESTATUS[0]} != 0 ] ; then
+		return 3
+	fi
 }
 
 
@@ -846,47 +893,63 @@ lb_df_mountpoint() {
 #   O: OK
 #   1: usage error
 #   2: path does not exists
-#   3: UUID not found
-#   4: unknown df error
-#   5: function not supported on this system
+#   3: unknown error
+#   4: command not supported on this system
+#   5: UUID not found
 lb_df_uuid() {
 
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
-	# if path does not exists, error
-	if ! [ -e "$1" ] ; then
+	lb_dfuuid_path="$*"
+
+	# test if path exists
+	if ! [ -e "$lb_dfuuid_path" ] ; then
 		return 2
 	fi
 
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
 		# TODO: implement support for macOS
-		return 5
+		return 4
 	else
 		# Linux systems
 
-		# if UUID folder not found, cancel
-		if ! [ -d /dev/disk/by-uuid ] ; then
-			return 5
-		fi
+		# UUID directory
+		lb_dfuuid_list="/dev/disk/by-uuid"
 
-		# get device
-		lb_df_uuid_dev=$(df --output=source "$1" 2> /dev/null | tail -n 1)
-		if [ -z "$lb_df_uuid_dev" ] ; then
+		# check UUID directory
+		if [ -d "$lb_dfuuid_list" ] ; then
+			# check if there are UUIDs
+			ls "$lb_dfuuid_list"/* &> /dev/null
+			if [ $? != 0 ] ; then
+				return 5
+			fi
+		else
+			# if UUID folder not found, cancel
 			return 4
 		fi
 
-		for f in /dev/disk/by-uuid/* ; do
-			if [ "$(lb_realpath "$f")" == "$lb_df_uuid_dev" ] ; then
-				echo $(basename "$f")
-				return 0
+		# get device
+		lb_dfuuid_dev=$(df --output=source "$lb_dfuuid_path" 2> /dev/null | tail -n 1)
+		if [ -z "$lb_dfuuid_dev" ] ; then
+			return 3
+		fi
+
+		# search in UUID list
+		for lb_dfuuid_link in "$lb_dfuuid_list"/* ; do
+			# search if file is linked to the same device
+			if [ "$(lb_realpath "$lb_dfuuid_link")" == "$lb_dfuuid_dev" ] ; then
+				# if found, return UUID
+				echo $(basename "$lb_dfuuid_link")
+				# return 0 (implicit)
+				return
 			fi
 		done
 	fi
 
-	# not found
-	return 3
+	# UUID not found
+	return 5
 }
 
 
@@ -1031,7 +1094,7 @@ lb_input_text() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--default|-d)
+			-d|--default)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -1069,7 +1132,6 @@ lb_input_text() {
 	if [ -z "$lb_input_text" ] ; then
 		if [ -n "$lb_inp_default" ] ; then
 			lb_input_text="$lb_inp_default"
-			return 0
 		else
 			return 255
 		fi
@@ -1135,7 +1197,6 @@ lb_input_password() {
 
 	if [ "$lb_inpw_password" == "$lb_inpw_password_confirm" ] ; then
 		lb_input_password="$lb_inpw_password"
-		return 0
 	else
 		return 2
 	fi
@@ -1275,7 +1336,7 @@ lb_choose_option() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--default|-d)
+			-d|--default)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi

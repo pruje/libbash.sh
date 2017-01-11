@@ -384,6 +384,14 @@ lb_is_integer VALUE
 - 0: is integer
 - 1: is not integer
 
+#### Examples
+```bash
+x=1
+if lb_is_integer $x ; then
+	echo "x is integer"
+fi
+```
+
 ---------------------------------------------------------------
 <a name="lb_array_contains"></a>
 ### lb_array_contains
@@ -401,6 +409,14 @@ lb_array_contains VALUE "${ARRAY[@]}"
 - 1: usage error
 - 2: value is NOT in array
 
+#### Examples
+```bash
+array=(1 2 3)
+if lb_array_contains 1 "${array[@]}" ; then
+	echo "1 is in array"
+fi
+```
+
 ---------------------------------------------------------------
 ## Basic bash functions
 ---------------------------------------------------------------
@@ -417,8 +433,15 @@ lb_df_fstype PATH
 
 #### Exit codes
 - 0: OK
-- 255: usage error
-- other: df command exit code
+- 1: usage error
+- 2: PATH does not exists
+- 3: unknown error
+- 4: command not supported on this system
+
+#### Examples
+```bash
+root_fstype=$(lb_df_fstype /)
+```
 
 ---------------------------------------------------------------
 <a name="lb_df_space_left"></a>
@@ -432,8 +455,14 @@ lb_df_space_left PATH
 
 #### Exit codes
 - 0: OK
-- 255: usage error
-- other: df command exit code
+- 1: usage error
+- 2: PATH does not exists
+- 3: unknown error
+
+#### Examples
+```bash
+space_left=$(lb_df_space_left /)
+```
 
 ---------------------------------------------------------------
 <a name="lb_df_mountpoint"></a>
@@ -447,8 +476,14 @@ lb_df_mountpoint PATH
 
 #### Exit codes
 - 0: OK
-- 255: usage error
-- other: df command exit code
+- 1: usage error
+- 2: PATH does not exists
+- 3: unknown error
+
+#### Examples
+```bash
+mountpoint=$(lb_df_mountpoint /)
+```
 
 ---------------------------------------------------------------
 <a name="lb_df_uuid"></a>
@@ -466,6 +501,11 @@ lb_df_uuid PATH
 - 0: OK
 - 1: usage error
 - 2: path does not exists
-- 3: disk UUID not found
-- 4: unknown df error
-- 5: function not supported on this system
+- 3: unknown error
+- 4: command not supported on this system
+- 5: disk UUID not found
+
+#### Examples
+```bash
+uuid=$(lb_df_uuid /media/usbkey)
+```

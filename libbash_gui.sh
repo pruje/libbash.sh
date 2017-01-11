@@ -10,7 +10,7 @@
 
 ################################
 #                              #
-#  Version 0.1.0 (2017-01-06)  #
+#  Version 0.1.0 (2017-01-11)  #
 #                              #
 ################################
 
@@ -80,7 +80,7 @@ lbg_set_gui() {
 	# console mode is always OK
 	if [ "$1" == "console" ] ; then
 		lbg_gui="console"
-		return 0
+		return
 	fi
 
 	# test if GUI is supported
@@ -261,7 +261,7 @@ lbg_display_error() {
 	# catch options
 	while true ; do
 		case "$1" in
-			--title|-t)
+			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
@@ -555,7 +555,7 @@ lbg_yesno() {
 				lbg_yn_nolbl="$2"
 				shift 2
 				;;
-			--title|-t)
+			-t|--title)
 				lbg_yn_title="$2"
 				shift 2
 				;;
