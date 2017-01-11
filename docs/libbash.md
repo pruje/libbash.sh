@@ -75,8 +75,15 @@ lb_command_exists COMMAND
 
 #### Exit codes
 - 0: command exists
-- 1: command does not exists
-- 255: usage error
+- 1: usage error
+- 2: command does not exists
+
+#### Example
+```bash
+if lb_command_exists supertux2 ; then
+	echo "You're ready to play to supertux!"
+fi
+```
 
 ---------------------------------------------------------------
 <a name="lb_function_exists"></a>
@@ -94,6 +101,17 @@ lb_function_exists FUNCTION
 - 2: function does not exists
 - 3: command exists, but is not a function
 
+#### Example
+```bash
+print_hello() {
+	echo "Hello"
+}
+
+if lb_function_exists print_hello ; then
+	print_hello
+fi
+```
+
 ---------------------------------------------------------------
 <a name="lb_test_arguments"></a>
 ### lb_test_arguments
@@ -103,7 +121,6 @@ Test number of arguments passed to a function.
 ```bash
 lb_test_arguments OPERATOR N [VALUE...]
 ```
-e.g. `lb_test_arguments -ge 1 $*`: test if user has passed at least one argument to your script.
 
 #### Arguments
 ```
@@ -114,8 +131,15 @@ VALUE     your arguments; (e.g. $* without quotes)
 
 #### Exit codes
 - 0: OK
-- 1: not OK
-- 255: usage error
+- 1: usage error
+- 2: arguments not OK
+
+#### Example
+```bash
+if lb_test_arguments -lt 2 $* ; then
+	echo "You have to give at least 2 arguments to this script."
+fi
+```
 
 ---------------------------------------------------------------
 ## Display
@@ -386,7 +410,7 @@ lb_is_integer VALUE
 - 0: is integer
 - 1: is not integer
 
-#### Examples
+#### Example
 ```bash
 x=1
 if lb_is_integer $x ; then
@@ -411,7 +435,7 @@ lb_array_contains VALUE "${ARRAY[@]}"
 - 1: usage error
 - 2: value is NOT in array
 
-#### Examples
+#### Example
 ```bash
 array=(1 2 3)
 if lb_array_contains 1 "${array[@]}" ; then
@@ -440,7 +464,7 @@ lb_df_fstype PATH
 - 3: unknown error
 - 4: command not supported on this system
 
-#### Examples
+#### Example
 ```bash
 root_fstype=$(lb_df_fstype /)
 ```
@@ -461,7 +485,7 @@ lb_df_space_left PATH
 - 2: PATH does not exists
 - 3: unknown error
 
-#### Examples
+#### Example
 ```bash
 space_left=$(lb_df_space_left /)
 ```
@@ -482,7 +506,7 @@ lb_df_mountpoint PATH
 - 2: PATH does not exists
 - 3: unknown error
 
-#### Examples
+#### Example
 ```bash
 mountpoint=$(lb_df_mountpoint /)
 ```
@@ -507,7 +531,7 @@ lb_df_uuid PATH
 - 4: command not supported on this system
 - 5: disk UUID not found
 
-#### Examples
+#### Example
 ```bash
 uuid=$(lb_df_uuid /media/usbkey)
 ```

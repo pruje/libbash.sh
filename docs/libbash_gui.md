@@ -245,7 +245,7 @@ Result is stored into the `$lbg_input_password` variable.
 - 2: cancelled
 - 3: passwords mismatch
 
-#### Examples
+#### Example
 ```bash
 if lbg_input_password ; then
 	mypassword="$lbg_input_password"
