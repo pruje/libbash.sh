@@ -108,13 +108,13 @@ lb_function_exists() {
 
 
 # Test arguments of a function
-# Usage: lb_test_arguments OPERATOR N [VALUE...]
+# Usage: lb_test_arguments OPERATOR N [ARG...]
 # Note: A common usage of this function would be lb_test_arguments -ge 1 $*
 #       to test if user has passed at least one argument to your script.
 # Arguments:
 #    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
 #    N         expected number to compare to
-#    VALUES    your arguments; (e.g. $* without quotes)
+#    ARG       your arguments; (e.g. $* without quotes)
 # Exit code:
 #   0: arguments OK
 #   1: usage error
@@ -167,6 +167,7 @@ lb_test_arguments() {
 #   -n      no line return
 #   --bold  print in bold format
 #   --cyan, --green, --yellow, --red  print in selected color
+# Exit code: exit code of the `echo` command
 lb_print() {
 
 	local lb_print_format=()
@@ -351,14 +352,14 @@ lb_display() {
 # Options:
 #   --ok-label TEXT        set a ok label
 #   --failed-label TEXT    set a failed label
-#   --log                  print result into log file
 #   -l, --log-level LEVEL  set a log level
+#   --log                  print result into log file
 #   -e, --save-exit-code   save result to exit code
 #   -x, --exit-on-error    exit if result is not ok
 #   -q, --quiet            quiet mode (do not print anything)
 # Note: a very simple usage is to execute lb_result just after a command
 #       and get result with $? just after that
-# Exit code: Exit code of the command
+# Exit code: 1 if usage error; forward exit code of the command
 lb_result() {
 
 	# get last command result
@@ -386,16 +387,16 @@ lb_result() {
 				lb_prs_failed="$2"
 				shift 2
 				;;
-			--log)
-				lb_prs_opts="--log "
-				shift
-				;;
 			-l|--log-level)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
 				lb_prs_opts="-l $2 "
 				shift 2
+				;;
+			--log)
+				lb_prs_opts="--log "
+				shift
 				;;
 			-e|--save-exit-code)
 				lb_prs_exitcode=true
@@ -1256,7 +1257,11 @@ lb_input_password() {
 #    --yes-label STR  string to use as "YES"
 #    --no-label  STR  string to use as "NO"
 #    --cancel-label STR  string to use as cancel
-# Exit codes: 0: yes, 1: usage error, 2: no, 3: cancel
+# Exit codes:
+#   0: yes
+#   1: usage error
+#   2: no
+#   3: cancel
 lb_yesno() {
 
 	if [ $# == 0 ] ; then
@@ -1359,11 +1364,15 @@ lb_yesno() {
 # Prompt user to choose an option
 # Usage: lb_choose_option [OPTIONS] OPTION [OPTION...]
 # Options:
-#    -d, --default ID         option to use by default
-#    -l, --label TEXT         set a question text (default: Choose an option:)
-#    -c, --cancel-label TEXT  set a cancel label (default: empty string)
+#   -d, --default ID         option to use by default
+#   -l, --label TEXT         set a question text (default: Choose an option:)
+#   -c, --cancel-label TEXT  set a cancel label (default: empty string)
 # Return: value is set into $lb_choose_option variable
-# Exit codes: 0: OK, 1: usage error, 2: cancelled, 3: bad choice
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: cancelled
+#   3: bad choice
 lb_choose_option=""
 lb_choose_option() {
 
@@ -1666,15 +1675,14 @@ lb_echo() {
 	lb_print $*
 }
 
-# Print an error
+# Print a message to stderr
 # See lb_print for usage
 lb_error() {
 	>&2 lb_print $*
 }
 
-# Common display functions
-# Usage: [OPTIONS] TEXT
-# Options are same as lb_display
+# Common display levels functions
+# See lb_display for usage
 lb_display_critical() {
 	lb_display -p -l "$lb_default_critical_label" $*
 }
@@ -1691,9 +1699,18 @@ lb_display_debug() {
 	lb_display -p -l "$lb_default_debug_label" $*
 }
 
+# Print result in short mode
+# Usage: lb_short_result [OPTIONS] EXIT_CODE
+# See lb_result for options usage.
+# Be careful that EXIT_CODE is required on this function!
+lb_short_result() {
+	lb_result --ok-label "[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]" \
+	          --failed-label "[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]" $*
+}
+
 # Common log functions
-# Usage: [OPTIONS] TEXT
-# Options are same as lb_log
+# Usage: lb_log_* [OPTIONS] TEXT
+# See lb_log for options usage
 lb_log_critical() {
 	lb_log -p -l "$lb_default_critical_label" $*
 }
@@ -1708,13 +1725,6 @@ lb_log_info() {
 }
 lb_log_debug() {
 	lb_log -p -l "$lb_default_debug_label" $*
-}
-
-# Print result in short mode
-# See lb_result for usage
-lb_short_result() {
-	lb_result --ok-label "[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]" \
-	                --failed-label "[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]" $*
 }
 
 

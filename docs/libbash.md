@@ -39,7 +39,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_function_exists](#lb_function_exists)
 	* [lb_test_arguments](#lb_test_arguments)
 * Display
-	* [lb_print, lb_echo](#lb_print)
+	* [lb_print (or lb_echo)](#lb_print)
 	* [lb_error](#lb_error)
 	* [lb_display](#lb_display)
 	* [lb_display_critical, lb_display_error, lb_display_warning, lb_display_info, lb_display_debug](#lb_display_presets)
@@ -66,7 +66,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 ---------------------------------------------------------------
 <a name="lb_command_exists"></a>
 ### lb_command_exists
-Check if a command exists.
+Check if a command (or executable file) exists.
 
 #### Usage
 ```bash
@@ -119,18 +119,18 @@ Test number of arguments passed to a function.
 
 #### Usage
 ```bash
-lb_test_arguments OPERATOR N [VALUE...]
+lb_test_arguments OPERATOR N [ARG...]
 ```
 
 #### Arguments
 ```
 OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
 N         expected number to compare to
-VALUE     your arguments; (e.g. $* without quotes)
+ARG       your arguments; (e.g. $* without quotes)
 ```
 
 #### Exit codes
-- 0: OK
+- 0: arguments OK
 - 1: usage error
 - 2: arguments not OK
 
@@ -145,7 +145,7 @@ fi
 ## Display
 ---------------------------------------------------------------
 <a name="lb_print"></a>
-### lb_print, lb_echo
+### lb_print (or lb_echo)
 Print a message to the console, with colors and formatting
 
 #### Usage
@@ -157,7 +157,7 @@ or
 lb_echo [OPTIONS] TEXT
 ```
 
-#### macOS and console formatting
+#### macOS case
 For now, messages are not formatted for macOS consoles.
 
 #### Options
@@ -173,17 +173,26 @@ For now, messages are not formatted for macOS consoles.
 #### Exit codes
 Exit code of the `echo` command.
 
+#### Example
+```bash
+lb_print --green "This is a green text."
+```
+
 ---------------------------------------------------------------
 <a name="lb_error"></a>
 ### lb_error
 Print a message to the console, with colors and formatting, redirected to stderr.
-For more informations, see `lb_print` documentation.
 
 #### Usage
 ```bash
 lb_error [OPTIONS] TEXT
 ```
-Options are the same than the [lb_print](#lb_print) function.
+See [lb_print](#lb_print) for usage.
+
+#### Example
+```bash
+lb_error --red "This is an error."
+```
 
 ---------------------------------------------------------------
 <a name="lb_display"></a>
@@ -192,6 +201,7 @@ Print a message to the console, can set a verbose level and can append to logs.
 
 If you use the `--level MYLEVEL` option, the message will be displayed (and logged if option `--log` is set)
 only if `MYLEVEL` is greater or equal to the current log level.
+
 To set a log level, see [lb_set_loglevel](#lb_set_loglevel).
 
 To set a log file, see [lb_set_logfile](#lb_set_logfile).
@@ -214,6 +224,11 @@ lb_display [OPTIONS] TEXT
 - 1: usage error
 - 2: logs could not be written
 
+#### Example
+```bash
+lb_display --log "This message you see will be stored in logs."
+```
+
 ---------------------------------------------------------------
 <a name="lb_display_presets"></a>
 ### lb_display_critical, lb_display_error, lb_display_warning, lb_display_info, lb_display_debug
@@ -221,7 +236,16 @@ Shortcuts to display with common log levels.
 
 It uses the `lb_display` function with `--prefix` and `--level` options.
 
-For more informations, see [lb_display](#lb_display) documentation.
+#### Usage
+```bash
+lb_display_... [OPTIONS] TEXT
+```
+See [lb_display](#lb_display) for usage.
+
+#### Example
+```bash
+lb_display_critical "This is a critical error!"
+```
 
 ---------------------------------------------------------------
 <a name="lb_result"></a>
@@ -247,7 +271,14 @@ EXIT_CODE              Specify an exit code. If not set, variable $? will be use
 ```
 
 #### Exit codes
-Exit code forwarded of the last command or specified in argument.
+Exit code forwarded of the command (1 may also be an usage error).
+
+#### Example
+```bash
+echo "Processing..."
+mycommand
+lb_result
+```
 
 ---------------------------------------------------------------
 <a name="lb_short_result"></a>
@@ -256,7 +287,21 @@ Print a short result label to the console to indicate if a command succeeded or 
 
 It uses the `lb_result` function with `--ok-label [  OK  ]` and `--failed-label [ FAILED ]` options.
 
-For more informations, see [lb_result](#lb_result) documentation.
+#### Usage
+```bash
+lb_short_result [OPTIONS] EXIT_CODE
+```
+
+Be careful that exit code is required!
+
+See [lb_result](#lb_result) for options usage.
+
+#### Example
+```bash
+echo -n "Starting service...   "
+my_service &> /dev/null
+lb_short_result $?
+```
 
 ---------------------------------------------------------------
 ## Logs

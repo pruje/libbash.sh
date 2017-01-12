@@ -826,12 +826,16 @@ EOF)
 
 
 # Prompt user to choose an option in graphical mode
-# Usage: lbg_choose_option [options] TEXT OPTION [OPTION...]
+# Usage: lbg_choose_option [OPTIONS] OPTION [OPTION...]
 # Options:
-#    -d, --default ID  option to use by default
-#    -l, --label TEXT  set a question text (default: Choose an option:)
+#   -d, --default ID  option to use by default
+#   -l, --label TEXT  set a question text (default: Choose an option:)
 # Return: value is set into $lb_choose_option variable
-# Exit codes: 0: OK, 1: usage error, 2: cancelled, 3: bad choice
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: cancelled
+#   3: bad choice
 lbg_choose_option=""
 lbg_choose_option() {
 
