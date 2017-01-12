@@ -75,8 +75,9 @@ lbg_set_gui GUI_TOOL
 #### Exit codes
 - 0: GUI tool set
 - 1: usage error
-- 2: GUI tool not supported on this system
-- 3: GUI tool supported, but no X server is currently running (stay in console mode)
+- 2: GUI tool not supported
+- 3: GUI tool not available on this system
+- 4: GUI tool available, but no X server is currently running (stay in console mode)
 
 #### Example
 ```bash

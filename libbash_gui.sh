@@ -28,7 +28,7 @@ if [ -z "$lb_version" ] ; then
 fi
 
 # set supported GUIs
-lbg_supported_gui=(kdialog zenity osascript dialog)
+lbg_supported_gui=(kdialog zenity osascript dialog console)
 
 lbg_gui=""
 
@@ -54,33 +54,14 @@ lbg_get_gui() {
 }
 
 
-# Test GUI tool
-# Usage: lbg_test_gui GUI_TOOL
-# Exit codes: 0 if OK, 1 is usage error, 2 if GUI is not supported
-lbg_test_gui() {
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
-	# test if GUI is supported
-	if lb_array_contains "$1" "${lbg_supported_gui[@]}" ; then
-		# test if command exists
-		if ! lb_command_exists "$1" ; then
-			return 2
-		fi
-	else
-		return 2
-	fi
-}
-
-
 # Set default GUI display
 # Usage: lbg_set_gui GUI_TOOL
 # Exit codes:
 #   0: OK
 #   1: usage error
-#   2: GUI tool not supported on this system
-#   3: GUI tool supported, but currently no X server is running
+#   2: GUI tool not supported
+#   3: GUI tool not available on this system
+#   4: GUI tool available, but currently no X server is running
 lbg_set_gui() {
 
 	# usage errors
@@ -97,20 +78,28 @@ lbg_set_gui() {
 	fi
 
 	# test if GUI is supported
-	if lbg_test_gui "$lbg_setgui_gui" ; then
-		if [ "$(lb_detect_os)" == "macOS" ] ; then
+	if ! lb_array_contains "$lbg_setgui_gui" "${lbg_supported_gui[@]}" ; then
+		return 2
+	fi
+
+	# test if command exists
+	if ! lb_command_exists "$lbg_setgui_gui" ; then
+		return 3
+	fi
+
+	if [ "$(lb_detect_os)" == "macOS" ] ; then
+		# macOS always has GUI running
+		lbg_gui="$lbg_setgui_gui"
+	else
+		# test if X server started
+		if [ -n "$DISPLAY" ] ; then
+			# set GUI tool
 			lbg_gui="$lbg_setgui_gui"
 		else
-			# if no X server started, stay in console mode
-			if [ -n "$DISPLAY" ] ; then
-				lbg_gui="$lbg_setgui_gui"
-			else
-				lbg_gui="console"
-				return 3
-			fi
+			# if no X server, set console mode
+			lbg_gui="console"
+			return 4
 		fi
-	else
-		return 2
 	fi
 }
 
@@ -1304,8 +1293,12 @@ lbg_display_debug() {
 
 # test supported GUI tools
 for lbg_sgt in ${lbg_supported_gui[@]} ; do
-	# set first available as default
-	if lbg_set_gui "$lbg_sgt" ; then
+
+	# try to set GUI tool
+	lbg_set_gui "$lbg_sgt"
+
+	if [ -n "$lbg_gui" ] ; then
+		# set first available as default
 		break
 	fi
 done
