@@ -788,10 +788,6 @@ EOF)
 				# execute console function
 				lbg_inpw_cmd=(lb_input_password --label "$lbg_inpw_label")
 
-				if $lbg_inpw_confirm ; then
-					lbg_inpw_cmd+=(--confirm --confirm-label "$lbg_inpw_confirm_label")
-				fi
-
 				"${lbg_inpw_cmd[@]}"
 				if [ $? == 0 ] ; then
 					# forward result
