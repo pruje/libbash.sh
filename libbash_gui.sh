@@ -934,7 +934,6 @@ lbg_choose_option() {
 
 			# execute command
 			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
-			lbg_chop_res=$?
 			;;
 
 		zenity)
@@ -953,7 +952,6 @@ lbg_choose_option() {
 
 			# execute command
 			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
-			lbg_chop_res=$?
 			;;
 
 		osascript)
@@ -985,7 +983,7 @@ EOF)
 				return 2
 			fi
 
-			# find result
+			# macOS case: find result
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
 				if [ "$lbg_chop_choice" == "${lbg_chop_options[$lbg_chop_i]}" ] ; then
 					lbg_choose_option=$lbg_chop_i
@@ -1009,7 +1007,6 @@ EOF)
 			# execute dialog (complex case)
 			exec 3>&1
 			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2>&1 1>&3)
-			lbg_chop_res=$?
 			exec 3>&-
 
 			# clear console
@@ -1031,17 +1028,12 @@ EOF)
 
 			# execute console function
 			"${lbg_chop_cmd[@]}"
-			lbg_chop_res=$?
-			if [ $lbg_chop_res == 0 ] ; then
+			if [ $? == 0 ] ; then
 				# forward result
 				lbg_choose_option="$lb_choose_option"
 			fi
 			;;
 	esac
-
-	if [ $lbg_chop_res != 0 ] ; then
-		return $lbg_chop_res
-	fi
 
 	if [ -z "$lbg_choose_option" ] ; then
 		return 2
