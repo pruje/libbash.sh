@@ -71,7 +71,7 @@ lbg_set_gui() {
 
 	lbg_setgui_gui="$*"
 
-	# console mode is always OK
+	# set console mode is always OK
 	if [ "$lbg_setgui_gui" == "console" ] ; then
 		lbg_gui="console"
 		return
@@ -112,7 +112,10 @@ lbg_set_gui() {
 # Usage: lbg_display_info [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT  set dialog title
-# Exit codes: dialog exit code
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: dialog command error
 lbg_display_info() {
 
 	if [ $# == 0 ] ; then
@@ -157,7 +160,9 @@ lbg_display_info() {
 			osascript 2> /dev/null << EOF
 display dialog "$*" with title "$lbg_dinf_title" with icon note buttons {"$lb_default_ok_label"} default button 1
 EOF
-			return $?
+			if [ $? != 0 ] ; then
+				return 2
+			fi
 			;;
 
 		dialog)
@@ -168,16 +173,24 @@ EOF
 
 			# clear console
 			clear
-			return $lbg_dinf_res
+
+			if [ $lbg_dinf_res != 0 ] ; then
+				return 2
+			fi
 			;;
 
 		*)
 			# console mode
-			lbg_dinf_cmd=(lb_display_info $*)
+			lbg_dinf_cmd=(lb_display_info "$*")
 			;;
 	esac
 
+	# run command
 	"${lbg_dinf_cmd[@]}" 2> /dev/null
+
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
@@ -185,7 +198,10 @@ EOF
 # Usage: lbg_display_warning [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT  set dialog title
-# Exit codes: dialog exit code
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: dialog command error
 lbg_display_warning() {
 
 	if [ $# == 0 ] ; then
@@ -230,20 +246,27 @@ lbg_display_warning() {
 			osascript 2> /dev/null << EOF
 display dialog "$*" with title "$lbg_dwn_title" with icon caution buttons {"$lb_default_ok_label"} default button 1
 EOF
-			return $?
+			if [ $? != 0 ] ; then
+				return 2
+			fi
 			;;
 
 		dialog)
+			# same command as lbg_display_info, but we add warning prefix
 			lbg_dwn_cmd=(lbg_display_info "$lb_default_warning_label: $*")
 			;;
 
 		*)
 			# console mode
-			lbg_dwn_cmd=(lb_display_warning $*)
+			lbg_dwn_cmd=(lb_display_warning "$*")
 			;;
 	esac
 
 	"${lbg_dwn_cmd[@]}" 2> /dev/null
+
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
@@ -251,7 +274,10 @@ EOF
 # Usage: lbg_display_error [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT  set dialog title
-# Exit codes: dialog exit code
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: dialog command error
 lbg_display_error() {
 
 	if [ $# == 0 ] ; then
@@ -296,10 +322,13 @@ lbg_display_error() {
 			osascript 2> /dev/null << EOF
 display dialog "$*" with title "$lbg_derr_title" with icon stop buttons {"$lb_default_ok_label"} default button 1
 EOF
-			return $?
+			if [ $? != 0 ] ; then
+				return 2
+			fi
 			;;
 
 		dialog)
+			# same command as lbg_display_info, but we add error prefix
 			lbg_derr_cmd=(lbg_display_info "$lb_default_error_label: $*")
 			;;
 
@@ -310,6 +339,10 @@ EOF
 	esac
 
 	"${lbg_derr_cmd[@]}" 2> /dev/null
+
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
@@ -321,9 +354,9 @@ EOF
 #                      No available on macOS
 #   --no-notify-send   do not use the notify-send command if exists
 # Exit codes:
-#  0: OK
-#  1: usage error
-#  2: unknown error
+#   0: OK
+#   1: usage error
+#   2: notification command error
 lbg_notify() {
 
 	# catch usage errors
@@ -486,41 +519,27 @@ lbg_input_text() {
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
-			lbg_inp_cmd=(kdialog --title "$lbg_inp_title" --inputbox "$*" "$lbg_inp_default")
+			lbg_input_text=$(kdialog --title "$lbg_inp_title" --inputbox "$*" "$lbg_inp_default" 2> /dev/null)
 			;;
 
 		zenity)
-			lbg_inp_cmd=(zenity --entry --title "$lbg_inp_title" --entry-text "$lbg_inp_default" --text "$*")
+			lbg_input_text=$(zenity --entry --title "$lbg_inp_title" --entry-text "$lbg_inp_default" --text "$*" 2> /dev/null)
 			;;
 
 		osascript)
 			lbg_input_text=$(osascript 2> /dev/null << EOF
 set answer to the text returned of (display dialog "$*" with title "$lbg_inp_title" default answer "$lbg_inp_default")
 EOF)
-			if [ -n "$lbg_input_text" ] ; then
-				return
-			else
-				return 2
-			fi
 			;;
 
 		dialog)
-			lbg_inp_cmd=(dialog --title "$lbg_inp_title" --clear --inputbox "$*" 10 100 "$lbg_inp_default")
-
 			# execute dialog (complex case)
 			exec 3>&1
-			lbg_input_text=$("${lbg_inp_cmd[@]}" 2>&1 1>&3)
+			lbg_input_text=$(dialog --title "$lbg_inp_title" --clear --inputbox "$*" 10 100 "$lbg_inp_default" 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
 			clear
-
-			if [ -z "$lbg_input_text" ] ; then
-				return 2
-			fi
-
-			# if OK, quit
-			return
 			;;
 
 		*)
@@ -533,18 +552,14 @@ EOF)
 
 			# execute console function
 			"${lbg_inp_cmd[@]}"
-			lbg_inp_res=$?
-			if [ $lbg_inp_res == 0 ] ; then
+			if [ $? == 0 ] ; then
 				# forward result
 				lbg_input_text="$lb_input_text"
 			fi
-
-			return $lbg_inp_res
 			;;
 	esac
 
-	lbg_input_text=$("${lbg_inp_cmd[@]}" 2> /dev/null)
-
+	# if empty, cancelled exit code
 	if [ -z "$lbg_input_text" ] ; then
 		return 2
 	fi
@@ -674,7 +689,7 @@ EOF)
 					return
 					;;
 				255)
-					# cancel
+					# cancelled
 					return 3
 					;;
 				*)
