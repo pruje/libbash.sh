@@ -1244,7 +1244,17 @@ lbg_choose_file() {
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
-			lbg_choose_file=$(kdialog --title "$lbg_choosefile_title" --getopenfilename "$lbg_choosefile_path" "${lbg_choosefile_filters[@]}" 2> /dev/null)
+			# kdialog has a strange behaviour: it takes a path but only as a file name.
+			# it starts on the current directory path. This is a hack to work:
+			lbg_choosefile_pathfile="."
+			if [ -f "$lbg_choosefile_path" ] ; then
+				# if a file, get filename and path
+				lbg_choosefile_pathfile="$(basename "$lbg_choosefile_path")"
+				lbg_choosefile_path="$(dirname "$lbg_choosefile_path")"
+			fi
+
+			# go into the directory then open kdialog
+			lbg_choose_file=$(cd "$lbg_choosefile_path" &> /dev/null; kdialog --title "$lbg_choosefile_title" --getopenfilename "$lbg_choosefile_pathfile" "${lbg_choosefile_filters[@]}" 2> /dev/null)
 			;;
 
 		zenity)
