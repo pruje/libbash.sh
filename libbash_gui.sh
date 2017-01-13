@@ -788,7 +788,8 @@ lbg_input_password() {
 				;;
 
 			zenity)
-				lbg_inpw_password=$(zenity --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
+				# zenity does not support labels, so we put it in the dialog title
+				lbg_inpw_password=$(zenity --title "$lbg_inpw_label" --password 2> /dev/null)
 				;;
 
 			osascript)
