@@ -320,7 +320,10 @@ EOF
 #   --timeout SECONDS  timeout before notification disapears
 #                      No available on macOS
 #   --no-notify-send   do not use the notify-send command if exists
-# Exit codes: notification exit code
+# Exit codes:
+#  0: OK
+#  1: usage error
+#  2: unknown error
 lbg_notify() {
 
 	# catch usage errors
@@ -382,7 +385,11 @@ lbg_notify() {
 
 				# push notification and return
 				notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
-				return $?
+				if [ $? == 0 ] ; then
+					return
+				else
+					return 2
+				fi
 			fi
 		fi
 	fi
@@ -390,7 +397,7 @@ lbg_notify() {
 	# display dialog
 	case "$lbg_gui" in
 		kdialog)
-			lbg_notify_cmd=(kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout)
+			kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout 2> /dev/null
 			;;
 
 		zenity)
@@ -398,8 +405,7 @@ lbg_notify() {
 				lbg_notify_opts="--timeout=$lbg_notify_timeout"
 			fi
 			# Execute immediately without put in variable because of a bug
-			echo "message:$*" | zenity --notification $lbg_notify_opts --listen
-			return $?
+			echo "message:$*" | zenity --notification $lbg_notify_opts --listen 2> /dev/null
 			;;
 
 		osascript)
@@ -408,16 +414,17 @@ display notification "$*" with title "$lbg_notify_title"
 EOF
 			;;
 
-		# no dialog system,  because it doesn't make sense in console
+		# no dialog command, because it doesn't make sense in console
+
 		*)
-			# console mode
-			lb_display_info $*
-			return $?
+			# print in console mode
+			lb_display "[$lb_default_info_label]  $*"
 			;;
 	esac
 
-	# execute command
-	"${lbg_notify_cmd[@]}" 2> /dev/null
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
