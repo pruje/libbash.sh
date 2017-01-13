@@ -566,6 +566,136 @@ EOF)
 }
 
 
+# Prompt user to enter a password
+# Usage: lbg_input_password [options]
+# Options:
+#    -l, --label TEXT        label for dialog
+#    -t, --title TEXT        dialog title
+#    -c, --confirm           display a confirmation dialog
+#    --confirm-label TEXT    display a confirmation dialog
+# Return: exit code, value is set into $lbg_input_text variable
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: cancelled
+#   3: passwords mismatch
+lbg_input_password=""
+lbg_input_password() {
+
+	# reset result
+	lbg_input_password=""
+
+	# default options
+	local lbg_inpw_label="$lb_default_pwd_label"
+	local lbg_inpw_confirm=false
+	local lbg_inpw_confirm_label="$lb_default_pwd_confirm_label"
+	local lbg_inpw_title="$lb_current_script_name"
+
+	# catch options
+	while true ; do
+		case "$1" in
+			-l|--label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_inpw_label="$2"
+				shift 2
+				;;
+			-c|--confirm)
+				lbg_inpw_confirm=true
+				shift
+				;;
+			--confirm-label)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_inpw_confirm_label="$2"
+				shift 2
+				;;
+			-t|--title)
+				lbg_inpw_title="$2"
+				shift 2
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# display dialog(s)
+	for lbg_inpw_i in $(seq 1 2) ; do
+
+		case "$lbg_gui" in
+			kdialog)
+				lbg_inpw_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
+				;;
+
+			zenity)
+				# zenity does not support labels, so we put it in the dialog title
+				lbg_inpw_password=$(zenity --title "$lbg_inpw_label" --password 2> /dev/null)
+				;;
+
+			osascript)
+				lbg_inpw_password=$(osascript 2> /dev/null << EOF
+set answer to the text returned of (display dialog "$lbg_inpw_label" with title "$lbg_inpw_title" default answer "" hidden answer true)
+EOF)
+				;;
+
+			dialog)
+				# execute dialog (complex case)
+				exec 3>&1
+				lbg_inpw_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" 10 50 2>&1 1>&3)
+				exec 3>&-
+
+				# clear console
+				clear
+				;;
+
+			*)
+				# console mode
+				# execute console function
+				lbg_inpw_cmd=(lb_input_password --label "$lbg_inpw_label")
+
+				"${lbg_inpw_cmd[@]}"
+				lbg_inpw_res=$?
+				if [ $lbg_inpw_res == 0 ] ; then
+					# forward result
+					lbg_inpw_password="$lb_input_password"
+				else
+					return $lbg_inpw_res
+				fi
+				;;
+		esac
+
+		# if empty, cancelled
+		if [ -z "$lbg_inpw_password" ] ; then
+			return 2
+		fi
+
+		# if confirm
+		if $lbg_inpw_confirm ; then
+			# if first iteration, continue
+			if [ $lbg_inpw_i == 1 ] ; then
+				# save password
+				lbg_inpw_password_confirm="$lbg_inpw_password"
+
+				# set new confirm label and continue
+				lbg_inpw_label="$lbg_inpw_confirm_label"
+				continue
+			fi
+
+			# comparison with confirm password
+			if [ "$lbg_inpw_password" != "$lbg_inpw_password_confirm" ] ; then
+				return 3
+			fi
+		fi
+
+		lbg_input_password="$lbg_inpw_password"
+		return
+	done
+}
+
+
 # Prompt user to confirm an action in graphical mode
 # TODO: add cancel option
 # Usage: lbg_yesno [OPTIONS] TEXT
@@ -720,136 +850,6 @@ EOF)
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-}
-
-
-# Prompt user to enter a password
-# Usage: lbg_input_password [options]
-# Options:
-#    -l, --label TEXT        label for dialog
-#    -t, --title TEXT        dialog title
-#    -c, --confirm           display a confirmation dialog
-#    --confirm-label TEXT    display a confirmation dialog
-# Return: exit code, value is set into $lbg_input_text variable
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: cancelled
-#   3: passwords mismatch
-lbg_input_password=""
-lbg_input_password() {
-
-	# reset result
-	lbg_input_password=""
-
-	# default options
-	local lbg_inpw_label="$lb_default_pwd_label"
-	local lbg_inpw_confirm=false
-	local lbg_inpw_confirm_label="$lb_default_pwd_confirm_label"
-	local lbg_inpw_title="$lb_current_script_name"
-
-	# catch options
-	while true ; do
-		case "$1" in
-			-l|--label)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				lbg_inpw_label="$2"
-				shift 2
-				;;
-			-c|--confirm)
-				lbg_inpw_confirm=true
-				shift
-				;;
-			--confirm-label)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				lbg_inpw_confirm_label="$2"
-				shift 2
-				;;
-			-t|--title)
-				lbg_inpw_title="$2"
-				shift 2
-				;;
-			*)
-				break
-				;;
-		esac
-	done
-
-	# display dialog(s)
-	for lbg_inpw_i in $(seq 1 2) ; do
-
-		case "$lbg_gui" in
-			kdialog)
-				lbg_inpw_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
-				;;
-
-			zenity)
-				# zenity does not support labels, so we put it in the dialog title
-				lbg_inpw_password=$(zenity --title "$lbg_inpw_label" --password 2> /dev/null)
-				;;
-
-			osascript)
-				lbg_inpw_password=$(osascript 2> /dev/null << EOF
-set answer to the text returned of (display dialog "$lbg_inpw_label" with title "$lbg_inpw_title" default answer "" hidden answer true)
-EOF)
-				;;
-
-			dialog)
-				# execute dialog (complex case)
-				exec 3>&1
-				lbg_inpw_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" 10 50 2>&1 1>&3)
-				exec 3>&-
-
-				# clear console
-				clear
-				;;
-
-			*)
-				# console mode
-				# execute console function
-				lbg_inpw_cmd=(lb_input_password --label "$lbg_inpw_label")
-
-				"${lbg_inpw_cmd[@]}"
-				lbg_inpw_res=$?
-				if [ $lbg_inpw_res == 0 ] ; then
-					# forward result
-					lbg_inpw_password="$lb_input_password"
-				else
-					return $lbg_inpw_res
-				fi
-				;;
-		esac
-
-		# if empty, cancelled
-		if [ -z "$lbg_inpw_password" ] ; then
-			return 2
-		fi
-
-		# if confirm
-		if $lbg_inpw_confirm ; then
-			# if first iteration, continue
-			if [ $lbg_inpw_i == 1 ] ; then
-				# save password
-				lbg_inpw_password_confirm="$lbg_inpw_password"
-
-				# set new confirm label and continue
-				lbg_inpw_label="$lbg_inpw_confirm_label"
-				continue
-			fi
-
-			# comparison with confirm password
-			if [ "$lbg_inpw_password" != "$lbg_inpw_password_confirm" ] ; then
-				return 3
-			fi
-		fi
-
-		lbg_input_password="$lbg_inpw_password"
-		return
-	done
 }
 
 
