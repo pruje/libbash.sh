@@ -957,17 +957,28 @@ lbg_choose_option() {
 			;;
 
 		osascript)
-			# TODO: add default selection
-			# add options
+			lbg_chop_default_option=""
+
+			# prepare options
 			local lbg_chop_opts="{"
 
 			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
 				lbg_chop_opts+="\"${lbg_chop_options[$lbg_chop_i]}\","
+
+				# set default option
+				if [ $lbg_chop_default != 0 ] ; then
+					if [ $lbg_chop_default == $lbg_chop_i ] ; then
+						lbg_chop_default_option="${lbg_chop_options[$lbg_chop_i]}"
+					fi
+				fi
 			done
+
+			# delete last comma
 			lbg_chop_opts="${lbg_chop_opts%?}}"
 
+			# execute command
 			lbg_chop_choice=$(osascript 2> /dev/null <<EOF
-set answer to (choose from list $lbg_chop_opts with prompt "$lbg_chop_label" with title "$lbg_chop_title")
+set answer to (choose from list $lbg_chop_opts with prompt "$lbg_chop_label" default items "$lbg_chop_default_option" with title "$lbg_chop_title")
 EOF)
 			# if empty, error
 			if [ -z "$lbg_chop_choice" ] ; then
