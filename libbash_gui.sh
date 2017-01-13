@@ -490,7 +490,9 @@ lbg_input_text() {
 			lbg_input_text=$(osascript 2> /dev/null << EOF
 set answer to the text returned of (display dialog "$*" with title "$lbg_inp_title" default answer "$lbg_inp_default")
 EOF)
-			if [ -z "$lbg_input_text" ] ; then
+			if [ -n "$lbg_input_text" ] ; then
+				return
+			else
 				return 2
 			fi
 			;;
@@ -635,7 +637,7 @@ set answer to button returned of question
 if answer is equal to "$lbg_yn_yeslbl" then
 	return 0
 else
-	return 1
+	return 2
 end if
 EOF)
 			return $lbg_yn_res
@@ -789,9 +791,12 @@ EOF)
 				lbg_inpw_cmd=(lb_input_password --label "$lbg_inpw_label")
 
 				"${lbg_inpw_cmd[@]}"
-				if [ $? == 0 ] ; then
+				lbg_inpw_res=$?
+				if [ $lbg_inpw_res == 0 ] ; then
 					# forward result
 					lbg_inpw_password="$lb_input_password"
+				else
+					return $lbg_inpw_res
 				fi
 				;;
 		esac
@@ -964,7 +969,10 @@ lbg_choose_option() {
 			lbg_chop_choice=$(osascript 2> /dev/null <<EOF
 set answer to (choose from list $lbg_chop_opts with prompt "$lbg_chop_label" with title "$lbg_chop_title")
 EOF)
-			lbg_chop_res=$?
+			# if empty, error
+			if [ -z "$lbg_chop_choice" ] ; then
+				return 2
+			fi
 
 			# find result
 			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
@@ -1025,7 +1033,7 @@ EOF)
 	fi
 
 	if [ -z "$lbg_choose_option" ] ; then
-		return 1
+		return 2
 	fi
 
 	# check if user choice is valid
