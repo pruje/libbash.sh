@@ -923,7 +923,7 @@ lbg_choose_option() {
 			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_label")
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
 				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
 				if [ $lbg_chop_i == $lbg_chop_default ] ; then
 					lbg_chop_cmd+=(on)
@@ -941,7 +941,7 @@ lbg_choose_option() {
 			lbg_chop_cmd=(zenity --list --title "$lbg_chop_title" --text "$lbg_chop_label" --radiolist --column "" --column "" --column "")
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
 				if [ $lbg_chop_i == $lbg_chop_default ] ; then
 					lbg_chop_cmd+=(TRUE)
 				else
@@ -962,7 +962,7 @@ lbg_choose_option() {
 			# prepare options
 			local lbg_chop_opts="{"
 
-			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
 				lbg_chop_opts+="\"${lbg_chop_options[$lbg_chop_i]}\","
 
 				# set default option
@@ -986,7 +986,7 @@ EOF)
 			fi
 
 			# find result
-			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
 				if [ "$lbg_chop_choice" == "${lbg_chop_options[$lbg_chop_i]}" ] ; then
 					lbg_choose_option=$lbg_chop_i
 				fi
@@ -997,7 +997,7 @@ EOF)
 			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" 30 100 100)
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
 				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
 				if [ $lbg_chop_i == $lbg_chop_default ] ; then
 					lbg_chop_cmd+=(on)
@@ -1025,7 +1025,7 @@ EOF)
 			lbg_chop_cmd+=(-l "$lbg_chop_label")
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i < ${#lbg_chop_options[@]} ; lbg_chop_i++)) ; do
+			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
 				lbg_chop_cmd+=("${lbg_chop_options[$lbg_chop_i]}")
 			done
 
@@ -1173,6 +1173,7 @@ EOF)
 #   -t, --title TITLE    set a dialog title
 #   -f, --filter FILTER  set filters (WARNING: does not work with dialog command)
 #                        e.g. -f "*.sh" to filter by bash files
+#                        OPTION NOT SUPPORTED YET ON macOS
 #   PATH                 starting path or selected file (current by default)
 # Exit codes:
 #   0: OK
@@ -1241,7 +1242,6 @@ lbg_choose_file() {
 			;;
 
 		osascript)
-			# TODO: test and add filters
 			lbg_choose_file=$(osascript 2> /dev/null <<EOF
 set answer to POSIX path of (choose file with prompt "$lbg_choosefile_title" default location "$lbg_choosefile_path")
 EOF)
