@@ -464,6 +464,7 @@ lb_result() {
 #   2: log file is not writable
 lb_get_logfile() {
 
+	# if no log file defined
 	if [ -z "$lb_logfile" ] ; then
 		return 1
 	fi
@@ -491,6 +492,7 @@ lb_get_logfile() {
 #   4: path exists but is not a regular file
 lb_set_logfile() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -516,6 +518,12 @@ lb_set_logfile() {
 		esac
 	done
 
+	# test arguments
+	if lb_test_arguments -eq 0 $* ; then
+		return 1
+	fi
+
+	# get file path
 	lb_setlogfile_file="$*"
 
 	# cancel if path exists but is not a regular file
@@ -604,7 +612,7 @@ lb_get_loglevel() {
 
 	# search log level id for a gived level name
 	for ((lb_getloglevel_i=0 ; lb_getloglevel_i < ${#lb_loglevels[@]} ; lb_getloglevel_i++)) ; do
-		# if found,
+		# if found, return it
 		if [ "${lb_loglevels[$lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
 			if $lb_getloglevel_getid ; then
 				echo $lb_getloglevel_i
@@ -622,23 +630,27 @@ lb_get_loglevel() {
 
 # Set log level
 # Usage: lb_set_loglevel LEVEL
-# Exit codes: 0 if OK, 1 if usage error, 2 if level not found
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: level not found
 lb_set_loglevel() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
 	# search if level exists
 	for ((lb_setloglevel_i=0 ; lb_setloglevel_i < ${#lb_loglevels[@]} ; lb_setloglevel_i++)) ; do
-		# search by name, return level id
+		# search by name and set level id
 		if [ "${lb_loglevels[$lb_setloglevel_i]}" == "$1" ] ; then
 			lb_loglevel=$lb_setloglevel_i
 			return
 		fi
 	done
 
-	# if not found, error
+	# if specified level not found, error
 	return 2
 }
 
@@ -723,6 +735,7 @@ lb_log() {
 		fi
 	fi
 
+	# initialize log text
 	lb_log_text=""
 
 	# add date prefix
@@ -737,12 +750,15 @@ lb_log() {
 		fi
 	fi
 
+	# prepare text
 	lb_log_text+="$*"
 
 	# print into log file
 	if $lb_log_erase ; then
+		# overwrite mode
 		echo -e $lb_log_opts$lb_log_text > "$lb_logfile"
 	else
+		# append to file
 		echo -e $lb_log_opts$lb_log_text >> "$lb_logfile"
 	fi
 
@@ -759,7 +775,9 @@ lb_log() {
 
 # Test if a value is integer
 # Usage: lb_is_integer VALUE
-# Exit codes: 0 if is integer, 1 if not an integer
+# Exit codes:
+#   0: value is an integer
+#   1: value is not an integer
 lb_is_integer() {
 
 	# if empty, is not an integer (not an usage error)
@@ -777,9 +795,12 @@ lb_is_integer() {
 
 
 # Check if an array contains a value
-# Usage: lb_array_contains VALUE "${array[@]}"
+# Usage: lb_array_contains VALUE "${ARRAY[@]}"
 # Warning: put your array between quotes or it will fail if you have spaces in values
-# Exit codes: 0 if OK, 1: usage error, 2: not found
+# Exit codes:
+#   0: value is in array
+#   1: usage error
+#   2: value is not in array
 lb_array_contains() {
 
 	# get usage errors
@@ -812,7 +833,7 @@ lb_array_contains() {
 ################
 
 # Get filesystem type
-# TODO: add macOS support (-T not supported)
+# TODO: add macOS support (df -T not supported; must use diskutil)
 # Usage: lb_df_fstype PATH
 # Return: fs type
 # Exit codes:
@@ -823,13 +844,15 @@ lb_array_contains() {
 #   4: command not supported on this system
 lb_df_fstype() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	# get path
 	lb_dffstype_path="$*"
 
-	# test if path exists
+	# if path does not exists, error
 	if ! [ -e "$lb_dffstype_path" ] ; then
 		return 2
 	fi
@@ -849,23 +872,25 @@ lb_df_fstype() {
 }
 
 
-# Get space left on partition (in bytes)
+# Get space left on partition in bytes
 # Usage: lb_df_space_left PATH
 # Return: bytes available
 # Exit codes:
 #   0: OK
 #   1: usage error
-#   2: path does not exists
+#   2: PATH does not exists
 #   3: unknown error
 lb_df_space_left() {
 
+	# if path does not exists, error
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	# get path
 	lb_dfspaceleft_path="$*"
 
-	# test if path exists
+	# if path does not exists, error
 	if ! [ -e "$lb_dfspaceleft_path" ] ; then
 		return 2
 	fi
@@ -884,9 +909,9 @@ lb_df_space_left() {
 }
 
 
-# Get mount point
+# Get mount point path
 # Usage: lb_df_mountpoint PATH
-# Return: path
+# Return: mount point path
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -894,13 +919,15 @@ lb_df_space_left() {
 #   3: unknown error
 lb_df_mountpoint() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	# get path
 	lb_dfmountpoint_path="$*"
 
-	# test if path exists
+	# if path does not exists, error
 	if ! [ -e "$lb_dfmountpoint_path" ] ; then
 		return 2
 	fi
@@ -931,17 +958,20 @@ lb_df_mountpoint() {
 #   5: UUID not found
 lb_df_uuid() {
 
+	# if path does not exists, error
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	# get path
 	lb_dfuuid_path="$*"
 
-	# test if path exists
+	# if path does not exists, error
 	if ! [ -e "$lb_dfuuid_path" ] ; then
 		return 2
 	fi
 
+	# macOS systems
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
 		# TODO: implement support for macOS
 		return 4
@@ -994,16 +1024,25 @@ lb_df_uuid() {
 # Usage: lb_get_home_directory [USER]
 # Options: user (if not set, use current user)
 # Return: path
-# Exit codes: 1 if not found
+# Exit codes:
+#   0: OK
+#   1: path not found
 lb_homepath() {
+
+	# get ~user value
 	eval lb_homedir=~$1
-	if [ $? == 0 ] ; then
-		if ! [ -d "$lb_homedir" ] ; then
-			return 1
-		fi
-		# return path
-		echo "$lb_homedir"
+	# if not found, error
+	if [ $? != 0 ] ; then
+		return 1
 	fi
+
+	# if directory does not exists, error
+	if ! [ -d "$lb_homedir" ] ; then
+		return 1
+	fi
+
+	# return path
+	echo "$lb_homedir"
 }
 
 
@@ -1066,7 +1105,7 @@ lb_realpath() {
 # Test if a folder or a file is writable
 # Usage: lb_is_writable PATH
 # Exit codes:
-#   0: is writable
+#   0: is writable (exists or can be created)
 #   1: usage error
 #   2: exists but is not writable
 #   3: does not exists; parent directory is not writable

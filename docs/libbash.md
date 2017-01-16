@@ -22,8 +22,7 @@ Supported languages:
 - French (fr)
 
 ## Variables
-Some variables can be used in your scripts:
-
+You can use the following variables that are initialized when you include `libbash.sh` in your scripts:
 - `$lb_current_script`: your current script (equal to `$0`)
 - `$lb_current_script_name`: your current script name (result of command `basename $0`)
 - `$lb_current_script_directory`: your current script name (result of command `dirname $0`)
@@ -60,6 +59,8 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_df_space_left](#lb_df_space_left)
 	* [lb_df_mountpoint](#lb_df_mountpoint)
 	* [lb_df_uuid](#lb_df_uuid)*
+* Files and directories
+	* [lb_homepath](#lb_homepath)
 
 ---------------------------------------------------------------
 ## Basic bash functions
@@ -271,7 +272,7 @@ EXIT_CODE              Specify an exit code. If not set, variable $? will be use
 ```
 
 #### Exit codes
-Exit code forwarded of the command (1 may also be an usage error).
+Exit code forwarded of the command (1 may can also be an usage error).
 
 #### Example
 ```bash
@@ -318,9 +319,14 @@ lb_get_logfile
 ```
 
 #### Exit codes
-0: OK
-1: Log file is not set
-2: Log file is not writable
+- 0: OK
+- 1: Log file is not set
+- 2: Log file is not writable
+
+#### Example
+```bash
+logfile=$(lb_get_logfile)
+```
 
 ---------------------------------------------------------------
 <a name="lb_set_logfile"></a>
@@ -341,22 +347,27 @@ lb_set_logfile [OPTIONS] FILE
 ```
 
 #### Exit codes
-0: Log file set
-1: Usage error
-2: Log file cannot be created or is not writable
-3: Log file already exists, but append option is not set
-4: Path exists but is not a regular file
+- 0: Log file set
+- 1: Usage error
+- 2: Log file cannot be created or is not writable
+- 3: Log file already exists, but append option is not set
+- 4: Path exists but is not a regular file
+
+#### Example
+```bash
+lb_set_logfile /path/to/logfile.log
+```
 
 ---------------------------------------------------------------
 <a name="lb_get_loglevel"></a>
 ### lb_get_loglevel
-Get current log level.
+Get the current log level (or the id of a level).
 
 See [lb_set_loglevel](#lb_set_loglevel) for more details on default log levels.
 
 #### Usage
 ```bash
-lb_get_loglevel [OPTIONS]
+lb_get_loglevel [OPTIONS] [LEVEL]
 ```
 
 #### Options
@@ -365,14 +376,19 @@ lb_get_loglevel [OPTIONS]
 ```
 
 #### Exit codes
-0: OK
-1: Log level is not set
-2: Current log level not found
+- 0: OK
+- 1: Log level is not set
+- 2: Log level not found
+
+#### Example
+```bash
+current_loglevel=$(lb_get_loglevel)
+```
 
 ---------------------------------------------------------------
 <a name="lb_set_loglevel"></a>
 ### lb_set_loglevel
-Set a log level.
+Set the log level for logging.
 
 #### Usage
 ```bash
@@ -381,22 +397,28 @@ lb_set_loglevel LEVEL
 
 #### Log levels
 Default log levels are:
-0. CRITICAL
-1. ERROR
-2. WARNING
-3. INFO
-4. DEBUG
+- 0. CRITICAL
+- 1. ERROR
+- 2. WARNING
+- 3. INFO
+- 4. DEBUG
 
-The default log level is DEBUG, which means that it displays and logs every levels.
+The default log level is set to maximum (DEBUG by default), which means that it will print logs of every levels.
 
 Please note that if you set a log level, every messages with a lower level will also be displayed/logged.
 
 If you display/log a message with an unknown log level, it will always be displayed/logged.
 
 #### Exit codes
-0: Log level set
-1: Usage error
-2: Specified log level not found
+- 0: Log level set
+- 1: Usage error
+- 2: Specified log level not found
+
+#### Example
+```bash
+# set normal logs
+lb_set_loglevel INFO
+```
 
 ---------------------------------------------------------------
 <a name="lb_log"></a>
@@ -426,9 +448,14 @@ lb_log [OPTIONS] TEXT
 ```
 
 #### Exit codes
-0: OK
-1: Log file is not set
-2: Error while writing into file
+- 0: OK
+- 1: Log file is not set
+- 2: Error while writing into file
+
+#### Example
+```bash
+lb_log "This line will be printed in the log file."
+```
 
 ---------------------------------------------------------------
 <a name="lb_log_presets"></a>
@@ -437,7 +464,16 @@ Shortcuts to log with common log levels.
 
 It uses the `lb_log` function with `--prefix` and `--level` options.
 
-For more informations, see [lb_log](#lb_log) documentation.
+#### Usage
+```bash
+lb_log_... [OPTIONS] TEXT
+```
+See [lb_log](#lb_log) for usage.
+
+#### Example
+```bash
+lb_log_error "There was an error in your script!"
+```
 
 ---------------------------------------------------------------
 ## Operations on variables
@@ -452,14 +488,14 @@ lb_is_integer VALUE
 ```
 
 #### Exit codes
-- 0: is integer
-- 1: is not integer
+- 0: value is an integer
+- 1: value is not an integer
 
 #### Example
 ```bash
-x=1
+x="-1"
 if lb_is_integer $x ; then
-	echo "x is integer"
+	echo "x is an integer"
 fi
 ```
 
@@ -468,12 +504,11 @@ fi
 ### lb_array_contains
 Check if an array contains a value.
 
-**Warning: put your array between quotes or search will fail if you have spaces in values.**
-
 #### Usage
 ```bash
 lb_array_contains VALUE "${ARRAY[@]}"
 ```
+**Warning**: put your array between quotes or search will fail if you have spaces in values.
 
 #### Exit codes
 - 0: value was found in array
@@ -482,25 +517,26 @@ lb_array_contains VALUE "${ARRAY[@]}"
 
 #### Example
 ```bash
-array=(1 2 3)
-if lb_array_contains 1 "${array[@]}" ; then
-	echo "1 is in array"
+array=(one two three)
+if lb_array_contains "one" "${array[@]}" ; then
+	echo "one is in array"
 fi
 ```
 
 ---------------------------------------------------------------
-## Basic bash functions
+## Filesystem
 ---------------------------------------------------------------
 <a name="lb_df_fstype"></a>
 ### lb_df_fstype
 Give the filesystem type of a path.
 
-**NOT COMPATIBILE YET WITH macOS**
+**NOT SUPPORTED YET ON macOS**
 
 #### Usage
 ```bash
 lb_df_fstype PATH
 ```
+Note: PATH may also be a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
@@ -517,12 +553,13 @@ root_fstype=$(lb_df_fstype /)
 ---------------------------------------------------------------
 <a name="lb_df_space_left"></a>
 ### lb_df_space_left
-Get space left on partition (in bytes).
+Get space left on partition in bytes.
 
 #### Usage
 ```bash
 lb_df_space_left PATH
 ```
+Note: PATH may also be a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
@@ -544,6 +581,7 @@ Get mount point of a partition.
 ```bash
 lb_df_mountpoint PATH
 ```
+Note: PATH may also be a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
@@ -561,12 +599,13 @@ mountpoint=$(lb_df_mountpoint /)
 ### lb_df_uuid
 Get the disk UUID for a given path.
 
-**NOT COMPATIBILE YET WITH macOS**
+**NOT SUPPORTED YET ON macOS**
 
 #### Usage
 ```bash
 lb_df_uuid PATH
 ```
+Note: PATH may also be a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
@@ -578,5 +617,25 @@ lb_df_uuid PATH
 
 #### Example
 ```bash
-uuid=$(lb_df_uuid /media/usbkey)
+disk_uuid=$(lb_df_uuid /media/usbkey)
+```
+
+---------------------------------------------------------------
+<a name="lb_homepath"></a>
+### lb_homepath
+Get home path of an user.
+
+#### Usage
+```bash
+lb_homepath [USER]
+```
+If USER not set, using current user.
+
+#### Exit codes
+- 0: OK
+- 1: usage error
+
+#### Example
+```bash
+home=$(lb_homepath)
 ```
