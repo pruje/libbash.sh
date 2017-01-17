@@ -61,6 +61,9 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_df_uuid](#lb_df_uuid)*
 * Files and directories
 	* [lb_homepath](#lb_homepath)
+	* [lb_dir_is_empty](#lb_dir_is_empty)
+	* [lb_realpath](#lb_realpath)
+	* [lb_is_writable](#lb_is_writable)
 
 ---------------------------------------------------------------
 ## Basic bash functions
@@ -633,9 +636,81 @@ If USER not set, using current user.
 
 #### Exit codes
 - 0: OK
-- 1: usage error
+- 1: path not found
 
 #### Example
 ```bash
 home=$(lb_homepath)
+```
+
+---------------------------------------------------------------
+<a name="lb_dir_is_empty"></a>
+### lb_dir_is_empty
+Test if a directory is empty.
+
+#### Usage
+```bash
+lb_dir_is_empty PATH
+```
+
+#### Exit codes
+- 0: directory is empty
+- 1: path is not a directory
+- 2: access rights issue
+- 3: directory is not empty
+
+#### Example
+```bash
+# if directory is empty, delete it
+if lb_dir_is_empty /empty/directory/ ; then
+	rmdir /empty/directory/
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_realpath"></a>
+### lb_realpath
+Get the realpath of a file:
+
+- If a relative path is given, absolute path is returned.
+- If the path is a symbolic link, absolute path is returned.
+
+#### Usage
+```bash
+lb_realpath PATH
+```
+
+#### Exit codes
+- 0: OK
+- 1: usage error
+- 2: unknown error
+
+#### Example
+```bash
+abs_path=$(lb_realpath ./my_link)
+```
+
+---------------------------------------------------------------
+<a name="lb_is_writable"></a>
+### lb_is_writable
+Test if a path (file or directory) is writable.
+
+#### Usage
+```bash
+lb_is_writable PATH
+```
+
+#### Exit codes
+- 0: is writable (exists or can be created)
+- 1: usage error
+- 2: exists but is not writable
+- 3: does not exists; parent directory is not writable
+- 4: does not exists; parent directory does not exists
+
+#### Example
+```bash
+# create file if pat his writable
+if lb_is_writable /path/to/file ; then
+	touch /path/to/file
+fi
 ```

@@ -524,7 +524,7 @@ lb_set_logfile() {
 	fi
 
 	# get file path
-	lb_setlogfile_file="$*"
+	local lb_setlogfile_file="$*"
 
 	# cancel if path exists but is not a regular file
 	if [ -e "$lb_setlogfile_file" ] ; then
@@ -736,7 +736,7 @@ lb_log() {
 	fi
 
 	# initialize log text
-	lb_log_text=""
+	local lb_log_text=""
 
 	# add date prefix
 	if $lb_log_date ; then
@@ -809,11 +809,11 @@ lb_array_contains() {
 	fi
 
 	# first arg is the value to search
-	lb_arraycontains_search="$1"
+	local lb_arraycontains_search="$1"
 	shift
 
 	# get array to search in
-	lb_arraycontains_array=("$@")
+	local lb_arraycontains_array=("$@")
 
 	# parse array to find value
 	for ((lb_arraycontains_i=0 ; lb_arraycontains_i < ${#lb_arraycontains_array[@]} ; lb_arraycontains_i++)) ; do
@@ -850,7 +850,7 @@ lb_df_fstype() {
 	fi
 
 	# get path
-	lb_dffstype_path="$*"
+	local lb_dffstype_path="$*"
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dffstype_path" ] ; then
@@ -888,7 +888,7 @@ lb_df_space_left() {
 	fi
 
 	# get path
-	lb_dfspaceleft_path="$*"
+	local lb_dfspaceleft_path="$*"
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dfspaceleft_path" ] ; then
@@ -925,7 +925,7 @@ lb_df_mountpoint() {
 	fi
 
 	# get path
-	lb_dfmountpoint_path="$*"
+	local lb_dfmountpoint_path="$*"
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dfmountpoint_path" ] ; then
@@ -964,7 +964,7 @@ lb_df_uuid() {
 	fi
 
 	# get path
-	lb_dfuuid_path="$*"
+	local lb_dfuuid_path="$*"
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dfuuid_path" ] ; then
@@ -1031,6 +1031,7 @@ lb_homepath() {
 
 	# get ~user value
 	eval lb_homedir=~$1
+
 	# if not found, error
 	if [ $? != 0 ] ; then
 		return 1
@@ -1048,7 +1049,11 @@ lb_homepath() {
 
 # Test if a directory is empty
 # Usage: lb_dir_is_empty PATH
-# Exit codes: 0 if empty, 1 if not a directory, 2 access rights issue, 3 is not empty
+# Exit codes:
+#   0: directory is empty
+#   1: path is not a directory
+#   2: access rights issue
+#   3: directory is not empty
 lb_dir_is_empty() {
 
 	# test if argument exists
@@ -1056,13 +1061,16 @@ lb_dir_is_empty() {
 		return 1
 	fi
 
+	# get directory path
+	local lb_dir_is_empty_path="$*"
+
 	# test if directory exists
-	if ! [ -d "$1" ] ; then
+	if ! [ -d "$lb_dir_is_empty_path" ] ; then
 		return 1
 	fi
 
 	# test if directory is empty
-	lb_dir_is_empty_res="$(ls -A "$1" 2> /dev/null)"
+	lb_dir_is_empty_res="$(ls -A "$lb_dir_is_empty_path" 2> /dev/null)"
 	if [ $? != 0 ] ; then
 		# ls error means an access rights error
 		return 2
@@ -1078,8 +1086,13 @@ lb_dir_is_empty() {
 # Get realpath of a file
 # Usage: lb_realpath PATH
 # Return: path
-# Exit codes: 0 if OK, 1 if usage error, 2 if not found
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: path not found
 lb_realpath() {
+
+	# usage error
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -1096,13 +1109,14 @@ lb_realpath() {
 		readlink -f "$1"
 	fi
 
+	# error
 	if [ $? != 0 ] ; then
 		return 2
 	fi
 }
 
 
-# Test if a folder or a file is writable
+# Test if a path is writable
 # Usage: lb_is_writable PATH
 # Exit codes:
 #   0: is writable (exists or can be created)
@@ -1112,26 +1126,29 @@ lb_realpath() {
 #   4: does not exists; parent directory does not exists
 lb_is_writable() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	local lb_is_writable_path="$*"
+
 	# if file/folder exists
-	if [ -e "$1" ] ; then
+	if [ -e "$lb_is_writable_path" ] ; then
 		# cancel if not writable
-		if ! [ -w "$1" ] ; then
+		if ! [ -w "$lb_is_writable_path" ] ; then
 			return 2
 		fi
 	else
 		# if file/folder does not exists
 
 		# cancel if parent directory does not exists
-		if ! [ -d "$(dirname "$1")" ] ; then
+		if ! [ -d "$(dirname "$lb_is_writable_path")" ] ; then
 			return 4
 		fi
 
 		# cancel if parent directory is not writable
-		if ! [ -w "$(dirname "$1")" ] ; then
+		if ! [ -w "$(dirname "$lb_is_writable_path")" ] ; then
 			return 3
 		fi
 	fi
