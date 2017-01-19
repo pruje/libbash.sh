@@ -37,7 +37,7 @@ lbg_gui=""
 #  GUI TOOLS  #
 ###############
 
-# Get GUI tool
+# Get current GUI tool
 # Usage: lbg_get_gui
 # Return: GUI tool
 # Exit codes:
@@ -50,6 +50,7 @@ lbg_get_gui() {
 		return 1
 	fi
 
+	# return current GUI tool
 	echo $lbg_gui
 }
 
@@ -57,7 +58,7 @@ lbg_get_gui() {
 # Set default GUI display
 # Usage: lbg_set_gui GUI_TOOL
 # Exit codes:
-#   0: OK
+#   0: GUI tool set
 #   1: usage error
 #   2: GUI tool not supported
 #   3: GUI tool not available on this system
@@ -69,7 +70,7 @@ lbg_set_gui() {
 		return 1
 	fi
 
-	lbg_setgui_gui="$*"
+	local lbg_setgui_gui="$*"
 
 	# set console mode is always OK
 	if [ "$lbg_setgui_gui" == "console" ] ; then
@@ -108,7 +109,7 @@ lbg_set_gui() {
 #  MESSAGES AND NOTIFICATIONS  #
 ################################
 
-# Display a message
+# Display an info dialog
 # Usage: lbg_display_info [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT  set dialog title
@@ -118,6 +119,7 @@ lbg_set_gui() {
 #   2: dialog command error
 lbg_display_info() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -125,7 +127,7 @@ lbg_display_info() {
 	# default options
 	local lbg_dinf_title="$lb_current_script_name"
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-t|--title)
@@ -160,15 +162,14 @@ lbg_display_info() {
 			osascript 2> /dev/null << EOF
 display dialog "$*" with title "$lbg_dinf_title" with icon note buttons {"$lb_default_ok_label"} default button 1
 EOF
+			# if command error
 			if [ $? != 0 ] ; then
 				return 2
 			fi
 			;;
 
 		dialog)
-			lbg_dinf_cmd=(dialog --title "$lbg_dinf_title" --clear --msgbox "$*" 10 50)
-
-			"${lbg_dinf_cmd[@]}" 2> /dev/null
+			dialog --title "$lbg_dinf_title" --clear --msgbox "$*" 10 50 2> /dev/null
 			lbg_dinf_res=$?
 
 			# clear console
@@ -188,6 +189,7 @@ EOF
 	# run command
 	"${lbg_dinf_cmd[@]}" 2> /dev/null
 
+	# command error
 	if [ $? != 0 ] ; then
 		return 2
 	fi
@@ -627,7 +629,7 @@ EOF)
 # Options:
 #   -d, --default ID  option to use by default
 #   -l, --label TEXT  set a question text (default: Choose an option:)
-# Return: value is set into $lb_choose_option variable
+# Return: choice is stored into $lbg_choose_option variable
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -847,6 +849,7 @@ EOF)
 # Options:
 #    -d, --default TEXT  default text
 #    -t, --title TEXT    dialog title
+# Return: user input is stored into $lbg_input_text variable
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -950,7 +953,7 @@ EOF)
 #    -t, --title TEXT        dialog title
 #    -c, --confirm           display a confirmation dialog
 #    --confirm-label TEXT    display a confirmation dialog
-# Return: exit code, value is set into $lbg_input_text variable
+# Return: password is stored into $lbg_input_password variable
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -1082,6 +1085,7 @@ EOF)
 # Options:
 #   -t, --title TITLE  set dialog title
 #   PATH               starting path (current by default)
+# Return: choosed directory path is stored into $lbg_choose_directory variable
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -1190,6 +1194,7 @@ EOF)
 #                        e.g. -f "*.sh" to filter by bash files
 #                        OPTION NOT SUPPORTED YET ON macOS
 #   PATH                 starting path or selected file (current by default)
+# Return: choosed file path is stored into $lbg_choose_file variable
 # Exit codes:
 #   0: OK
 #   1: usage error

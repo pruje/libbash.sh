@@ -478,7 +478,7 @@ lb_result() {
 
 # Get log file path
 # Usage: lb_get_logfile
-# Return: path of the file
+# Return: path of the log file
 # Exit codes:
 #   0: file ok
 #   1: log file not defined
@@ -1044,7 +1044,7 @@ lb_df_uuid() {
 # Get user's home directory
 # Usage: lb_get_home_directory [USER]
 # Options: user (if not set, use current user)
-# Return: path
+# Return: home path
 # Exit codes:
 #   0: OK
 #   1: path not found
@@ -1106,7 +1106,7 @@ lb_dir_is_empty() {
 
 # Get realpath of a file
 # Usage: lb_realpath PATH
-# Return: path
+# Return: real path
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -1183,7 +1183,7 @@ lb_is_writable() {
 
 # Detect current operating system family
 # Usage: lb_detect_os
-# Return: Linux/macOS
+# Return: OS family (Linux/macOS)
 lb_detect_os() {
 
 	# get uname result
@@ -1471,7 +1471,7 @@ lb_yesno() {
 #   -d, --default ID         option to use by default
 #   -l, --label TEXT         set a question text (default: Choose an option:)
 #   -c, --cancel-label TEXT  set a cancel label (default: c)
-# Return: value is set into $lb_choose_option variable
+# Return: choice ID is stored into $lb_choose_option variable
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -1610,6 +1610,7 @@ lb_choose_option() {
 # Options:
 #    -d, --default TEXT  default text
 #    -n                  no line return after question
+# Return: user input is stored into $lb_input_text variable
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -1685,7 +1686,7 @@ lb_input_text() {
 #    -l, --label TEXT      label for question
 #    -c, --confirm         confirm password
 #    --confirm-label TEXT  confirmation label
-# Return: value is set into $lb_input_password variable
+# Return: password is stored into $lb_input_password variable
 # Exit codes:
 #   0: OK
 #   1: usage error
