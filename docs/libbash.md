@@ -33,10 +33,11 @@ You can use the following variables that are initialized when you include `libba
 All functions are named with the `lb_` prefix.
 Functions with a `*` are not fully supported on every OS yet (may change in the future).
 
-* Basic bash functions
+* Bash utilities
 	* [lb_command_exists](#lb_command_exists)
 	* [lb_function_exists](#lb_function_exists)
 	* [lb_test_arguments](#lb_test_arguments)
+	* [lb_exit](#lb_exit)
 * Display
 	* [lb_print (or lb_echo)](#lb_print)
 	* [lb_error](#lb_error)
@@ -64,9 +65,17 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_dir_is_empty](#lb_dir_is_empty)
 	* [lb_realpath](#lb_realpath)
 	* [lb_is_writable](#lb_is_writable)
+* System utilities
+	* [lb_detect_os](#lb_detect_os)
+	* [lb_email](#lb_email)
+* User interaction
+	* [lb_yesno](#lb_yesno)
+	* [lb_choose_option](#lb_choose_option)
+	* [lb_input_text](#lb_input_text)
+	* [lb_input_password](#lb_input_password)
 
 ---------------------------------------------------------------
-## Basic bash functions
+## Bash utilities
 ---------------------------------------------------------------
 <a name="lb_command_exists"></a>
 ### lb_command_exists
@@ -143,6 +152,27 @@ ARG       your arguments; (e.g. $* without quotes)
 if lb_test_arguments -lt 2 $* ; then
 	echo "You have to give at least 2 arguments to this script."
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_exit"></a>
+### lb_exit
+Exit script with a specified exit code.
+
+#### Usage
+```bash
+lb_exit [EXIT_CODE]
+```
+
+#### Options
+```
+EXIT_CODE  Specify an exit code (if not set, $lb_exitcode will be used)
+```
+
+#### Example
+```bash
+# exit script with code 1
+lb_exit 1
 ```
 
 ---------------------------------------------------------------
@@ -712,5 +742,188 @@ lb_is_writable PATH
 # create file if pat his writable
 if lb_is_writable /path/to/file ; then
 	touch /path/to/file
+fi
+```
+
+---------------------------------------------------------------
+## System utilities
+---------------------------------------------------------------
+<a name="lb_detect_os"></a>
+### lb_detect_os
+Detect current operating system family (Linux or macOS).
+
+#### Usage
+```bash
+lb_detect_os
+```
+
+#### Example
+```bash
+if [ "$(lb_detect_os)" == "macOS" ] ; then
+	echo "You are on a macOS system."
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_email"></a>
+### lb_email
+Send an email.
+
+You must have sendmail installed and a proper SMTP server or relay configured.
+You can install the `ssmtp` program (on Linux) to easely send emails via an existing account
+(like GMail or else).
+
+#### Usage
+```bash
+lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
+```
+
+#### Options
+```
+-s, --subject TEXT           Email subject
+--sender EMAIL               Sender email address
+-r, --reply-to EMAIL         Email address to reply to
+-c, --cc EMAIL[,EMAIL,...]   Add email addresses in the CC field
+-b, --bcc EMAIL[,EMAIL,...]  Add email addresses in the BCC field
+```
+
+#### Exit codes
+- 0: Email sent
+- 1: Usage error
+- 2: No program available to send email
+- 3: Unknown error from the program sender
+
+#### Example
+```bash
+lb_email --subject "Test" me@example.com "Hello, this is a message!"
+```
+
+---------------------------------------------------------------
+## User interaction
+---------------------------------------------------------------
+<a name="lb_yesno"></a>
+### lb_yesno
+Ask a question to user to answer by yes or no.
+
+#### Usage
+```bash
+lb_yesno [OPTIONS] TEXT
+```
+
+#### Options
+```
+-y, --yes            Set yes as default option
+-c, --cancel         Add a cancel option
+--yes-label TEXT     Label to use for "YES"
+--no-label TEXT      Label to use for "NO"
+--cancel-label TEXT  Label to use for cancel option
+```
+
+#### Exit codes
+- 0: Yes
+- 1: Usage error
+- 2: No
+- 3: Cancelled
+
+#### Example
+```bash
+if ! lb_yesno "Do you want to continue?" ; then
+	exit
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_choose_option"></a>
+### lb_choose_option
+Ask user to choice for an option.
+
+User choice is set into the `$lb_choose_option` variable.
+
+#### Usage
+```bash
+lb_choose_option [OPTIONS] CHOICE [CHOICE...]
+```
+
+#### Options
+```
+-d, --default ID         Option to use by default
+-l, --label TEXT         Set a label question (default: Choose an option:)
+-c, --cancel-label TEXT  Set a cancel label (default: c)
+```
+
+#### Exit codes
+- 0: OK
+- 1: Usage error
+- 2: Cancelled
+- 3: Bad choice
+
+#### Example
+```bash
+# ask user password twice
+if lb_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
+	choosed_option="$lb_choose_option"
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_input_text"></a>
+### lb_input_text
+Ask user to enter a text.
+
+Return text is set into the `$lb_input_text` variable.
+
+#### Usage
+```bash
+lb_input_text [OPTIONS] QUESTION_TEXT
+```
+
+#### Options
+```
+-d, --default TEXT  default text if
+-n                  no line return after question
+```
+
+#### Exit codes
+- 0: OK
+- 1: usage error
+- 2: user entered an empty text (cancelled)
+
+#### Example
+```bash
+if lb_input_text "Please enter your name :" ; then
+	user_name="$lb_input_text"
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_input_password"></a>
+### lb_input_password
+Ask user to enter a password (hidden).
+
+Returned password is set into the `$lb_input_password` variable.
+
+#### Usage
+```bash
+lb_input_password [OPTIONS]
+```
+
+#### Options
+```
+-l, --label TEXT      Set a label for the question
+-c, --confirm         Ask user to confirm password
+--confirm-label TEXT  Set a label for the confirm question
+```
+
+#### Exit codes
+- 0: OK
+- 1: usage error
+- 2: password is empty (cancelled)
+- 3: passwords mismatch
+
+#### Example
+```bash
+# ask user password twice
+if lb_input_password --confirm ; then
+	user_password="$lb_input_password"
 fi
 ```

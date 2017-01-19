@@ -1181,10 +1181,12 @@ lb_is_writable() {
 #  SYSTEM UTILITIES  #
 ######################
 
-# Detect OS
+# Detect current operating system family
 # Usage: lb_detect_os
 # Return: Linux/macOS
 lb_detect_os() {
+
+	# get uname result
 	if [ "$(uname)" == "Darwin" ] ; then
 		echo "macOS"
 	else
@@ -1194,22 +1196,22 @@ lb_detect_os() {
 
 
 # Send an email
-# Usage: lb_email [OPTIONS] "RECIPIENT[,RECIPIENT,...]" MESSAGE
+# Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 # TODO: add support for attachments and other commands than sendmail (mail, exim4, ...)
 # Options:
-#   -s, --subject TEXT             Email subject
-#   --sender EMAIL                 Sender email address
-#   -r, --reply-to EMAIL           Email address to reply
-#   -c, --cc "EMAIL[,EMAIL,...]"   Add email addresses in CC
-#   -b, --bcc "EMAIL[,EMAIL,...]"  Add email addresses in BCC
+#   -s, --subject TEXT           Email subject
+#   --sender EMAIL               Sender email address
+#   -r, --reply-to EMAIL         Email address to reply
+#   -c, --cc EMAIL[,EMAIL,...]   Add email addresses in CC
+#   -b, --bcc EMAIL[,EMAIL,...]  Add email addresses in BCC
 # Exit codes:
-#   0: OK
+#   0: email sent
 #   1: usage error
 #   2: no command to send email
-#   other: exit code from email command
+#   3: unknown error from the program sender
 lb_email() {
 
-	# catch bad usage
+	# usage errors
 	if [ $# -lt 2 ] ; then
 		return 1
 	fi
@@ -1226,7 +1228,7 @@ lb_email() {
 	# available commands
 	local lb_email_commands=(/usr/sbin/sendmail)
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-s|--subject)
@@ -1284,13 +1286,10 @@ lb_email() {
 		return 1
 	fi
 
-	local lb_email_message=$*
+	# set email body
+	local lb_email_message="$*"
 
-	if [ -n "$lb_email_command" ] ; then
-		lb_email_commands=($lb_email_command)
-		lb_email_command=""
-	fi
-
+	# search compatible command to send email
 	for lb_email_c in ${lb_email_commands[@]} ; do
 		if lb_command_exists $lb_email_c ; then
 			lb_email_command=$lb_email_c
@@ -1298,9 +1297,12 @@ lb_email() {
 		fi
 	done
 
+	# if no command to send email, error
 	if [ -z "$lb_email_command" ] ; then
 		return 2
 	fi
+
+	# set email header
 
 	if [ -n "$lb_email_sender" ] ; then
 		lb_email_header+="From: $lb_email_sender\n"
@@ -1326,11 +1328,17 @@ lb_email() {
 
 	lb_email_header+="MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\n"
 
+	# send email with program
 	case "$lb_email_command" in
 		/usr/sbin/sendmail)
 			echo -e "$lb_email_header\n$lb_email_message" | /usr/sbin/sendmail -t
+			# if unknown error
+			if [ $? != 0 ] ; then
+				return 3
+			fi
 			;;
 		*)
+			# no program found to send email
 			return 2
 			;;
 	esac
