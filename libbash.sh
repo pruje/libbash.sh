@@ -1181,11 +1181,11 @@ lb_is_writable() {
 ######################
 
 
-# Prompt user to enter a text
+# Ask user to enter a text
 # Usage: lb_input_text [OPTIONS] TEXT
 # Options:
 #    -d, --default TEXT  default text
-#    -n                  no newline before input
+#    -n                  no line return after question
 # Exit codes:
 #   0: OK
 #   1: usage error
@@ -1196,6 +1196,7 @@ lb_input_text() {
 	# reset result
 	lb_input_text=""
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -1230,12 +1231,13 @@ lb_input_text() {
 	fi
 
 	# print question
-	echo -n -e $*
+	echo -n -e "$*"
 
 	if [ -n "$lb_inp_default" ] ; then
 		echo -n -e " [$lb_inp_default]"
 	fi
 
+	# add separator
 	echo $lb_inp_opts " "
 
 	# read user input
@@ -1253,8 +1255,8 @@ lb_input_text() {
 }
 
 
-# Prompt user to enter a password
-# Usage: lb_input_password [options]
+# Ask user to enter a password (hidden)
+# Usage: lb_input_password [OPTIONS]
 # Options:
 #    -l, --label TEXT      label for question
 #    -c, --confirm         confirm password
@@ -1271,10 +1273,12 @@ lb_input_password() {
 	# reset result
 	lb_input_password=""
 
+	# default options
 	local lb_inpw_label="$lb_default_pwd_label"
 	local lb_inpw_confirm=false
 	local lb_inpw_confirm_label="$lb_default_pwd_confirm_label"
 
+	# get options
 	while true ; do
 		case "$1" in
 			-l|--label)
@@ -1301,26 +1305,32 @@ lb_input_password() {
 		esac
 	done
 
-	read -s -p "$lb_inpw_label " lb_inpw_password
+	# prompt user for password
+	read -s -p "$lb_inpw_label " lb_input_password
+	# line return
 	echo
 
-	lb_inpw_password_confirm="$lb_inpw_password"
-
-	# if empty
-	if [ -z "$lb_inpw_password" ] ; then
+	# if empty, exit with error
+	if [ -z "$lb_input_password" ] ; then
 		return 2
-	else
-		# if confirm
-		if $lb_inpw_confirm ; then
-			read -s -p "$lb_inpw_confirm_label " lb_inpw_password_confirm
-			echo
-		fi
 	fi
 
-	if [ "$lb_inpw_password" == "$lb_inpw_password_confirm" ] ; then
-		lb_input_password="$lb_inpw_password"
-	else
-		# passwords mismatch
+	# if no confirmation, return OK
+	if ! $lb_inpw_confirm ; then
+		return
+	fi
+
+	# if confirmation, save current password
+	lb_inpw_password_confirm="$lb_input_password"
+
+	# prompt password confirmation
+	read -s -p "$lb_inpw_confirm_label " lb_inpw_password_confirm
+	# line return
+	echo
+
+	# if passwords mismatch, return error
+	if [ "$lb_input_password" != "$lb_inpw_password_confirm" ] ; then
+		lb_input_password=""
 		return 3
 	fi
 }
