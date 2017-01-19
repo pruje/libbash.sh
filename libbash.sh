@@ -10,11 +10,11 @@
 
 ################################
 #                              #
-#  Version 0.1.0 (2017-01-11)  #
+#  Version 0.1.0 (2017-01-19)  #
 #                              #
 ################################
 
-lb_version="0.1.0"
+lb_version="0.1.0-rc.1"
 
 
 ####################
@@ -309,7 +309,7 @@ lb_display() {
 
 		"${lb_display_logcmd[@]}"
 		if [ $? != 0 ] ; then
-			return 2
+			lb_display_exit=2
 		fi
 	fi
 
@@ -341,7 +341,9 @@ lb_display() {
 
 	# print text
 	lb_print $lb_display_opts"$lb_display_msgprefix$*"
-	if [ $? != 0 ] ; then
+	if [ $? == 0 ] ; then
+		return $lb_display_exit
+	else
 		return 3
 	fi
 }
