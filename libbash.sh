@@ -1337,13 +1337,13 @@ lb_input_password() {
 
 
 # Prompt user to confirm an action
-# Usage: lb_yesno [options] TEXT
+# Usage: lb_yesno [OPTIONS] TEXT
 # Options:
-#    -y, --yes        return yes by default
-#    -c, --cancel     add a cancel option
-#    --yes-label STR  string to use as "YES"
-#    --no-label  STR  string to use as "NO"
-#    --cancel-label STR  string to use as cancel
+#    -y, --yes            return yes by default
+#    -c, --cancel         add a cancel option
+#    --yes-label TEXT     label to use as "YES"
+#    --no-label TEXT      label to use as "NO"
+#    --cancel-label TEXT  label to use for cancel option
 # Exit codes:
 #   0: yes
 #   1: usage error
@@ -1351,6 +1351,7 @@ lb_input_password() {
 #   3: cancel
 lb_yesno() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -1362,7 +1363,7 @@ lb_yesno() {
 	local lb_yn_nolbl="$lb_default_no_shortlabel"
 	local lb_yn_cancellbl="$lb_default_cancel_shortlabel"
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-y|--yes)
@@ -1428,6 +1429,7 @@ lb_yesno() {
 
 	# defaut behaviour if input is empty
 	if [ -z "$lb_yn_confirm" ] ; then
+		# if yes is not by default, answer is no
 		if ! $lb_yn_defaultyes ; then
 			return 2
 		fi
@@ -1442,6 +1444,7 @@ lb_yesno() {
 				fi
 			fi
 
+			# answer is no
 			return 2
 		fi
 	fi
@@ -1449,11 +1452,11 @@ lb_yesno() {
 
 
 # Prompt user to choose an option
-# Usage: lb_choose_option [OPTIONS] OPTION [OPTION...]
+# Usage: lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 # Options:
 #   -d, --default ID         option to use by default
 #   -l, --label TEXT         set a question text (default: Choose an option:)
-#   -c, --cancel-label TEXT  set a cancel label (default: empty string)
+#   -c, --cancel-label TEXT  set a cancel label (default: c)
 # Return: value is set into $lb_choose_option variable
 # Exit codes:
 #   0: OK
@@ -1477,7 +1480,7 @@ lb_choose_option() {
 	local lb_chop_label="$lb_default_chopt_label"
 	local lb_chop_cancel_label="$lb_default_cancel_shortlabel"
 
-	# catch options
+	# get command options
 	while true ; do
 		case "$1" in
 			-d|--default)
@@ -1507,12 +1510,12 @@ lb_choose_option() {
 		esac
 	done
 
-	# usage error if missing at least 1 option
+	# usage error if missing at least 1 choice option
 	if lb_test_arguments -eq 0 $* ; then
 		return 1
 	fi
 
-	# prepare options
+	# prepare choice options
 	while true ; do
 		if [ -n "$1" ] ; then
 			lb_chop_options+=("$1")
@@ -1522,11 +1525,13 @@ lb_choose_option() {
 		fi
 	done
 
-	# verify default option
+	# verify if default option is valid
 	if [ $lb_chop_default != 0 ] ; then
 		if ! lb_is_integer "$lb_chop_default" ; then
+			# usage error
 			return 1
 		else
+			# if ID is not in the choice range, return usage error
 			if [ $lb_chop_default -lt 1 ] || [ $lb_chop_default -ge ${#lb_chop_options[@]} ] ; then
 				return 1
 			fi
@@ -1543,6 +1548,7 @@ lb_choose_option() {
 
 	echo
 
+	# print default option
 	if [ $lb_chop_default != 0 ] ; then
 		echo -n "[$lb_chop_default]"
 	else
@@ -1564,7 +1570,7 @@ lb_choose_option() {
 			return 2
 		fi
 	else
-		# check cancel
+		# check cancel option
 		if [ "$lb_choose_option" == "$lb_chop_cancel_label" ] ; then
 			lb_choose_option=""
 			return 2
