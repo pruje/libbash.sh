@@ -158,9 +158,21 @@ lb_test_arguments() {
 
 
 # Exit script with defined exit code
-# Usage: lb_exit
+# Usage: lb_exit [EXIT_CODE]
+# Options:
+#   EXIT_CODE  Specify an exit code (if not set, $lb_exitcode will be used)
 lb_exit() {
-	exit $lb_exitcode
+
+	# if exit code is set, use it
+	if [ -n "$1" ] ; then
+		lb_exit_res=$1
+	else
+		# if not, use $lb_exitcode variable
+		lb_exit_res=$lb_exitcode
+	fi
+
+	# exit with specified code
+	exit $lb_exit_code
 }
 
 
