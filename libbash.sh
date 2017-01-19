@@ -54,9 +54,9 @@ lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_defaul
 lb_format_print=true
 
 
-##########################
-#  BASIC BASH UTILITIES  #
-##########################
+####################
+#  BASH UTILITIES  #
+####################
 
 # Check if a command exists
 # Usage: lb_command_exists COMMAND
@@ -154,6 +154,13 @@ lb_test_arguments() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+}
+
+
+# Exit script with defined exit code
+# Usage: lb_exit
+lb_exit() {
+	exit $lb_exitcode
 }
 
 
@@ -1713,13 +1720,6 @@ lb_email() {
 			return 2
 			;;
 	esac
-}
-
-
-# Exit script with defined exit code
-# Usage: lb_exit
-lb_exit() {
-	exit $lb_exitcode
 }
 
 
