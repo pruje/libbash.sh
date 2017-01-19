@@ -1,12 +1,24 @@
 #!/bin/bash
 
-# French locales for libbash.sh
-#
-# libbash.sh locales needs to be included after libbash.sh:
+########################################################
+#                                                      #
+#  libbash.sh French translation                       #
+#                                                      #
+#  Author: Jean Prunneaux (http://jean.prunneaux.com)  #
+#                                                      #
+########################################################
+
+################################
+#                              #
+#  Version 0.1.0 (2017-01-19)  #
+#                              #
+################################
+
+# This file must be included after libbash.sh:
 # source "/path/to/libbash/libbash.sh"
 # source "/path/to/libbash/locales/fr.sh"
 
-# reset default labels
+# translation for default labels
 lb_default_result_ok_label="... Terminé!"
 lb_default_result_failed_label="... Échoué!"
 lb_default_ok_label="OK"
