@@ -1,18 +1,6 @@
 #!/bin/bash
 
-########################################################
-#                                                      #
 #  libbash.sh French translation                       #
-#                                                      #
-#  Author: Jean Prunneaux (http://jean.prunneaux.com)  #
-#                                                      #
-########################################################
-
-################################
-#                              #
-#  Version 0.1.0 (2017-01-19)  #
-#                              #
-################################
 
 # This file must be included after libbash.sh:
 # source "/path/to/libbash/libbash.sh"
