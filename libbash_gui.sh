@@ -148,7 +148,7 @@ lbg_display_info() {
 		return 1
 	fi
 
-	# display dialog
+	# prepare command
 	case "$lbg_gui" in
 		kdialog)
 			lbg_dinf_cmd=(kdialog --title "$lbg_dinf_title" --msgbox "$*")
@@ -159,6 +159,7 @@ lbg_display_info() {
 			;;
 
 		osascript)
+			# run command
 			osascript 2> /dev/null << EOF
 display dialog "$*" with title "$lbg_dinf_title" with icon note buttons {"$lb_default_ok_label"} default button 1
 EOF
@@ -166,6 +167,9 @@ EOF
 			if [ $? != 0 ] ; then
 				return 2
 			fi
+
+			# quit
+			return
 			;;
 
 		dialog)
@@ -206,6 +210,7 @@ EOF
 #   2: dialog command error
 lbg_display_warning() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -213,7 +218,7 @@ lbg_display_warning() {
 	# default options
 	local lbg_dwn_title="$lb_current_script_name"
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-t|--title)
@@ -234,7 +239,7 @@ lbg_display_warning() {
 		return 1
 	fi
 
-	# display dialog
+	# prepare command
 	case "$lbg_gui" in
 		kdialog)
 			lbg_dwn_cmd=(kdialog --title "$lbg_dwn_title" --sorry "$*")
@@ -245,12 +250,17 @@ lbg_display_warning() {
 			;;
 
 		osascript)
+			# run command
 			osascript 2> /dev/null << EOF
 display dialog "$*" with title "$lbg_dwn_title" with icon caution buttons {"$lb_default_ok_label"} default button 1
 EOF
+			# command error
 			if [ $? != 0 ] ; then
 				return 2
 			fi
+
+			# quit
+			return
 			;;
 
 		dialog)
@@ -264,8 +274,10 @@ EOF
 			;;
 	esac
 
+	# run command
 	"${lbg_dwn_cmd[@]}" 2> /dev/null
 
+	# command error
 	if [ $? != 0 ] ; then
 		return 2
 	fi
@@ -282,6 +294,7 @@ EOF
 #   2: dialog command error
 lbg_display_error() {
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -289,7 +302,7 @@ lbg_display_error() {
 	# default options
 	local lbg_derr_title="$lb_current_script_name"
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-t|--title)
@@ -310,7 +323,7 @@ lbg_display_error() {
 		return 1
 	fi
 
-	# display dialog
+	# prepare command
 	case "$lbg_gui" in
 		kdialog)
 			lbg_derr_cmd=(kdialog --title "$lbg_derr_title" --error "$*")
@@ -321,12 +334,17 @@ lbg_display_error() {
 			;;
 
 		osascript)
+			# run command
 			osascript 2> /dev/null << EOF
 display dialog "$*" with title "$lbg_derr_title" with icon stop buttons {"$lb_default_ok_label"} default button 1
 EOF
+			# command error
 			if [ $? != 0 ] ; then
 				return 2
 			fi
+
+			# quit
+			return
 			;;
 
 		dialog)
@@ -340,15 +358,17 @@ EOF
 			;;
 	esac
 
+	# run command
 	"${lbg_derr_cmd[@]}" 2> /dev/null
 
+	# command error
 	if [ $? != 0 ] ; then
 		return 2
 	fi
 }
 
 
-# Display a notification
+# Display a notification popup
 # Usage: lbg_notify [OPTIONS] TEXT
 # Options:
 #   -t, --title TEXT   notification title
@@ -361,16 +381,17 @@ EOF
 #   2: notification command error
 lbg_notify() {
 
-	# catch usage errors
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
 
+	# default options
 	local lbg_notify_title="$lb_current_script_name"
 	local lbg_notify_timeout=""
 	local lbg_notify_use_notifysend=true
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-t|--title)
@@ -429,17 +450,19 @@ lbg_notify() {
 		fi
 	fi
 
-	# display dialog
+	# run command
 	case "$lbg_gui" in
 		kdialog)
 			kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout 2> /dev/null
 			;;
 
 		zenity)
+			# set a timeout
 			if [ -n "$lbg_notify_timeout" ] ; then
 				lbg_notify_opts="--timeout=$lbg_notify_timeout"
 			fi
-			# Execute immediately without put in variable because of a bug
+
+			# run command
 			echo "message:$*" | zenity --notification $lbg_notify_opts --listen 2> /dev/null
 			;;
 
@@ -457,6 +480,7 @@ EOF
 			;;
 	esac
 
+	# command error
 	if [ $? != 0 ] ; then
 		return 2
 	fi
@@ -482,14 +506,14 @@ EOF
 #   3: cancelled
 lbg_yesno() {
 
-	# default values
+	# default options
 	local lbg_yn_defaultyes=false
 	local lbg_yn_yeslbl=""
 	local lbg_yn_nolbl=""
 	local lbg_yn_title="$lb_current_script_name"
 	local lbg_yn_cmd=()
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-y|--yes)
@@ -522,6 +546,7 @@ lbg_yesno() {
 		return 1
 	fi
 
+	# prepare command
 	case "$lbg_gui" in
 		kdialog)
 			lbg_yn_cmd=(kdialog --title "$lbg_yn_title")
@@ -539,6 +564,7 @@ lbg_yesno() {
 			;;
 
 		osascript)
+			# set button labels
 			if [ -z "$lbg_yn_yeslbl" ] ; then
 				lbg_yn_yeslbl="$lb_default_yes_label"
 			fi
@@ -546,7 +572,7 @@ lbg_yesno() {
 				lbg_yn_nolbl="$lb_default_no_label"
 			fi
 
-			#
+			# set options
 			lbg_yn_opts="default button "
 			if $lbg_yn_defaultyes ; then
 				lbg_yn_opts+="1"
@@ -554,6 +580,7 @@ lbg_yesno() {
 				lbg_yn_opts+="2"
 			fi
 
+			# run command
 			lbg_yn_res=$(osascript << EOF
 set question to (display dialog "$*" with title "$lbg_yn_title" buttons {"$lbg_yn_yeslbl", "$lbg_yn_nolbl"} $lbg_yn_opts)
 set answer to button returned of question
@@ -563,8 +590,10 @@ else
 	return 2
 end if
 EOF)
+			# return choice
 			return $lbg_yn_res
 			;;
+
 		dialog)
 			lbg_yn_cmd=(dialog --title "$lbg_yn_title")
 			if ! $lbg_yn_defaultyes ; then
@@ -578,13 +607,14 @@ EOF)
 			fi
 			lbg_yn_cmd+=(--clear --yesno "$*" 10 100)
 
-			# execute dialog
+			# run command
 			"${lbg_yn_cmd[@]}"
 			lbg_yn_res=$?
 
 			# clear console
 			clear
 
+			# return result
 			case $lbg_yn_res in
 				0)
 					return
@@ -615,20 +645,22 @@ EOF)
 			;;
 	esac
 
-	# execute command
+	# run command
 	"${lbg_yn_cmd[@]}" 2> /dev/null
 
+	# command error
 	if [ $? != 0 ] ; then
 		return 2
 	fi
 }
 
 
-# Prompt user to choose an option in graphical mode
-# Usage: lbg_choose_option [OPTIONS] OPTION [OPTION...]
+# Ask user to choose an option
+# Usage: lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 # Options:
 #   -d, --default ID  option to use by default
-#   -l, --label TEXT  set a question text (default: Choose an option:)
+#   -l, --label TEXT  set a question text (default: "Choose an option:")
+#   -t, --title TEXT  Set a title to the dialog
 # Return: choice is stored into $lbg_choose_option variable
 # Exit codes:
 #   0: OK
@@ -641,7 +673,7 @@ lbg_choose_option() {
 	# reset result
 	lbg_choose_option=""
 
-	# must have at least 1 option
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -653,7 +685,7 @@ lbg_choose_option() {
 	local lbg_chop_title="$lb_current_script_name"
 	local lbg_chop_label="$lb_default_chopt_label"
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-d|--default)
@@ -683,7 +715,7 @@ lbg_choose_option() {
 		esac
 	done
 
-	# usage error if missing at least 1 option
+	# usage error if missing at least 1 choice option
 	if lb_test_arguments -eq 0 $* ; then
 		return 1
 	fi
@@ -711,7 +743,7 @@ lbg_choose_option() {
 		fi
 	fi
 
-	# display dialog
+	# prepare command
 	case "$lbg_gui" in
 		kdialog)
 			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_label")
@@ -726,7 +758,7 @@ lbg_choose_option() {
 				fi
 			done
 
-			# execute command
+			# run command
 			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
 			;;
 
@@ -744,7 +776,7 @@ lbg_choose_option() {
 				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
 			done
 
-			# execute command
+			# run command
 			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
 			;;
 
@@ -798,7 +830,7 @@ EOF)
 				fi
 			done
 
-			# execute dialog (complex case)
+			# run command (complex case)
 			exec 3>&1
 			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2>&1 1>&3)
 			exec 3>&-
@@ -829,22 +861,28 @@ EOF)
 			;;
 	esac
 
+	# if empty, cancelled
 	if [ -z "$lbg_choose_option" ] ; then
 		return 2
 	fi
 
-	# check if user choice is valid
+	# check if user choice is an integer
 	if ! lb_is_integer $lbg_choose_option ; then
+		# reset result and return error
+		lbg_choose_option=""
 		return 3
 	fi
 
+	# check if user choice is valid
 	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -ge ${#lbg_chop_options[@]} ] ; then
+		# reset result and return error
+		lbg_choose_option=""
 		return 3
 	fi
 }
 
 
-# Prompt user to enter a text
+# Ask user to enter a text
 # Usage: lbg_input_text [OPTIONS] TEXT
 # Options:
 #    -d, --default TEXT  default text
@@ -860,6 +898,7 @@ lbg_input_text() {
 	# reset result
 	lbg_input_text=""
 
+	# usage errors
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -868,7 +907,7 @@ lbg_input_text() {
 	local lbg_inp_default=""
 	local lbg_inp_title="$lb_current_script_name"
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-d|--default)
@@ -896,7 +935,7 @@ lbg_input_text() {
 		return 1
 	fi
 
-	# display dialog
+	# run command
 	case "$lbg_gui" in
 		kdialog)
 			lbg_input_text=$(kdialog --title "$lbg_inp_title" --inputbox "$*" "$lbg_inp_default" 2> /dev/null)
@@ -913,7 +952,7 @@ EOF)
 			;;
 
 		dialog)
-			# execute dialog (complex case)
+			# run command (complex case)
 			exec 3>&1
 			lbg_input_text=$(dialog --title "$lbg_inp_title" --clear --inputbox "$*" 10 100 "$lbg_inp_default" 2>&1 1>&3)
 			exec 3>&-
@@ -939,20 +978,21 @@ EOF)
 			;;
 	esac
 
-	# if empty, cancelled exit code
+	# if empty, reset variable and set cancelled
 	if [ -z "$lbg_input_text" ] ; then
+		lbg_input_text=""
 		return 2
 	fi
 }
 
 
-# Prompt user to enter a password
-# Usage: lbg_input_password [options]
+# Ask user to enter a password
+# Usage: lbg_input_password [OPTIONS]
 # Options:
-#    -l, --label TEXT        label for dialog
+#    -l, --label TEXT        set label (not available on zenity)
 #    -t, --title TEXT        dialog title
 #    -c, --confirm           display a confirmation dialog
-#    --confirm-label TEXT    display a confirmation dialog
+#    --confirm-label TEXT    set confirm label (not available on zenity)
 # Return: password is stored into $lbg_input_password variable
 # Exit codes:
 #   0: OK
@@ -971,7 +1011,7 @@ lbg_input_password() {
 	local lbg_inpw_confirm_label="$lb_default_pwd_confirm_label"
 	local lbg_inpw_title="$lb_current_script_name"
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-l|--label)
@@ -1002,29 +1042,30 @@ lbg_input_password() {
 		esac
 	done
 
-	# display dialog(s)
-	for lbg_inpw_i in $(seq 1 2) ; do
+	# display dialog
+	for lbg_inpw_i in 1 2 ; do
 
+		# run command
 		case "$lbg_gui" in
 			kdialog)
-				lbg_inpw_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
+				lbg_input_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
 				;;
 
 			zenity)
 				# zenity does not support labels, so we put it in the dialog title
-				lbg_inpw_password=$(zenity --title "$lbg_inpw_label" --password 2> /dev/null)
+				lbg_input_password=$(zenity --title "$lbg_inpw_label" --password 2> /dev/null)
 				;;
 
 			osascript)
-				lbg_inpw_password=$(osascript 2> /dev/null << EOF
+				lbg_input_password=$(osascript 2> /dev/null << EOF
 set answer to the text returned of (display dialog "$lbg_inpw_label" with title "$lbg_inpw_title" default answer "" hidden answer true)
 EOF)
 				;;
 
 			dialog)
-				# execute dialog (complex case)
+				# run command (complex case)
 				exec 3>&1
-				lbg_inpw_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" 10 50 2>&1 1>&3)
+				lbg_input_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" 10 50 2>&1 1>&3)
 				exec 3>&-
 
 				# clear console
@@ -1034,9 +1075,7 @@ EOF)
 			*)
 				# console mode
 				# execute console function
-				lbg_inpw_cmd=(lb_input_password --label "$lbg_inpw_label")
-
-				"${lbg_inpw_cmd[@]}"
+				lb_input_password --label "$lbg_inpw_label"
 				lbg_inpw_res=$?
 				if [ $lbg_inpw_res == 0 ] ; then
 					# forward result
@@ -1048,30 +1087,34 @@ EOF)
 		esac
 
 		# if empty, cancelled
-		if [ -z "$lbg_inpw_password" ] ; then
+		if [ -z "$lbg_input_password" ] ; then
+			lbg_input_password=""
 			return 2
 		fi
 
-		# if confirm
-		if $lbg_inpw_confirm ; then
-			# if first iteration, continue
-			if [ $lbg_inpw_i == 1 ] ; then
-				# save password
-				lbg_inpw_password_confirm="$lbg_inpw_password"
-
-				# set new confirm label and continue
-				lbg_inpw_label="$lbg_inpw_confirm_label"
-				continue
-			fi
-
-			# comparison with confirm password
-			if [ "$lbg_inpw_password" != "$lbg_inpw_password_confirm" ] ; then
-				return 3
-			fi
+		# if no confirm, quit
+		if ! $lbg_inpw_confirm ; then
+			return
 		fi
 
-		lbg_input_password="$lbg_inpw_password"
-		return
+		# if first iteration,
+		if [ $lbg_inpw_i == 1 ] ; then
+			# save password
+			lbg_inpw_password_confirm="$lbg_input_password"
+
+			# set new confirm label and continue
+			lbg_inpw_label="$lbg_inpw_confirm_label"
+		else
+			# if 2nd iteration (confirmation)
+			# comparison with confirm password
+			if [ "$lbg_input_password" != "$lbg_inpw_password_confirm" ] ; then
+				lbg_input_password=""
+				return 3
+			fi
+
+			# quit
+			return
+		fi
 	done
 }
 
