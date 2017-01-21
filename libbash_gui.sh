@@ -179,9 +179,13 @@ EOF
 			# clear console
 			clear
 
+			# command error
 			if [ $lbg_dinf_res != 0 ] ; then
 				return 2
 			fi
+
+			# quit
+			return
 			;;
 
 		*)
@@ -1079,7 +1083,7 @@ EOF)
 				lbg_inpw_res=$?
 				if [ $lbg_inpw_res == 0 ] ; then
 					# forward result
-					lbg_inpw_password="$lb_input_password"
+					lbg_input_password="$lb_input_password"
 				else
 					return $lbg_inpw_res
 				fi
