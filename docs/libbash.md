@@ -859,7 +859,6 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Example
 ```bash
-# ask user password twice
 if lb_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
 	choosed_option="$lb_choose_option"
 fi

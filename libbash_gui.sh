@@ -1123,7 +1123,7 @@ EOF)
 #  FILES AND DIRECTORIES  #
 ###########################
 
-# Dialog to choose a directory
+# Ask user to choose an existing directory
 # Usage: lbg_choose_directory [OPTIONS] [PATH]
 # Options:
 #   -t, --title TITLE  set dialog title
@@ -1144,7 +1144,7 @@ lbg_choose_directory() {
 	local lbg_chdir_title="$lb_current_script_name"
 	local lbg_chdir_path=""
 
-	# catch options
+	# get options
 	while true ; do
 		case "$1" in
 			-t|--title)
@@ -1167,11 +1167,12 @@ lbg_choose_directory() {
 		lbg_chdir_path="$*"
 	fi
 
+	# if path is not a directory, usage error
 	if ! [ -d "$lbg_chdir_path" ] ; then
 		return 1
 	fi
 
-	# display dialog
+	# run command
 	case "$lbg_gui" in
 		kdialog)
 			lbg_choose_directory=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path" 2> /dev/null)
@@ -1188,7 +1189,7 @@ EOF)
 			;;
 
 		dialog)
-			# execute dialog (complex case)
+			# run command (complex case)
 			exec 3>&1
 			lbg_choose_directory=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" 30 100 2>&1 1>&3)
 			exec 3>&-
@@ -1201,6 +1202,7 @@ EOF)
 			# console mode
 			lbg_chdir_cmd=(lb_input_text -d "$lbg_chdir_path")
 
+			# set dialog title as label
 			if [ "$lbg_chdir_title" == "$lb_current_script_name" ] ; then
 				lbg_chdir_cmd+=("$lb_default_chdir_label")
 			else
@@ -1221,7 +1223,7 @@ EOF)
 		return 2
 	fi
 
-	# error if result is not a directory
+	# if not a directory, reset variable and return error
 	if ! [ -d "$lbg_choose_directory" ] ; then
 		lbg_choose_directory=""
 		return 3
@@ -1233,7 +1235,7 @@ EOF)
 # Usage: lbg_choose_file [OPTIONS] [PATH]
 # Options:
 #   -t, --title TITLE    set a dialog title
-#   -f, --filter FILTER  set filters (WARNING: does not work with dialog command)
+#   -f, --filter FILTER  set filters (WARNING: not supported with dialog command)
 #                        e.g. -f "*.sh" to filter by bash files
 #                        OPTION NOT SUPPORTED YET ON macOS
 #   PATH                 starting path or selected file (current by default)
@@ -1334,6 +1336,7 @@ EOF)
 			# console mode
 			lbg_choosefile_cmd=(lb_input_text -d "$lbg_choosefile_path")
 
+			# set dialog title as label
 			if [ "$lbg_choosefile_title" == "$lb_current_script_name" ] ; then
 				lbg_choosefile_cmd+=("$lb_default_chfile_label")
 			else
@@ -1354,7 +1357,7 @@ EOF)
 		return 2
 	fi
 
-	# error if result is not a file
+	# if not a file, reset variable and return error
 	if ! [ -f "$lbg_choose_file" ] ; then
 		lbg_choose_file=""
 		return 3

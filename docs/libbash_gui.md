@@ -41,6 +41,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_choose_option](#lbg_choose_option)
 	* [lbg_input_text](#lbg_input_text)
 	* [lbg_input_password](#lbg_input_password)
+* Files and directories
 	* [lbg_choose_directory](#lbg_choose_directory)
 	* [lbg_choose_file](#lbg_choose_file)
 
@@ -94,9 +95,11 @@ fi
 ```
 
 ---------------------------------------------------------------
+## Messages and notifications
+---------------------------------------------------------------
 <a name="lbg_display_info"></a>
 ### lbg_display_info
-Display an info dialog.
+Display an info message dialog.
 
 #### Usage
 ```bash
@@ -121,7 +124,7 @@ lbg_display_info "This is an info message."
 ---------------------------------------------------------------
 <a name="lbg_display_warning"></a>
 ### lbg_display_warning
-Displays a warning dialog.
+Displays a warning message dialog.
 
 #### Usage
 ```bash
@@ -146,7 +149,7 @@ lbg_display_warning "This is a warning message."
 ---------------------------------------------------------------
 <a name="lbg_display_error"></a>
 ### lbg_display_error
-Displays an error dialog.
+Displays an error message dialog.
 
 #### Usage
 ```bash
@@ -171,7 +174,7 @@ lbg_display_error "This is an error message."
 ---------------------------------------------------------------
 <a name="lbg_display_critical"></a>
 ### lbg_display_critical
-Displays a critical error dialog.
+Displays a critical error mesage dialog.
 
 #### Usage
 ```bash
@@ -196,7 +199,7 @@ lbg_display_critical "This is a critical error message."
 ---------------------------------------------------------------
 <a name="lbg_display_debug"></a>
 ### lbg_display_debug
-Displays a debug info dialog.
+Displays a debug info message dialog.
 
 #### Usage
 ```bash
@@ -221,7 +224,7 @@ lbg_display_debug "This is a debug message."
 ---------------------------------------------------------------
 <a name="lbg_notify"></a>
 ### lbg_notify
-Displays a notification.
+Displays a notification popup.
 
 #### Usage
 ```bash
@@ -229,7 +232,7 @@ lbg_notify [OPTIONS] TEXT
 ```
 
 #### notify-send
-On Linux systems, the `notify-send` command is used by default over kdialog or zenity commands.
+On Linux systems, the `notify-send` command is used by default over `zenity --notification` command.
 We choosed it because it is more powerful and have a better integration on every desktop environments.
 But if you want, you can use the `--no-notify-send` option to not use it and use your chosen GUI tool.
 
@@ -244,14 +247,17 @@ But if you want, you can use the `--no-notify-send` option to not use it and use
 \* See above for more details
 
 #### Exit codes
-- Dialog exit codes are forwarded
-- 1: usage error
+- 0: OK
+- 1: Usage error
+- 2: Unknown command error
 
 #### Example
 ```bash
-lbg_notify "This is a notification."
+lbg_notify --timeout 5 "This notification will disapper in 5 seconds..."
 ```
 
+---------------------------------------------------------------
+## User interaction
 ---------------------------------------------------------------
 <a name="lbg_yesno"></a>
 ### lbg_yesno
@@ -284,15 +290,48 @@ fi
 ```
 
 ---------------------------------------------------------------
+<a name="lbg_choose_option"></a>
+### lbg_choose_option
+Displays a dialog to ask a to user to choose an option.
+
+Chosen ID is set into the `$lbg_choose_option` variable.
+
+#### Usage
+```bash
+lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
+```
+
+#### Options
+```
+-d, --default ID  Option ID to use by default (first ID to 1)
+-l, --label TEXT  Set a question text (default: "Choose an option:")
+-t, --title TEXT  Set a title to the dialog
+```
+
+#### Exit codes
+- 0: OK
+- 1: Usage error
+- 2: Cancelled
+- 3: Bad choice
+
+#### Example
+```bash
+if lbg_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
+	choosed_option="$lbg_choose_option"
+fi
+```
+
+---------------------------------------------------------------
 <a name="lbg_input_text"></a>
 ### lbg_input_text
 Displays a dialog to ask user to input a text.
+
+Result is stored into the `$lbg_input_text` variable.
 
 #### Usage
 ```bash
 lbg_input_text [OPTIONS] TEXT
 ```
-Result is stored into the `$lbg_input_text` variable.
 
 #### Options
 ```
@@ -302,12 +341,12 @@ Result is stored into the `$lbg_input_text` variable.
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: cancelled
+- 1: Usage error
+- 2: Cancelled
 
 #### Example
 ```bash
-if lbg_input_text "Please enter your name:" ; then
+if lbg_input_text --default "$(whoami)" "Please enter your username:" ; then
 	user_name="$lbg_input_text"
 fi
 ```
@@ -321,7 +360,7 @@ Displays a dialog to ask user to input a password.
 ```bash
 lbg_input_password [OPTIONS]
 ```
-Result is stored into the `$lbg_input_password` variable.
+Password is stored into the `$lbg_input_password` variable.
 
 #### Options
 ```
@@ -333,13 +372,80 @@ Result is stored into the `$lbg_input_password` variable.
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: cancelled
-- 3: passwords mismatch
+- 1: Usage error
+- 2: Cancelled
+- 3: Passwords mismatch
 
 #### Example
 ```bash
 if lbg_input_password ; then
 	user_password="$lbg_input_password"
+fi
+```
+
+---------------------------------------------------------------
+## Files and directories
+---------------------------------------------------------------
+<a name="lbg_choose_directory"></a>
+### lbg_choose_directory
+Displays a dialog to choose an existing directory.
+
+Absolute path of the chosen directory is set into the `$lbg_choose_directory` variable.
+
+#### Usage
+```bash
+lbg_choose_directory [OPTIONS] [PATH]
+```
+
+#### Options
+```
+-t, --title TEXT  Set a title to the dialog
+PATH              Starting path (current directory by default)
+```
+
+#### Exit codes
+- 0: OK
+- 1: Usage error
+- 2: Cancelled
+- 3: Choosed path does not exists or is not a directory
+
+#### Example
+```bash
+if lbg_choose_directory "/opt/" ; then
+	opt_path="$lbg_choose_directory"
+fi
+```
+
+---------------------------------------------------------------
+<a name="lbg_choose_file"></a>
+### lbg_choose_file
+Displays a dialog to choose an existing file.
+
+Absolute path of the chosen file is set into the `$lbg_choose_file` variable.
+
+#### Usage
+```bash
+lbg_choose_file [OPTIONS] [PATH]
+```
+
+#### Options
+```
+-t, --title TEXT     Set a title to the dialog
+-f, --filter FILTER  set filters (WARNING: not supported with dialog command)
+                     e.g. -f "*.jpg" to filter by JPEG files
+                     OPTION NOT SUPPORTED YET ON macOS
+PATH                 Starting path or default file path (open current directory by default)
+```
+
+#### Exit codes
+- 0: OK
+- 1: Usage error
+- 2: Cancelled
+- 3: Choosed path does not exists or is not a file
+
+#### Example
+```bash
+if lbg_choose_file --filter "*.txt" ; then
+	text_file="$lbg_choose_file"
 fi
 ```
