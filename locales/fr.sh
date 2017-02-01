@@ -1,6 +1,10 @@
-#!/bin/bash
-
-#  libbash.sh French translation                       #
+########################################################
+#                                                      #
+#  libbash.sh French translations                      #
+#                                                      #
+#  Author: Jean Prunneaux (http://jean.prunneaux.com)  #
+#                                                      #
+########################################################
 
 # This file must be included after libbash.sh:
 # source "/path/to/libbash/libbash.sh"
@@ -12,6 +16,7 @@ lb_default_result_failed_label="... Échoué!"
 lb_default_ok_label="OK"
 lb_default_cancel_label="Annuler"
 lb_default_cancel_shortlabel="a"
+lb_default_failed_label="Échec"
 lb_default_yes_label="Oui"
 lb_default_no_label="Non"
 lb_default_yes_shortlabel="o"
