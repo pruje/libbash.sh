@@ -172,7 +172,7 @@ lb_exit() {
 	fi
 
 	# exit with specified code
-	exit $lb_exit_code
+	exit $lb_exitcode
 }
 
 
