@@ -3,16 +3,14 @@
 ########################################################
 #                                                      #
 #  libbash.sh                                          #
+#  A library of useful functions for bash developers   #
 #                                                      #
-#  Author: Jean Prunneaux (http://jean.prunneaux.com)  #
+#  MIT License                                         #
+#  Copyright (c) 2017 Jean Prunneaux                   #
+#                                                      #
+#  Version 0.1.2 (2017-02-04)                          #
 #                                                      #
 ########################################################
-
-################################
-#                              #
-#  Version 0.1.1 (2017-02-01)  #
-#                              #
-################################
 
 lb_version="0.1.1"
 
