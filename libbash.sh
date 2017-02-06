@@ -390,6 +390,7 @@ lb_result() {
 	local lb_prs_exitcode=false
 	local lb_prs_errorexit=false
 
+	# get options
 	while true ; do
 		case "$1" in
 			--ok-label)
@@ -441,8 +442,9 @@ lb_result() {
 		lb_prs_res=$1
 	fi
 
+	# bad usage
 	if ! lb_is_integer $lb_prs_res ; then
-		lb_prs_res=1
+		return 1
 	fi
 
 	if [ $lb_prs_res == 0 ] ; then
@@ -467,6 +469,93 @@ lb_result() {
 
 	# return exit code
 	return $lb_prs_res
+}
+
+
+# Manage command result and display label in short mode
+# Usage: lb_short_result [OPTIONS] [EXIT_CODE]
+# Options:
+#   -l, --log-level LEVEL  set a log level
+#   --log                  print result into log file
+#   -e, --save-exit-code   save result to exit code
+#   -x, --exit-on-error    exit if result is not ok
+#   -q, --quiet            quiet mode (do not print anything)
+# See lb_result for options usage.
+# Exit code: see lb_result
+lb_short_result() {
+
+	# get last command result
+	local lb_shres_lastres=$?
+	local lb_shres_opts=""
+	local lb_shres_quiet=false
+	local lb_shres_exitcode=false
+	local lb_shres_errorexit=false
+
+	# get options
+	while true ; do
+		case "$1" in
+			-l|--log-level)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_shres_opts="-l $2 "
+				shift 2
+				;;
+			--log)
+				lb_shres_opts="--log "
+				shift
+				;;
+			-e|--save-exit-code)
+				lb_shres_exitcode=true
+				shift
+				;;
+			-x|--exit-on-error)
+				lb_shres_errorexit=true
+				shift
+				;;
+			-q|--quiet)
+				lb_shres_quiet=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	if [ -z "$1" ] ; then
+		lb_shres_res=$lb_shres_lastres
+	else
+		lb_shres_res=$1
+	fi
+
+	# bad usage
+	if ! lb_is_integer $lb_shres_res ; then
+		return 1
+	fi
+
+	if [ $lb_shres_res == 0 ] ; then
+		if ! $lb_shres_quiet ; then
+			lb_display $lb_shres_opts"[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]"
+		fi
+	else
+		if ! $lb_shres_quiet ; then
+			lb_display $lb_shres_opts"[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]"
+		fi
+
+		# if exit on error, exit
+		if $lb_shres_errorexit ; then
+			exit $lb_shres_res
+		fi
+	fi
+
+	# save result to exit code
+	if $lb_shres_exitcode ; then
+		lb_exitcode=$lb_shres_res
+	fi
+
+	# return exit code
+	return $lb_shres_res
 }
 
 
@@ -1828,14 +1917,6 @@ lb_display_debug() {
 	lb_display -p -l "$lb_default_debug_label" $*
 }
 
-# Print result in short mode
-# Usage: lb_short_result [OPTIONS] EXIT_CODE
-# See lb_result for options usage.
-# Be careful that EXIT_CODE is required on this function!
-lb_short_result() {
-	lb_result --ok-label "[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]" \
-	          --failed-label "[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]" $*
-}
 
 # Common log functions
 # Usage: lb_log_* [OPTIONS] TEXT
