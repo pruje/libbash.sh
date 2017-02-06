@@ -305,7 +305,7 @@ EXIT_CODE              Specify an exit code. If not set, variable $? will be use
 ```
 
 #### Exit codes
-Exit code forwarded of the command (1 may can also be an usage error).
+Exit code forwarded of the command (1 could also mean an usage error).
 
 #### Example
 ```bash
@@ -323,12 +323,22 @@ It uses the `lb_result` function with `--ok-label [  OK  ]` and `--failed-label 
 
 #### Usage
 ```bash
-lb_short_result [OPTIONS] EXIT_CODE
+lb_short_result [OPTIONS] [EXIT_CODE]
 ```
 
-Be careful that exit code is required!
+#### Options
+```
+--log                  Append result to log file
+-l, --log-level LEVEL  Choose a display level (will be the same for logs)
+-e, --save-exit-code   Save the result to the $lb_exitcode variable
+-x, --exit-on-error    Exit if result is not ok (exit code not to 0)
+-q, --quiet            Do not print anything
 
-See [lb_result](#lb_result) for options usage.
+EXIT_CODE              Specify an exit code. If not set, variable $? will be used.
+```
+
+#### Exit codes
+Exit code forwarded of the command (1 could also mean an usage error).
 
 #### Example
 ```bash
