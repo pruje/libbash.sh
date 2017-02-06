@@ -852,7 +852,6 @@ lb_array_contains() {
 ################
 
 # Get filesystem type
-# TODO: add macOS support (df -T not supported; must use diskutil)
 # Usage: lb_df_fstype PATH
 # Return: fs type
 # Exit codes:
@@ -860,7 +859,6 @@ lb_array_contains() {
 #   1: usage error
 #   2: path does not exists
 #   3: unknown error
-#   4: command not supported on this system
 lb_df_fstype() {
 
 	# usage errors
@@ -876,10 +874,16 @@ lb_df_fstype() {
 		return 2
 	fi
 
-	# get type from df command
+	# get filesystem type
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
-		# TODO: implement support for macOS
-		return 4
+		# get mountpoint
+		lb_dffstype_mountpoint="$(lb_df_mountpoint "$lb_dffstype_path")"
+		if [ $? != 0 ] ; then
+			return 3
+		fi
+
+		# get filesystem type
+		diskutil info "$lb_dffstype_mountpoint" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
 	else
 		df --output=fstype "$lb_dffstype_path" 2> /dev/null | tail -n 1
 	fi
@@ -973,8 +977,7 @@ lb_df_mountpoint() {
 #   1: usage error
 #   2: path does not exists
 #   3: unknown error
-#   4: command not supported on this system
-#   5: UUID not found
+#   4: UUID not found
 lb_df_uuid() {
 
 	# if path does not exists, error
@@ -992,8 +995,21 @@ lb_df_uuid() {
 
 	# macOS systems
 	if [ "$(lb_detect_os)" == "macOS" ] ; then
-		# TODO: implement support for macOS
-		return 4
+		# get mountpoint
+		lb_dfuuid_mountpoint="$(lb_df_mountpoint "$lb_dfuuid_path")"
+		if [ $? != 0 ] ; then
+			return 3
+		fi
+
+		# get filesystem type
+		diskutil info "$lb_dfuuid_mountpoint" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
+
+		# get diskutil errors
+		if [ ${PIPESTATUS[0]} != 0 ] ; then
+			return 3
+		fi
+
+		return
 	else
 		# Linux systems
 
@@ -1005,7 +1021,7 @@ lb_df_uuid() {
 			# check if there are UUIDs
 			ls "$lb_dfuuid_list"/* &> /dev/null
 			if [ $? != 0 ] ; then
-				return 5
+				return 4
 			fi
 		else
 			# if UUID folder not found, cancel
@@ -1031,7 +1047,7 @@ lb_df_uuid() {
 	fi
 
 	# UUID not found
-	return 5
+	return 4
 }
 
 

@@ -31,7 +31,6 @@ You can use the following variables that are initialized when you include `libba
 
 ## Functions
 All functions are named with the `lb_` prefix.
-Functions with a `*` are not fully supported on every OS yet (may change in the future).
 
 * Bash utilities
 	* [lb_command_exists](#lb_command_exists)
@@ -56,10 +55,10 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_array_contains](#lb_array_contains)
 * Filesystem
-	* [lb_df_fstype](#lb_df_fstype)*
+	* [lb_df_fstype](#lb_df_fstype)
 	* [lb_df_space_left](#lb_df_space_left)
 	* [lb_df_mountpoint](#lb_df_mountpoint)
-	* [lb_df_uuid](#lb_df_uuid)*
+	* [lb_df_uuid](#lb_df_uuid)
 * Files and directories
 	* [lb_homepath](#lb_homepath)
 	* [lb_dir_is_empty](#lb_dir_is_empty)
@@ -563,8 +562,6 @@ fi
 ### lb_df_fstype
 Give the filesystem type of a path.
 
-**NOT SUPPORTED YET ON macOS**
-
 #### Usage
 ```bash
 lb_df_fstype PATH
@@ -576,7 +573,6 @@ Note: PATH may also be a device path (e.g. /dev/sda1)
 - 1: usage error
 - 2: PATH does not exists
 - 3: unknown error
-- 4: command not supported on this system
 
 #### Example
 ```bash
@@ -632,8 +628,6 @@ mountpoint=$(lb_df_mountpoint /)
 ### lb_df_uuid
 Get the disk UUID for a given path.
 
-**NOT SUPPORTED YET ON macOS**
-
 #### Usage
 ```bash
 lb_df_uuid PATH
@@ -645,8 +639,7 @@ Note: PATH may also be a device path (e.g. /dev/sda1)
 - 1: usage error
 - 2: path does not exists
 - 3: unknown error
-- 4: command not supported on this system
-- 5: disk UUID not found
+- 4: disk UUID not found
 
 #### Example
 ```bash

@@ -21,9 +21,7 @@ libbash.sh comes also with a GUI part to:
 
 See documentation for more info.
 
-libbash.sh is compatible with Linux and macOS* systems.
-
-\* except few functions (see documentation)
+libbash.sh is compatible with Linux and macOS systems.
 
 ## Usage
 Add `libbash.sh` to your script:
