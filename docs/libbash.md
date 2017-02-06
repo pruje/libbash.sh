@@ -52,6 +52,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_log](#lb_log)
 	* [lb_log_critical, lb_log_error, lb_log_warning, lb_log_info, lb_log_debug](#lb_log_presets)
 * Operations on variables
+	* [lb_is_number](#lb_is_number)
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_array_contains](#lb_array_contains)
 * Filesystem
@@ -510,9 +511,31 @@ lb_log_error "There was an error in your script!"
 ---------------------------------------------------------------
 ## Operations on variables
 ---------------------------------------------------------------
+<a name="lb_is_number"></a>
+### lb_is_number
+Test if a value is a number.
+
+#### Usage
+```bash
+lb_is_number VALUE
+```
+
+#### Exit codes
+- 0: value is a number
+- 1: value is not a number
+
+#### Example
+```bash
+x="-42.9"
+if lb_is_number $x ; then
+	echo "x is a number"
+fi
+```
+
+---------------------------------------------------------------
 <a name="lb_is_integer"></a>
 ### lb_is_integer
-Test if a value is integer.
+Test if a value is a integer.
 
 #### Usage
 ```bash
@@ -853,7 +876,7 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 #### Example
 ```bash
 if lb_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
-	choosed_option="$lb_choose_option"
+	chosen_option="$lb_choose_option"
 fi
 ```
 

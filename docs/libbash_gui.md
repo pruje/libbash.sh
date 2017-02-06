@@ -233,7 +233,7 @@ lbg_notify [OPTIONS] TEXT
 
 #### notify-send
 On Linux systems, the `notify-send` command is used by default over `zenity --notification` command.
-We choosed it because it is more powerful and have a better integration on every desktop environments.
+We chose it because it is more powerful and have a better integration on every desktop environments.
 But if you want, you can use the `--no-notify-send` option to not use it and use your chosen GUI tool.
 
 #### Options
@@ -317,7 +317,7 @@ lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 #### Example
 ```bash
 if lbg_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
-	choosed_option="$lbg_choose_option"
+	chosen_option="$lbg_choose_option"
 fi
 ```
 
@@ -407,7 +407,7 @@ PATH              Starting path (current directory by default)
 - 0: OK
 - 1: Usage error
 - 2: Cancelled
-- 3: Choosed path does not exists or is not a directory
+- 3: Chosen path does not exists or is not a directory
 
 #### Example
 ```bash
@@ -441,7 +441,7 @@ PATH                 Starting path or default file path (open current directory 
 - 0: OK
 - 1: Usage error
 - 2: Cancelled
-- 3: Choosed path does not exists or is not a file
+- 3: Chosen path does not exists or is not a file
 
 #### Example
 ```bash
