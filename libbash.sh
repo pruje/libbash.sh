@@ -382,13 +382,13 @@ lb_display() {
 lb_result() {
 
 	# get last command result
-	local lb_prs_lastres=$?
-	local lb_prs_ok="$lb_default_result_ok_label"
-	local lb_prs_failed="$lb_default_result_failed_label"
-	local lb_prs_opts=""
-	local lb_prs_quiet=false
-	local lb_prs_exitcode=false
-	local lb_prs_errorexit=false
+	local lb_result_lastres=$?
+	local lb_result_ok="$lb_default_result_ok_label"
+	local lb_result_failed="$lb_default_result_failed_label"
+	local lb_result_opts=""
+	local lb_result_quiet=false
+	local lb_result_exitcode=false
+	local lb_result_errorexit=false
 
 	# get options
 	while true ; do
@@ -397,37 +397,37 @@ lb_result() {
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
-				lb_prs_ok="$2"
+				lb_result_ok="$2"
 				shift 2
 				;;
 			--failed-label)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
-				lb_prs_failed="$2"
+				lb_result_failed="$2"
 				shift 2
 				;;
 			-l|--log-level)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
-				lb_prs_opts="-l $2 "
+				lb_result_opts="-l $2 "
 				shift 2
 				;;
 			--log)
-				lb_prs_opts="--log "
+				lb_result_opts="--log "
 				shift
 				;;
 			-e|--save-exit-code)
-				lb_prs_exitcode=true
+				lb_result_exitcode=true
 				shift
 				;;
 			-x|--exit-on-error)
-				lb_prs_errorexit=true
+				lb_result_errorexit=true
 				shift
 				;;
 			-q|--quiet)
-				lb_prs_quiet=true
+				lb_result_quiet=true
 				shift
 				;;
 			*)
@@ -437,38 +437,38 @@ lb_result() {
 	done
 
 	if [ -z "$1" ] ; then
-		lb_prs_res=$lb_prs_lastres
+		lb_result_res=$lb_result_lastres
 	else
-		lb_prs_res=$1
+		lb_result_res=$1
 	fi
 
 	# bad usage
-	if ! lb_is_integer $lb_prs_res ; then
+	if ! lb_is_integer $lb_result_res ; then
 		return 1
 	fi
 
-	if [ $lb_prs_res == 0 ] ; then
-		if ! $lb_prs_quiet ; then
-			lb_display $lb_prs_opts"$lb_prs_ok"
+	if [ $lb_result_res == 0 ] ; then
+		if ! $lb_result_quiet ; then
+			lb_display $lb_result_opts"$lb_result_ok"
 		fi
 	else
-		if ! $lb_prs_quiet ; then
-			lb_display $lb_prs_opts"$lb_prs_failed"
+		if ! $lb_result_quiet ; then
+			lb_display $lb_result_opts"$lb_result_failed"
 		fi
 
 		# if exit on error, exit
-		if $lb_prs_errorexit ; then
-			exit $lb_prs_res
+		if $lb_result_errorexit ; then
+			exit $lb_result_res
 		fi
 	fi
 
 	# save result to exit code
-	if $lb_prs_exitcode ; then
-		lb_exitcode=$lb_prs_res
+	if $lb_result_exitcode ; then
+		lb_exitcode=$lb_result_res
 	fi
 
 	# return exit code
-	return $lb_prs_res
+	return $lb_result_res
 }
 
 
