@@ -8,11 +8,11 @@
 #  MIT License                                         #
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #                                                      #
-#  Version 0.1.2 (2017-02-04)                          #
+#  Version 0.2.0 (2017-02-06)                          #
 #                                                      #
 ########################################################
 
-lb_version="0.1.1"
+lb_version="0.2.0-beta.1"
 
 
 ####################
@@ -791,6 +791,25 @@ lb_log() {
 ############################
 #  OPERATIONS ON VARIABLES #
 ############################
+
+# Test if a value is a number
+# Usage: lb_is_number VALUE
+# Exit codes:
+#   0: value is a number
+#   1: value is not a number
+lb_is_number() {
+
+	# if empty, is not a number (not an usage error)
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# test if is a number (also works for negative numbers)
+	if ! [[ $1 =~ ^-?[0-9]+([.][0-9]+)?$ ]] ; then
+		return 1
+	fi
+}
+
 
 # Test if a value is integer
 # Usage: lb_is_integer VALUE
