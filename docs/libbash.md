@@ -63,6 +63,7 @@ All functions are named with the `lb_` prefix.
 * Files and directories
 	* [lb_homepath](#lb_homepath)
 	* [lb_dir_is_empty](#lb_dir_is_empty)
+	* [lb_abspath](#lb_abspath)
 	* [lb_realpath](#lb_realpath)
 	* [lb_is_writable](#lb_is_writable)
 * System utilities
@@ -724,12 +725,33 @@ fi
 ```
 
 ---------------------------------------------------------------
+<a name="lb_abspath"></a>
+### lb_abspath
+Get the absolute path of a file or directory.
+
+#### Usage
+```bash
+lb_abspath PATH
+```
+
+#### Exit codes
+- 0: OK
+- 1: usage error
+- 2: parent directory does not exists
+
+#### Example
+```bash
+abs_path=$(lb_abspath file.txt)
+```
+
+---------------------------------------------------------------
 <a name="lb_realpath"></a>
 ### lb_realpath
-Get the realpath of a file:
+Get the real path of a file or directory.
 
-- If a relative path is given, absolute path is returned.
-- If the path is a symbolic link, absolute path is returned.
+- If the given path, it will return its absolute path.
+- If the given path is a symbolic link, it will return the absolute path of the link target.
+- If the given path has a parent directory that is a symbolic link, it will return the real absolute path.
 
 #### Usage
 ```bash
@@ -743,7 +765,7 @@ lb_realpath PATH
 
 #### Example
 ```bash
-abs_path=$(lb_realpath ./my_link)
+real_path=$(lb_realpath /path/link_to_file)
 ```
 
 ---------------------------------------------------------------
