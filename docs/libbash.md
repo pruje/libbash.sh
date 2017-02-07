@@ -55,6 +55,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_is_number](#lb_is_number)
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_array_contains](#lb_array_contains)
+	* [lb_is_comment](#lb_is_comment)
 * Filesystem
 	* [lb_df_fstype](#lb_df_fstype)
 	* [lb_df_space_left](#lb_df_space_left)
@@ -587,6 +588,38 @@ array=(one two three)
 if lb_array_contains "one" "${array[@]}" ; then
 	echo "one is in array"
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_is_comment"></a>
+### lb_is_comment
+Test if a text is a code comment.
+
+#### Usage
+```bash
+lb_is_comment [OPTIONS] TEXT
+```
+
+#### Options
+```
+-s, --symbol STRING  Detect symbol as a comment (can use multiple values, '#' by default)
+-n, --not-empty      Empty values are not considered as comments
+```
+
+#### Exit codes
+- 0: Text is a comment
+- 1: Usage error
+- 2: Text is not a comment
+- 3: Text is empty (if `--not-empty` option is set)
+
+#### Example
+```bash
+# read config file without comments
+while read line ; do
+	if ! is_comment $line ; then
+		echo "$line"
+	fi
+done < "config.sh"
 ```
 
 ---------------------------------------------------------------
