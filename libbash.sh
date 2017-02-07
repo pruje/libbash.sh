@@ -8,11 +8,11 @@
 #  MIT License                                         #
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #                                                      #
-#  Version 0.2.0 (2017-02-06)                          #
+#  Version 0.3.0 (2017-02-06)                          #
 #                                                      #
 ########################################################
 
-lb_version="0.2.0"
+lb_version="0.3.0-beta.1"
 
 
 ####################
@@ -951,6 +951,69 @@ lb_array_contains() {
 	done
 
 	# if not found, return 2
+	return 2
+}
+
+
+# Test if a text is a comment
+# Usage: lb_is_comment [OPTIONS] TEXT
+# Options:
+#   -s, --symbol STRING  Detect symbol as a comment (can use multiple values, '#' by default)
+#   -n, --not-empty      Empty values are not considered as comments
+# Exit codes:
+#   0: is a comment
+#   1: usage error
+#   2: is not a comment
+#   3: is empty (if --not-empty option is set)
+lb_is_comment() {
+
+	# default options
+	local lb_iscom_symbols=()
+	local lb_iscom_empty=true
+
+	# get options
+	while true ; do
+		case "$1" in
+			-s|--symbol)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lb_iscom_symbols=("$2")
+				shift 2
+				;;
+			-n|--not-empty)
+				lb_iscom_empty=false
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+
+	# set default comment symbol if none is set
+	if [ ${#lb_iscom_symbols[@]} == 0 ] ; then
+		lb_iscom_symbols+=("#")
+	fi
+
+	# delete spaces to find the first character
+	lb_iscom_line=$(echo $* | tr -d '[:space:]')
+	if [ -z "$lb_iscom_line" ] ; then
+		if $lb_iscom_empty ; then
+			return
+		else
+			return 3
+		fi
+	else
+		# test if text starts with comment symbols
+		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
+			lb_iscom_symbol="${lb_iscom_symbols[$lb_iscom_i]}"
+			if [ "${lb_iscom_line:0:${#lb_iscom_symbol}}" == "$lb_iscom_symbol" ] ; then
+				return
+			fi
+		done
+	fi
+
 	return 2
 }
 
