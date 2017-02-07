@@ -1226,7 +1226,38 @@ lb_dir_is_empty() {
 }
 
 
-# Get realpath of a file
+# Get absolute path of a file/directory
+# Usage: lb_abspath PATH
+# Return: absolute path
+# Exit codes:
+#   0: OK
+#   1: usage error
+#   2: parent directory not found
+lb_abspath() {
+
+	# usage error
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# get directory and file names
+	lb_abspath_dir="$(dirname "$*")"
+	lb_abspath_file="$(basename "$*")"
+
+	# get absolute path of the parent directory
+	lb_abspath_path="$(cd "$lb_abspath_dir" &> /dev/null && pwd)"
+
+	# if path does not exists, error
+	if [ $? != 0 ] ; then
+		return 2
+	fi
+
+	# return absolute path
+	echo "$lb_abspath_path/$lb_abspath_file"
+}
+
+
+# Get real path of a file/directory
 # Usage: lb_realpath PATH
 # Return: real path
 # Exit codes:
