@@ -73,7 +73,7 @@ lbg_set_gui() {
 	# set console mode is always OK
 	if [ "$lbg_setgui_gui" == "console" ] ; then
 		lbg_gui="console"
-		return
+		return 0
 	fi
 
 	# test if GUI is supported
@@ -100,6 +100,8 @@ lbg_set_gui() {
 			return 4
 		fi
 	fi
+
+	return 0
 }
 
 
@@ -167,7 +169,7 @@ EOF
 			fi
 
 			# quit
-			return
+			return 0
 			;;
 
 		dialog)
@@ -183,7 +185,7 @@ EOF
 			fi
 
 			# quit
-			return
+			return 0
 			;;
 
 		*)
@@ -199,6 +201,8 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -262,7 +266,7 @@ EOF
 			fi
 
 			# quit
-			return
+			return 0
 			;;
 
 		dialog)
@@ -283,6 +287,8 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -346,7 +352,7 @@ EOF
 			fi
 
 			# quit
-			return
+			return 0
 			;;
 
 		dialog)
@@ -367,6 +373,8 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -444,7 +452,7 @@ lbg_notify() {
 				# push notification and return
 				notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
 				if [ $? == 0 ] ; then
-					return
+					return 0
 				else
 					return 2
 				fi
@@ -486,6 +494,8 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -494,7 +504,6 @@ EOF
 ######################
 
 # Prompt user to confirm an action in graphical mode
-# TODO: add cancel option
 # Usage: lbg_yesno [OPTIONS] TEXT
 # Options:
 #   -y, --yes         Set Yes as selected button (not available on kdialog and zenity)
@@ -619,7 +628,7 @@ EOF)
 			# return result
 			case $lbg_yn_res in
 				0)
-					return
+					return 0
 					;;
 				255)
 					# cancelled
@@ -654,6 +663,8 @@ EOF)
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -881,6 +892,8 @@ EOF)
 		lbg_choose_option=""
 		return 3
 	fi
+
+	return 0
 }
 
 
@@ -985,6 +998,8 @@ EOF)
 		lbg_input_text=""
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -1096,7 +1111,7 @@ EOF)
 
 		# if no confirm, quit
 		if ! $lbg_inpw_confirm ; then
-			return
+			return 0
 		fi
 
 		# if first iteration,
@@ -1115,9 +1130,11 @@ EOF)
 			fi
 
 			# quit
-			return
+			return 0
 		fi
 	done
+
+	return 0
 }
 
 
@@ -1247,6 +1264,8 @@ EOF)
 			return 4
 		fi
 	fi
+
+	return 0
 }
 
 
@@ -1446,6 +1465,8 @@ EOF)
 			return 4
 		fi
 	fi
+
+	return 0
 }
 
 

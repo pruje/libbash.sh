@@ -74,6 +74,8 @@ lb_command_exists() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -102,6 +104,8 @@ lb_function_exists() {
 	if [ "$lb_function_exists_res" != "function" ] ; then
 		return 3
 	fi
+
+	return 0
 }
 
 
@@ -152,6 +156,8 @@ lb_test_arguments() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -301,7 +307,7 @@ lb_display() {
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
 				if [ $lb_display_idlvl -gt $lb_loglevel ] ; then
-					return
+					return 0
 				fi
 			fi
 		fi
@@ -358,11 +364,11 @@ lb_display() {
 
 	# print text
 	lb_print $lb_display_opts"$lb_display_msgprefix$*"
-	if [ $? == 0 ] ; then
-		return $lb_display_exit
-	else
+	if [ $? != 0 ] ; then
 		return 3
 	fi
+
+	return $lb_display_exit
 }
 
 
@@ -669,6 +675,8 @@ lb_set_logfile() {
 			lb_loglevel=$((${#lb_loglevels[@]} - 1))
 		fi
 	fi
+
+	return 0
 }
 
 
@@ -711,7 +719,7 @@ lb_get_loglevel() {
 			else
 				echo ${lb_loglevels[$lb_loglevel]}
 			fi
-			return
+			return 0
 		fi
 	else
 		# get gived level name
@@ -727,7 +735,7 @@ lb_get_loglevel() {
 			else
 				echo ${lb_loglevels[$lb_getloglevel_i]}
 			fi
-			return
+			return 0
 		fi
 	done
 
@@ -754,7 +762,7 @@ lb_set_loglevel() {
 		# search by name and set level id
 		if [ "${lb_loglevels[$lb_setloglevel_i]}" == "$1" ] ; then
 			lb_loglevel=$lb_setloglevel_i
-			return
+			return 0
 		fi
 	done
 
@@ -837,7 +845,7 @@ lb_log() {
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
 				if [ $lb_log_idlvl -gt $lb_loglevel ] ; then
-					return
+					return 0
 				fi
 			fi
 		fi
@@ -874,6 +882,8 @@ lb_log() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
+
+	return 0
 }
 
 
@@ -897,6 +907,8 @@ lb_is_number() {
 	if ! [[ $1 =~ ^-?[0-9]+([.][0-9]+)?$ ]] ; then
 		return 1
 	fi
+
+	return 0
 }
 
 
@@ -918,6 +930,8 @@ lb_is_integer() {
 	if ! [[ $1 =~ ^-?[0-9]+$ ]] ; then
 		return 1
 	fi
+
+	return 0
 }
 
 
@@ -944,9 +958,9 @@ lb_array_contains() {
 
 	# parse array to find value
 	for ((lb_arraycontains_i=0 ; lb_arraycontains_i < ${#lb_arraycontains_array[@]} ; lb_arraycontains_i++)) ; do
-		# if found, return 0 (implicit)
+		# if found, exit
 		if [ "${lb_arraycontains_array[$lb_arraycontains_i]}" == "$lb_arraycontains_search" ] ; then
-			return
+			return 0
 		fi
 	done
 
@@ -998,9 +1012,11 @@ lb_is_comment() {
 
 	# delete spaces to find the first character
 	lb_iscom_line=$(echo $* | tr -d '[:space:]')
+
+	# empty line
 	if [ -z "$lb_iscom_line" ] ; then
 		if $lb_iscom_empty ; then
-			return
+			return 0
 		else
 			return 3
 		fi
@@ -1008,12 +1024,15 @@ lb_is_comment() {
 		# test if text starts with comment symbols
 		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
 			lb_iscom_symbol="${lb_iscom_symbols[$lb_iscom_i]}"
+
 			if [ "${lb_iscom_line:0:${#lb_iscom_symbol}}" == "$lb_iscom_symbol" ] ; then
-				return
+				# is a comment: exit
+				return 0
 			fi
 		done
 	fi
 
+	# symbol not found: not a comment
 	return 2
 }
 
@@ -1063,6 +1082,8 @@ lb_df_fstype() {
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
+
+	return 0
 }
 
 
@@ -1100,6 +1121,8 @@ lb_df_space_left() {
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
+
+	return 0
 }
 
 
@@ -1137,6 +1160,8 @@ lb_df_mountpoint() {
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
+
+	return 0
 }
 
 
@@ -1180,7 +1205,8 @@ lb_df_uuid() {
 			return 3
 		fi
 
-		return
+		# exit ok
+		return 0
 	else
 		# Linux systems
 
@@ -1209,10 +1235,9 @@ lb_df_uuid() {
 		for lb_dfuuid_link in "$lb_dfuuid_list"/* ; do
 			# search if file is linked to the same device
 			if [ "$(lb_realpath "$lb_dfuuid_link")" == "$lb_dfuuid_dev" ] ; then
-				# if found, return UUID
+				# if found, return UUID and exit
 				echo $(basename "$lb_dfuuid_link")
-				# return 0 (implicit)
-				return
+				return 0
 			fi
 		done
 	fi
@@ -1262,7 +1287,7 @@ lb_homepath() {
 #   3: directory is not empty
 lb_dir_is_empty() {
 
-	# test if argument exists
+	# usage error
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -1286,6 +1311,8 @@ lb_dir_is_empty() {
 	if [ "$lb_dir_is_empty_res" ] ; then
 		return 3
 	fi
+
+	return 0
 }
 
 
@@ -1408,6 +1435,8 @@ lb_is_writable() {
 			return 3
 		fi
 	fi
+
+	return 0
 }
 
 
@@ -1432,7 +1461,6 @@ lb_detect_os() {
 
 # Send an email
 # Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
-# TODO: add support for attachments and other commands than sendmail (mail, exim4, ...)
 # Options:
 #   -s, --subject TEXT           Email subject
 #   --sender EMAIL               Sender email address
@@ -1577,6 +1605,8 @@ lb_email() {
 			return 2
 			;;
 	esac
+
+	return 0
 }
 
 
@@ -1697,6 +1727,8 @@ lb_yesno() {
 			return 2
 		fi
 	fi
+
+	return 0
 }
 
 
@@ -1837,6 +1869,8 @@ lb_choose_option() {
 			return 3
 		fi
 	fi
+
+	return 0
 }
 
 
@@ -1912,6 +1946,8 @@ lb_input_text() {
 			return 2
 		fi
 	fi
+
+	return 0
 }
 
 
@@ -1977,7 +2013,7 @@ lb_input_password() {
 
 	# if no confirmation, return OK
 	if ! $lb_inpw_confirm ; then
-		return
+		return 0
 	fi
 
 	# if confirmation, save current password
@@ -1993,6 +2029,8 @@ lb_input_password() {
 		lb_input_password=""
 		return 3
 	fi
+
+	return 0
 }
 
 
