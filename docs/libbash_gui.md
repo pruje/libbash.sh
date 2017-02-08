@@ -399,8 +399,9 @@ lbg_choose_directory [OPTIONS] [PATH]
 
 #### Options
 ```
--t, --title TEXT  Set a title to the dialog
-PATH              Starting path (current directory by default)
+-a, --absolute-path  Return absolute path of the directory
+-t, --title TEXT     Set a title to the dialog
+PATH                 Starting path (current directory by default)
 ```
 
 #### Exit codes
@@ -423,6 +424,8 @@ Displays a dialog to choose an existing file.
 
 Absolute path of the chosen file is set into the `$lbg_choose_file` variable.
 
+**Note:** File filters are not yet supported on macOS
+
 #### Usage
 ```bash
 lbg_choose_file [OPTIONS] [PATH]
@@ -430,10 +433,12 @@ lbg_choose_file [OPTIONS] [PATH]
 
 #### Options
 ```
--t, --title TEXT     Set a title to the dialog
--f, --filter FILTER  set filters (WARNING: not supported with dialog command)
+-s, --save           Save mode (create/save a file instead of open an existing one)
+-f, --filter FILTER  Set filters (WARNING: not supported with dialog command)
                      e.g. -f "*.jpg" to filter by JPEG files
                      OPTION NOT SUPPORTED YET ON macOS
+-a, --absolute-path  Return absolute path of the file
+-t, --title TEXT     Set a title to the dialog
 PATH                 Starting path or default file path (open current directory by default)
 ```
 
@@ -441,7 +446,10 @@ PATH                 Starting path or default file path (open current directory 
 - 0: OK
 - 1: Usage error
 - 2: Cancelled
-- 3: Chosen path does not exists or is not a file
+- 3: Chosen path does not exists or is not a file (if open mode) or invalid parent directory (if save mode)
+- 4: Cannot get absolute path of the file*
+
+\* In this case, you can, however, retrieve the chosen path in the `$lbg_choose_file` variable.
 
 #### Example
 ```bash

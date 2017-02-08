@@ -1128,8 +1128,9 @@ EOF)
 # Ask user to choose an existing directory
 # Usage: lbg_choose_directory [OPTIONS] [PATH]
 # Options:
-#   -t, --title TITLE  set dialog title
-#   PATH               starting path (current by default)
+#   -a, --absolute-path  Return absolute path of the directory
+#   -t, --title TITLE    Set dialog title
+#   PATH                 Starting path (current by default)
 # Return: choosed directory path is stored into $lbg_choose_directory variable
 # Exit codes:
 #   0: OK
@@ -1145,10 +1146,15 @@ lbg_choose_directory() {
 	# default options
 	local lbg_chdir_title="$lb_current_script_name"
 	local lbg_chdir_path=""
+	local lbg_chdir_absolute=false
 
 	# get options
 	while true ; do
 		case "$1" in
+			-a|--absolute-path)
+				lbg_chdir_absolute=true
+				shift
+				;;
 			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
@@ -1230,6 +1236,17 @@ EOF)
 		lbg_choose_directory=""
 		return 3
 	fi
+
+	# return absolute path if option set
+	if $lbg_chdir_absolute ; then
+		lbg_chdir_abspath="$(lb_abspath "$lbg_choose_directory")"
+		if [ $? == 0 ] ; then
+			lbg_choose_directory="$lbg_chdir_abspath"
+		else
+			# in case of error, user can get returned path
+			return 4
+		fi
+	fi
 }
 
 
@@ -1240,6 +1257,7 @@ EOF)
 #   -f, --filter FILTER  set filters (WARNING: not supported with dialog command)
 #                        e.g. -f "*.sh" to filter by bash files
 #                        OPTION NOT SUPPORTED YET ON macOS
+#   -a, --absolute-path  get absolute path of file
 #   -t, --title TITLE    set a dialog title
 #   PATH                 starting path or selected file (current by default)
 # Return: choosed file path is stored into $lbg_choose_file variable
@@ -1247,7 +1265,8 @@ EOF)
 #   0: OK
 #   1: usage error
 #   2: cancelled
-#   3: choosed file does not exists
+#   3: chosen file is not valid
+#   4: cannot get absolute path
 lbg_choose_file=""
 lbg_choose_file() {
 
@@ -1259,6 +1278,7 @@ lbg_choose_file() {
 	local lbg_choosefile_title="$lb_current_script_name"
 	local lbg_choosefile_path=""
 	local lbg_choosefile_filters=()
+	local lbg_choosefile_absolute=false
 
 	# catch options
 	while true ; do
@@ -1267,18 +1287,22 @@ lbg_choose_file() {
 				lbg_choosefile_save=true
 				shift
 				;;
-			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
-					return 1
-				fi
-				lbg_choosefile_title="$2"
-				shift 2
-				;;
 			-f|--filter)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
 				fi
 				lbg_choosefile_filters+=("$2")
+				shift 2
+				;;
+			-a|--absolute-path)
+				lbg_choosefile_absolute=true
+				shift
+				;;
+			-t|--title)
+				if lb_test_arguments -eq 0 $2 ; then
+					return 1
+				fi
+				lbg_choosefile_title="$2"
 				shift 2
 				;;
 			*)
@@ -1294,9 +1318,16 @@ lbg_choose_file() {
 		lbg_choosefile_path="$*"
 	fi
 
-	# if path does not exists, error
-	if ! [ -e "$lbg_choosefile_path" ] ; then
-		return 1
+	# if directory does not exists (save mode), error
+	if $lbg_choosefile_save ; then
+		if ! [ -d "$(dirname "$lbg_choosefile_path")" ] ; then
+			return 1
+		fi
+	else
+		# if path does not exists (open mode), error
+		if ! [ -e "$lbg_choosefile_path" ] ; then
+			return 1
+		fi
 	fi
 
 	# display dialog
@@ -1305,8 +1336,7 @@ lbg_choose_file() {
 			# kdialog has a strange behaviour: it takes a path but only as a file name.
 			# it starts on the current directory path. This is a hack to work:
 			lbg_choosefile_pathfile="."
-			if [ -f "$lbg_choosefile_path" ] ; then
-				# if a file, get filename and path
+			if ! [ -d "$lbg_choosefile_path" ] ; then
 				lbg_choosefile_pathfile="$(basename "$lbg_choosefile_path")"
 				lbg_choosefile_path="$(dirname "$lbg_choosefile_path")"
 			fi
@@ -1389,12 +1419,31 @@ EOF)
 			lbg_choose_file=""
 			return 3
 		fi
+
+		# if exists but is not a file, return error
+		if [ -e "$lbg_choose_file" ] ; then
+			if ! [ -f "$lbg_choose_file" ] ; then
+				lbg_choose_file=""
+				return 3
+			fi
+		fi
 	else
 		# open mode
 		# if file does not exists, reset variable and return error
 		if ! [ -f "$lbg_choose_file" ] ; then
 			lbg_choose_file=""
 			return 3
+		fi
+	fi
+
+	# return absolute path if option set
+	if $lbg_choosefile_absolute ; then
+		lbg_choosefile_abspath="$(lb_abspath "$lbg_choose_file")"
+		if [ $? == 0 ] ; then
+			lbg_choose_file="$lbg_choosefile_abspath"
+		else
+			# in case of error, user can get returned path
+			return 4
 		fi
 	fi
 }
