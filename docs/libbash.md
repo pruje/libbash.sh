@@ -299,7 +299,7 @@ lb_result [OPTIONS] [EXIT_CODE]
 --failed-label LABEL   Set a failed label
 --log                  Append result to log file
 -l, --log-level LEVEL  Choose a display level (will be the same for logs)
--e, --save-exit-code   Save the result to the $lb_exitcode variable
+-e, --save-exitcode    Save the result to the $lb_exitcode variable
 -x, --exit-on-error    Exit if result is not ok (exit code not to 0)
 -q, --quiet            Do not print anything
 
@@ -332,7 +332,7 @@ lb_short_result [OPTIONS] [EXIT_CODE]
 ```
 --log                  Append result to log file
 -l, --log-level LEVEL  Choose a display level (will be the same for logs)
--e, --save-exit-code   Save the result to the $lb_exitcode variable
+-e, --save-exitcode    Save the result to the $lb_exitcode variable
 -x, --exit-on-error    Exit if result is not ok (exit code not to 0)
 -q, --quiet            Do not print anything
 

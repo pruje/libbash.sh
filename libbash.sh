@@ -373,7 +373,7 @@ lb_display() {
 #   --failed-label TEXT    set a failed label
 #   -l, --log-level LEVEL  set a log level
 #   --log                  print result into log file
-#   -e, --save-exit-code   save result to exit code
+#   -e, --save-exitcode    save result to exit code
 #   -x, --exit-on-error    exit if result is not ok
 #   -q, --quiet            quiet mode (do not print anything)
 # Note: a very simple usage is to execute lb_result just after a command
@@ -418,7 +418,7 @@ lb_result() {
 				lb_result_opts="--log "
 				shift
 				;;
-			-e|--save-exit-code)
+			-e|--save-exitcode)
 				lb_result_exitcode=true
 				shift
 				;;
@@ -447,6 +447,11 @@ lb_result() {
 		return 1
 	fi
 
+	# save result to exit code
+	if $lb_result_exitcode ; then
+		lb_exitcode=$lb_result_res
+	fi
+
 	if [ $lb_result_res == 0 ] ; then
 		if ! $lb_result_quiet ; then
 			lb_display $lb_result_opts"$lb_result_ok"
@@ -458,13 +463,8 @@ lb_result() {
 
 		# if exit on error, exit
 		if $lb_result_errorexit ; then
-			exit $lb_result_res
+			lb_exit
 		fi
-	fi
-
-	# save result to exit code
-	if $lb_result_exitcode ; then
-		lb_exitcode=$lb_result_res
 	fi
 
 	# return exit code
@@ -477,7 +477,7 @@ lb_result() {
 # Options:
 #   -l, --log-level LEVEL  set a log level
 #   --log                  print result into log file
-#   -e, --save-exit-code   save result to exit code
+#   -e, --save-exitcode    save result to exit code
 #   -x, --exit-on-error    exit if result is not ok
 #   -q, --quiet            quiet mode (do not print anything)
 # See lb_result for options usage.
@@ -505,7 +505,7 @@ lb_short_result() {
 				lb_shres_opts="--log "
 				shift
 				;;
-			-e|--save-exit-code)
+			-e|--save-exitcode)
 				lb_shres_exitcode=true
 				shift
 				;;
@@ -534,6 +534,11 @@ lb_short_result() {
 		return 1
 	fi
 
+	# save result to exit code
+	if $lb_shres_exitcode ; then
+		lb_exitcode=$lb_shres_res
+	fi
+
 	if [ $lb_shres_res == 0 ] ; then
 		if ! $lb_shres_quiet ; then
 			lb_display $lb_shres_opts"[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]"
@@ -545,13 +550,8 @@ lb_short_result() {
 
 		# if exit on error, exit
 		if $lb_shres_errorexit ; then
-			exit $lb_shres_res
+			lb_exit
 		fi
-	fi
-
-	# save result to exit code
-	if $lb_shres_exitcode ; then
-		lb_exitcode=$lb_shres_res
 	fi
 
 	# return exit code
