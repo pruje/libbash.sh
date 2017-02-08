@@ -1236,10 +1236,11 @@ EOF)
 # Dialog to choose a file
 # Usage: lbg_choose_file [OPTIONS] [PATH]
 # Options:
-#   -t, --title TITLE    set a dialog title
+#   -s, --save           save mode (can create file instead of open existing)
 #   -f, --filter FILTER  set filters (WARNING: not supported with dialog command)
 #                        e.g. -f "*.sh" to filter by bash files
 #                        OPTION NOT SUPPORTED YET ON macOS
+#   -t, --title TITLE    set a dialog title
 #   PATH                 starting path or selected file (current by default)
 # Return: choosed file path is stored into $lbg_choose_file variable
 # Exit codes:
@@ -1254,6 +1255,7 @@ lbg_choose_file() {
 	lbg_choose_file=""
 
 	# default options
+	local lbg_choosefile_save=false
 	local lbg_choosefile_title="$lb_current_script_name"
 	local lbg_choosefile_path=""
 	local lbg_choosefile_filters=()
@@ -1261,6 +1263,10 @@ lbg_choose_file() {
 	# catch options
 	while true ; do
 		case "$1" in
+			-s|--save)
+				lbg_choosefile_save=true
+				shift
+				;;
 			-t|--title)
 				if lb_test_arguments -eq 0 $2 ; then
 					return 1
@@ -1305,8 +1311,15 @@ lbg_choose_file() {
 				lbg_choosefile_path="$(dirname "$lbg_choosefile_path")"
 			fi
 
+			# set mode (open or save)
+			if $lbg_choosefile_save ; then
+				lbg_choosefile_mode="--getsavefilename"
+			else
+				lbg_choosefile_mode="--getopenfilename"
+			fi
+
 			# go into the directory then open kdialog
-			lbg_choose_file=$(cd "$lbg_choosefile_path" &> /dev/null; kdialog --title "$lbg_choosefile_title" --getopenfilename "$lbg_choosefile_pathfile" "${lbg_choosefile_filters[@]}" 2> /dev/null)
+			lbg_choose_file=$(cd "$lbg_choosefile_path" &> /dev/null; kdialog --title "$lbg_choosefile_title" $lbg_choosefile_mode "$lbg_choosefile_pathfile" "${lbg_choosefile_filters[@]}" 2> /dev/null)
 			;;
 
 		zenity)
@@ -1315,12 +1328,22 @@ lbg_choose_file() {
 				lbg_choosefile_opts=--file-filter="${lbg_choosefile_filters[@]}"
 			fi
 
-			lbg_choose_file=$(zenity --title "$lbg_choosefile_title" --file-selection --filename "$lbg_choosefile_path" "$lbg_choosefile_opts" 2> /dev/null)
+			# set save mode
+			if $lbg_choosefile_save ; then
+				lbg_choosefile_opts="--save"
+			fi
+
+			lbg_choose_file=$(zenity --title "$lbg_choosefile_title" --file-selection $lbg_choosefile_opts --filename "$lbg_choosefile_path" "$lbg_choosefile_opts" 2> /dev/null)
 			;;
 
 		osascript)
+			# set save mode
+			if $lbg_choosefile_save ; then
+				lbg_choosefile_opts="name"
+			fi
+
 			lbg_choose_file=$(osascript 2> /dev/null <<EOF
-set answer to POSIX path of (choose file with prompt "$lbg_choosefile_title" default location "$lbg_choosefile_path")
+set answer to POSIX path of (choose file $lbg_choosefile_opts with prompt "$lbg_choosefile_title" default location "$lbg_choosefile_path")
 EOF)
 			;;
 
@@ -1359,10 +1382,20 @@ EOF)
 		return 2
 	fi
 
-	# if not a file, reset variable and return error
-	if ! [ -f "$lbg_choose_file" ] ; then
-		lbg_choose_file=""
-		return 3
+	# if save mode,
+	if $lbg_choosefile_save ; then
+		# if directory parent does not exists, reset variable and return error
+		if ! [ -d "$(dirname "$lbg_choose_file")" ] ; then
+			lbg_choose_file=""
+			return 3
+		fi
+	else
+		# open mode
+		# if file does not exists, reset variable and return error
+		if ! [ -f "$lbg_choose_file" ] ; then
+			lbg_choose_file=""
+			return 3
+		fi
 	fi
 }
 
