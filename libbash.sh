@@ -1304,19 +1304,38 @@ lb_abspath() {
 	fi
 
 	# get directory and file names
-	lb_abspath_dir="$(dirname "$*")"
-	lb_abspath_file="$(basename "$*")"
+	local lb_abspath_dir="$(dirname "$*")"
+	local lb_abspath_file="$(basename "$*")"
+	local lb_abspath_path=""
 
-	# get absolute path of the parent directory
-	lb_abspath_path="$(cd "$lb_abspath_dir" &> /dev/null && pwd)"
+	# root directory is always ok
+	if [ "$lb_abspath_dir" == "/" ] ; then
+		lb_abspath_path="/"
+	else
+		# get absolute path of the parent directory
+		lb_abspath_path="$(cd "$lb_abspath_dir" &> /dev/null && pwd)"
 
-	# if path does not exists, error
-	if [ $? != 0 ] ; then
-		return 2
+		# if path does not exists, error
+		if [ $? != 0 ] ; then
+			return 2
+		fi
 	fi
 
-	# return absolute path
-	echo "$lb_abspath_path/$lb_abspath_file"
+	# case of root path (basename=/)
+	if [ "$lb_abspath_file" == "/" ] ; then
+		echo /
+	else
+		# return absolute path
+
+		# case of the current directory (do not put /path/to/./)
+		if [ "$lb_abspath_file" != "." ] ; then
+			lb_abspath_path+="/$lb_abspath_file"
+		fi
+
+		echo "$lb_abspath_path"
+	fi
+
+	return 0
 }
 
 
