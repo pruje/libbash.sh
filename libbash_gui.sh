@@ -28,7 +28,16 @@ fi
 # set supported GUIs
 lbg_supported_gui=(kdialog zenity osascript dialog console)
 
+# GUI tool
 lbg_gui=""
+
+# console size
+lbg_console_width=""
+lbg_console_height=""
+
+# dialog size
+lbg_dialog_width=""
+lbg_dialog_height=""
 
 
 ###############
@@ -86,22 +95,71 @@ lbg_set_gui() {
 		return 3
 	fi
 
-	if [ "$(lb_detect_os)" == "macOS" ] ; then
-		# macOS always has GUI running
-		lbg_gui="$lbg_setgui_gui"
-	else
-		# test if X server started
-		if [ -n "$DISPLAY" ] ; then
-			# set GUI tool
-			lbg_gui="$lbg_setgui_gui"
-		else
-			# if no X server, set console mode
-			lbg_gui="console"
+	# dialog command
+	if [ "$lbg_setgui_gui" == "dialog" ] ; then
+		# get console size
+		if ! lbg_get_console_size ; then
 			return 4
+		fi
+	else
+		# test if X server started (not for macOS)
+		if [ "$(lb_detect_os)" != "macOS" ] ; then
+			if [ -z "$DISPLAY" ] ; then
+				return 4
+			fi
 		fi
 	fi
 
+	# set gui tool
+	lbg_gui="$lbg_setgui_gui"
 	return 0
+}
+
+
+# Get console size and update lbg_console_width and lbg_console_height variables
+# FOR LIBBASH INTERNAL USES; DO NOT PUBLISH DOCUMENTATION
+# Usage: lbg_get_console_size()
+# Exit codes:
+#   0: OK
+#   1: no terminal available
+lbg_get_console_size() {
+
+	# get console width and height
+	lbg_console_width="$(tput cols 2> /dev/null)"
+	lbg_console_height="$(tput lines 2> /dev/null)"
+
+	# if error (script not running in a terminal)
+	if [ -z "$lbg_console_width" ] || [ -z "$lbg_console_height" ] ; then
+		return 1
+	fi
+
+	return 0
+}
+
+
+# Set dialog size to fit console
+# FOR LIBBASH INTERNAL USES; DO NOT PUBLISH DOCUMENTATION
+# Usage: lbg_dialog_size MAX_WIDTH MAX_HEIGHT
+# Return: "HEIGHT WIDTH"
+# e.g. dialog --msgbox "Hello world" $(lbg_dialog_size 50 10)
+lbg_dialog_size() {
+
+	# given size
+	lbg_dialog_width="$1"
+	lbg_dialog_height="$2"
+
+	# if max width > console width, fit to console width
+	if [ "$lbg_dialog_width" -gt "$lbg_console_width" ] ; then
+		lbg_dialog_width=$lbg_console_width
+	fi
+
+	# if max height > console height, fit to console height
+	if [ "$lbg_dialog_height" -gt "$lbg_console_height" ] ; then
+		lbg_dialog_height=$lbg_console_height
+	fi
+
+	# return "height width"
+	echo "$lbg_dialog_height $lbg_dialog_width"
 }
 
 
@@ -173,7 +231,7 @@ EOF
 			;;
 
 		dialog)
-			dialog --title "$lbg_dinf_title" --clear --msgbox "$*" 10 50 2> /dev/null
+			dialog --title "$lbg_dinf_title" --clear --msgbox "$*" $(lbg_dialog_size 50 10) 2> /dev/null
 			lbg_dinf_res=$?
 
 			# clear console
@@ -616,7 +674,7 @@ EOF)
 			if [ -n "$lbg_yn_nolbl" ] ; then
 				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
 			fi
-			lbg_yn_cmd+=(--clear --yesno "$*" 10 100)
+			lbg_yn_cmd+=(--clear --yesno "$*" $(lbg_dialog_size 100 10))
 
 			# run command
 			"${lbg_yn_cmd[@]}"
@@ -831,7 +889,7 @@ EOF)
 			;;
 
 		dialog)
-			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" 30 100 100)
+			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" $(lbg_dialog_size 100 30) $lbg_dialog_height)
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
@@ -969,7 +1027,7 @@ EOF)
 		dialog)
 			# run command (complex case)
 			exec 3>&1
-			lbg_input_text=$(dialog --title "$lbg_inp_title" --clear --inputbox "$*" 10 100 "$lbg_inp_default" 2>&1 1>&3)
+			lbg_input_text=$(dialog --title "$lbg_inp_title" --clear --inputbox "$*" $(lbg_dialog_size 100 10) "$lbg_inp_default" 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1082,7 +1140,7 @@ EOF)
 			dialog)
 				# run command (complex case)
 				exec 3>&1
-				lbg_input_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" 10 50 2>&1 1>&3)
+				lbg_input_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" $(lbg_dialog_size 50 10) 2>&1 1>&3)
 				exec 3>&-
 
 				# clear console
@@ -1216,7 +1274,7 @@ EOF)
 		dialog)
 			# run command (complex case)
 			exec 3>&1
-			lbg_choose_directory=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" 30 100 2>&1 1>&3)
+			lbg_choose_directory=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1409,7 +1467,7 @@ EOF)
 		dialog)
 			# execute dialog (complex case)
 			exec 3>&1
-			lbg_choose_file=$(dialog --title "$lbg_choosefile_title" --clear --fselect "$lbg_choosefile_path" 30 100 2>&1 1>&3)
+			lbg_choose_file=$(dialog --title "$lbg_choosefile_title" --clear --fselect "$lbg_choosefile_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
