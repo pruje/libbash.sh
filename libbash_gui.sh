@@ -35,10 +35,6 @@ lbg_gui=""
 lbg_console_width=""
 lbg_console_height=""
 
-# dialog size
-lbg_dialog_width=""
-lbg_dialog_height=""
-
 
 ###############
 #  GUI TOOLS  #
@@ -145,8 +141,8 @@ lbg_get_console_size() {
 lbg_dialog_size() {
 
 	# given size
-	lbg_dialog_width="$1"
-	lbg_dialog_height="$2"
+	local lbg_dialog_width="$1"
+	local lbg_dialog_height="$2"
 
 	# if max width > console width, fit to console width
 	if [ "$lbg_dialog_width" -gt "$lbg_console_width" ] ; then
@@ -889,7 +885,7 @@ EOF)
 			;;
 
 		dialog)
-			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" $(lbg_dialog_size 100 30) $lbg_dialog_height)
+			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" $(lbg_dialog_size 100 30) 1000)
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
