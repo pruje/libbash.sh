@@ -31,6 +31,7 @@ lb_default_info_label="INFO"
 lb_default_warning_label="AVERTISSEMENT"
 lb_default_error_label="ERREUR"
 lb_default_critical_label="CRITIQUE"
+lb_default_newfile_name="Nouveau fichier"
 
 # reset log levels
 lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
