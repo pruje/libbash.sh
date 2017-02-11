@@ -1386,13 +1386,23 @@ lbg_choose_file() {
 			;;
 
 		osascript)
+			local lbg_choosefile_opts=""
+			local lbg_choosefile_file="$lb_default_newfile_name"
+
 			# set save mode
 			if $lbg_choosefile_save ; then
-				lbg_choosefile_opts="name"
+				lbg_choosefile_mode="name"
+
+				if ! [ -d "$lbg_choosefile_path" ] ; then
+					lbg_choosefile_file="$(basename "$lbg_choosefile_path")"
+					lbg_choosefile_path="$(dirname "$lbg_choosefile_path")"
+				fi
+
+				lbg_choosefile_opts="default name \"$lbg_choosefile_file\""
 			fi
 
 			lbg_choose_file=$(osascript 2> /dev/null <<EOF
-set answer to POSIX path of (choose file $lbg_choosefile_opts with prompt "$lbg_choosefile_title" default location "$lbg_choosefile_path")
+set answer to POSIX path of (choose file $lbg_choosefile_mode with prompt "$lbg_choosefile_title" $lbg_choosefile_opts default location "$lbg_choosefile_path")
 EOF)
 			;;
 

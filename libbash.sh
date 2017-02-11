@@ -40,6 +40,7 @@ lb_default_info_label="INFO"
 lb_default_warning_label="WARNING"
 lb_default_error_label="ERROR"
 lb_default_critical_label="CRITICAL"
+lb_default_newfile_name="New file"
 
 # set log file and default log levels
 lb_logfile=""
