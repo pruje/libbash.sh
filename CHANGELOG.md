@@ -1,11 +1,13 @@
 # Changelog
 
-## 0.3.0 (2017-02-08)
+## 0.3.0 (2017-02-11)
 - New function: lb_abspath()
 - New function: lb_is_comment()
+- Console size detection and improvements for the dialog command
 - Add --absolute-path options to lbg_choose_file() and lbg_choose_directory()
 - Change behaviour for lb_result() on exit to return $lb_exitcode variable and not command result
 - Renamed option --save-exit-code to --save-exitcode for lb_result() and lb_short_result()
+- Set explicit returns to functions to avoid confusion and maybe errors
 
 ## 0.2.0 (2017-02-06)
 - New function: lb_is_number()

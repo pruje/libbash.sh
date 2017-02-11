@@ -390,7 +390,7 @@ fi
 ### lbg_choose_directory
 Displays a dialog to choose an existing directory.
 
-Absolute path of the chosen directory is set into the `$lbg_choose_directory` variable.
+Path of the chosen directory is set into the `$lbg_choose_directory` variable.
 
 #### Usage
 ```bash
@@ -422,7 +422,7 @@ fi
 ### lbg_choose_file
 Displays a dialog to choose an existing file.
 
-Absolute path of the chosen file is set into the `$lbg_choose_file` variable.
+Path of the chosen file is set into the `$lbg_choose_file` variable.
 
 **Note:** File filters are not yet supported on macOS
 
