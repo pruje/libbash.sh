@@ -7,12 +7,13 @@
 #                                                      #
 #  MIT License                                         #
 #  Copyright (c) 2017 Jean Prunneaux                   #
+#  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 0.3.0 (2017-02-11)                          #
+#  Version 0.3.1 (2017-03-07)                          #
 #                                                      #
 ########################################################
 
-lb_version="0.3.0"
+lb_version="0.3.1"
 
 
 ####################
