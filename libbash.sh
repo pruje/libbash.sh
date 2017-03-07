@@ -168,9 +168,17 @@ lb_test_arguments() {
 #   EXIT_CODE  Specify an exit code (if not set, $lb_exitcode will be used)
 lb_exit() {
 
-	# if exit code is set, use it
+	# default exit code
+	lb_exit_res=1
+
+	# if exit code is set,
 	if [ -n "$1" ] ; then
-		lb_exit_res=$1
+		# check type and validity
+		if lb_is_integer $1 ; then
+			if [ $1 -ge 0 ] && [ $1 -le 255 ] ; then
+				lb_exit_res=$1
+			fi
+		fi
 	else
 		# if not, use $lb_exitcode variable
 		lb_exit_res=$lb_exitcode
@@ -376,13 +384,14 @@ lb_display() {
 # Manage command result and display label
 # Usage: lb_result [OPTIONS] [EXIT_CODE]
 # Options:
-#   --ok-label TEXT        set a ok label
-#   --failed-label TEXT    set a failed label
-#   -l, --log-level LEVEL  set a log level
-#   --log                  print result into log file
-#   -e, --save-exitcode    save result to exit code
-#   -x, --exit-on-error    exit if result is not ok
-#   -q, --quiet            quiet mode (do not print anything)
+#   --ok-label TEXT            set a ok label
+#   --failed-label TEXT        set a failed label
+#   -l, --log-level LEVEL      set a log level
+#   --log                      print result into log file
+#   -s, --save-exitcode        save result to exit code
+#   -e, --error-exitcode CODE  set an exitcode if error
+#   -x, --exit-on-error        exit if result is not ok
+#   -q, --quiet                quiet mode (do not print anything)
 # Note: a very simple usage is to execute lb_result just after a command
 #       and get result with $? just after that
 # Exit code: 1 if usage error; forward exit code of the command
@@ -394,8 +403,9 @@ lb_result() {
 	local lb_result_failed="$lb_default_result_failed_label"
 	local lb_result_opts=""
 	local lb_result_quiet=false
-	local lb_result_exitcode=false
-	local lb_result_errorexit=false
+	local lb_result_save_exitcode=false
+	local lb_result_error_exitcode=""
+	local lb_result_exit_on_error=false
 
 	# get options
 	while true ; do
@@ -425,12 +435,24 @@ lb_result() {
 				lb_result_opts="--log "
 				shift
 				;;
-			-e|--save-exitcode)
-				lb_result_exitcode=true
+			-s|--save-exitcode)
+				lb_result_save_exitcode=true
 				shift
 				;;
+			-e|--error-exitcode)
+				# check type and validity
+				if lb_is_integer $2 ; then
+					if [ $2 -gt 255 ] || [ $2 -lt 0 ] ; then
+						return 1
+					fi
+				else
+					return 1
+				fi
+				lb_result_error_exitcode=$2
+				shift 2
+				;;
 			-x|--exit-on-error)
-				lb_result_errorexit=true
+				lb_result_exit_on_error=true
 				shift
 				;;
 			-q|--quiet)
@@ -455,26 +477,36 @@ lb_result() {
 	fi
 
 	# save result to exit code
-	if $lb_result_exitcode ; then
+	if $lb_result_save_exitcode ; then
 		lb_exitcode=$lb_result_res
 	fi
 
+	# if result OK (code 0)
 	if [ $lb_result_res == 0 ] ; then
 		if ! $lb_result_quiet ; then
 			lb_display $lb_result_opts"$lb_result_ok"
 		fi
 	else
+		# if error (code 1-255)
 		if ! $lb_result_quiet ; then
 			lb_display $lb_result_opts"$lb_result_failed"
 		fi
 
+		# if save exit code is not set,
+		if ! $lb_result_save_exitcode ; then
+			# and error exitcode is specified, save it
+			if [ -n "$lb_result_error_exitcode" ] ; then
+				lb_exitcode=$lb_result_error_exitcode
+			fi
+		fi
+
 		# if exit on error, exit
-		if $lb_result_errorexit ; then
+		if $lb_result_exit_on_error ; then
 			lb_exit
 		fi
 	fi
 
-	# return exit code
+	# return result code
 	return $lb_result_res
 }
 
