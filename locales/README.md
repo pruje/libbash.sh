@@ -1,8 +1,10 @@
-# libbash.sh documentation
+# libbash.sh translations
 
-## Table of contents
-- [libbash](libbash.md)
-- [libbash GUI](libbash_gui.md)
+This folder contains translations for the libbash.sh project.
+
+## Documentation
+- [libbash.sh](../docs/libbash.md)
+- [libbash GUI](../docs/libbash_gui.md)
 
 ## License
 libbash.sh is licensed under the MIT License. See [LICENSE.md](../LICENSE.md) for the full license text.

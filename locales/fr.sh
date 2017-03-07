@@ -1,10 +1,11 @@
-########################################################
-#                                                      #
-#  libbash.sh French translations                      #
-#                                                      #
-#  Author: Jean Prunneaux (http://jean.prunneaux.com)  #
-#                                                      #
-########################################################
+#
+# libbash.sh French translations
+#
+# This file is part of libbash.sh (https://github.com/pruje/libbash.sh)
+#
+# MIT License
+# Copyright (c) 2017 Jean Prunneaux
+#
 
 # This file must be included after libbash.sh:
 # source "/path/to/libbash/libbash.sh"

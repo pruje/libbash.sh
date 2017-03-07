@@ -295,13 +295,14 @@ lb_result [OPTIONS] [EXIT_CODE]
 
 #### Options
 ```
---ok-label LABEL       Set a ok label
---failed-label LABEL   Set a failed label
---log                  Append result to log file
--l, --log-level LEVEL  Choose a display level (will be the same for logs)
--e, --save-exitcode    Save the result to the $lb_exitcode variable
--x, --exit-on-error    Exit if result is not ok (exit code not to 0)
--q, --quiet            Do not print anything
+--ok-label LABEL           Set a ok label
+--failed-label LABEL       Set a failed label
+--log                      Append result to log file
+-l, --log-level LEVEL      Choose a display level (will be the same for logs)
+-s, --save-exitcode        Save the result to the $lb_exitcode variable
+-e, --error-exitcode CODE  Set a custom code to the $lb_exitcode variable if error
+-x, --exit-on-error        Exit if result is not ok (exit code not to 0)
+-q, --quiet                Do not print anything
 
 EXIT_CODE              Specify an exit code. If not set, variable $? will be used.
 ```
@@ -330,11 +331,12 @@ lb_short_result [OPTIONS] [EXIT_CODE]
 
 #### Options
 ```
---log                  Append result to log file
--l, --log-level LEVEL  Choose a display level (will be the same for logs)
--e, --save-exitcode    Save the result to the $lb_exitcode variable
--x, --exit-on-error    Exit if result is not ok (exit code not to 0)
--q, --quiet            Do not print anything
+--log                      Append result to log file
+-l, --log-level LEVEL      Choose a display level (will be the same for logs)
+-s, --save-exitcode        Save the result to the $lb_exitcode variable
+-e, --error-exitcode CODE  Set a custom code to the $lb_exitcode variable if error
+-x, --exit-on-error        Exit if result is not ok (exit code not to 0)
+-q, --quiet                Do not print anything
 
 EXIT_CODE              Specify an exit code. If not set, variable $? will be used.
 ```
@@ -1007,3 +1009,13 @@ if lb_input_password --confirm ; then
 	user_password="$lb_input_password"
 fi
 ```
+
+---------------------------------------------------------------
+
+## License
+libbash.sh is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for the full license text.
+
+## Credits
+Author: Jean Prunneaux  [http://jean.prunneaux.com](http://jean.prunneaux.com)
+
+Website: [https://github.com/pruje/libbash.sh](https://github.com/pruje/libbash.sh)
