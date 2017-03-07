@@ -168,23 +168,18 @@ lb_test_arguments() {
 #   EXIT_CODE  Specify an exit code (if not set, $lb_exitcode will be used)
 lb_exit() {
 
-	# default exit code
-	lb_exit_res=1
-
 	# if exit code is set,
 	if [ -n "$1" ] ; then
-		# check type and validity
+		# if it is an integer, exit with it
 		if lb_is_integer $1 ; then
-			if [ $1 -ge 0 ] && [ $1 -le 255 ] ; then
-				lb_exit_res=$1
-			fi
+			exit $1
+		else
+			# if not an integer, exit with 1
+			exit 1
 		fi
-	else
-		# if not, use $lb_exitcode variable
-		lb_exit_res=$lb_exitcode
 	fi
 
-	# exit with specified code
+	# exit with exitcode variable
 	exit $lb_exitcode
 }
 
@@ -398,7 +393,9 @@ lb_display() {
 lb_result() {
 
 	# get last command result
-	local lb_result_lastres=$?
+	local lb_result_res=$?
+
+	# default values and options
 	local lb_result_ok="$lb_default_result_ok_label"
 	local lb_result_failed="$lb_default_result_failed_label"
 	local lb_result_opts=""
@@ -441,11 +438,7 @@ lb_result() {
 				;;
 			-e|--error-exitcode)
 				# check type and validity
-				if lb_is_integer $2 ; then
-					if [ $2 -gt 255 ] || [ $2 -lt 0 ] ; then
-						return 1
-					fi
-				else
+				if ! lb_is_integer $2 ; then
 					return 1
 				fi
 				lb_result_error_exitcode=$2
@@ -465,9 +458,8 @@ lb_result() {
 		esac
 	done
 
-	if [ -z "$1" ] ; then
-		lb_result_res=$lb_result_lastres
-	else
+	# specified exit code
+	if [ -n "$1" ] ; then
 		lb_result_res=$1
 	fi
 
@@ -514,21 +506,25 @@ lb_result() {
 # Manage command result and display label in short mode
 # Usage: lb_short_result [OPTIONS] [EXIT_CODE]
 # Options:
-#   -l, --log-level LEVEL  set a log level
-#   --log                  print result into log file
-#   -e, --save-exitcode    save result to exit code
-#   -x, --exit-on-error    exit if result is not ok
-#   -q, --quiet            quiet mode (do not print anything)
+#   -l, --log-level LEVEL      set a log level
+#   --log                      print result into log file
+#   -s, --save-exitcode        save result to exit code
+#   -e, --error-exitcode CODE  set an exitcode if error
+#   -x, --exit-on-error        exit if result is not ok
+#   -q, --quiet                quiet mode (do not print anything)
 # See lb_result for options usage.
-# Exit code: see lb_result
+# Exit code: same than lb_result
 lb_short_result() {
 
 	# get last command result
-	local lb_shres_lastres=$?
+	local lb_shres_res=$?
+
+	# default values and options
 	local lb_shres_opts=""
 	local lb_shres_quiet=false
-	local lb_shres_exitcode=false
-	local lb_shres_errorexit=false
+	local lb_shres_save_exitcode=false
+	local lb_shres_error_exitcode=""
+	local lb_shres_exit_on_error=false
 
 	# get options
 	while true ; do
@@ -544,12 +540,20 @@ lb_short_result() {
 				lb_shres_opts="--log "
 				shift
 				;;
-			-e|--save-exitcode)
-				lb_shres_exitcode=true
+			-s|--save-exitcode)
+				lb_shres_save_exitcode=true
 				shift
 				;;
+			-e|--error-exitcode)
+				# check type and validity
+				if ! lb_is_integer $2 ; then
+					return 1
+				fi
+				lb_shres_error_exitcode=$2
+				shift 2
+				;;
 			-x|--exit-on-error)
-				lb_shres_errorexit=true
+				lb_shres_exit_on_error=true
 				shift
 				;;
 			-q|--quiet)
@@ -562,9 +566,8 @@ lb_short_result() {
 		esac
 	done
 
-	if [ -z "$1" ] ; then
-		lb_shres_res=$lb_shres_lastres
-	else
+	# specified exit code
+	if [ -n "$1" ] ; then
 		lb_shres_res=$1
 	fi
 
@@ -574,21 +577,31 @@ lb_short_result() {
 	fi
 
 	# save result to exit code
-	if $lb_shres_exitcode ; then
+	if $lb_shres_save_exitcode ; then
 		lb_exitcode=$lb_shres_res
 	fi
 
+	# if result OK (code 0)
 	if [ $lb_shres_res == 0 ] ; then
 		if ! $lb_shres_quiet ; then
 			lb_display $lb_shres_opts"[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]"
 		fi
 	else
+		# if error (code 1-255)
 		if ! $lb_shres_quiet ; then
 			lb_display $lb_shres_opts"[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]"
 		fi
 
+		# if save exit code is not set,
+		if ! $lb_shres_save_exitcode ; then
+			# and error exitcode is specified, save it
+			if [ -n "$lb_shres_error_exitcode" ] ; then
+				lb_exitcode=$lb_shres_error_exitcode
+			fi
+		fi
+
 		# if exit on error, exit
-		if $lb_shres_errorexit ; then
+		if $lb_shres_exit_on_error ; then
 			lb_exit
 		fi
 	fi
