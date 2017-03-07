@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 ########################################################
 #                                                      #
@@ -72,7 +72,7 @@ usage() {
 
 # ask before exit
 ask_exit() {
-	if lbg_yesno -y "Do you really want to quit libbash.sh DEMO?" ; then
+	if lbg_yesno -y "Do you want to quit libbash.sh DEMO?" ; then
 		quit_demo
 	fi
 }
@@ -144,11 +144,12 @@ if ! lbg_yesno "Welcome to libbash.sh DEMO. Do you want to continue?"; then
 	quit_demo
 fi
 
-# choose option
+# choose your current OS
 if ! lbg_choose_option -l "Do you think you are running libbash.sh on:" "Linux" "macOS" ; then
 	ask_exit
 fi
 
+# get results
 case "$lbg_choose_option" in
 	1)
 		chosen_os="Linux"
@@ -158,13 +159,46 @@ case "$lbg_choose_option" in
 		;;
 esac
 
+# compare
 if [ "$(lb_detect_os)" == "$chosen_os" ] ; then
 	lbg_display_info "Correct! You are on $(lb_detect_os)!"
 else
 	lbg_display_error "Incorrect! You are on $(lb_detect_os)!"
 fi
 
-lbg_display_info "DEMO is finished. See you later!"
+# send notification
+lbg_notify "Hey! libbash.sh can send notifications!"
+
+# choose a file
+if lbg_choose_file -t "Choose the file you want" ; then
+	lbg_display_info "You have chosen the file: $lbg_choose_file"
+else
+	ask_exit
+fi
+
+# enter a number
+if lbg_input_text "Type a number between 1 and 10:" ; then
+
+	# if it is a number
+	if lb_is_integer $lbg_input_text ; then
+
+		# compare
+		if [ $lbg_input_text -ge 1 ] && [ $lbg_input_text -le 10 ] ; then
+			lbg_display_info "Great! $lbg_input_text is between 1 and 10!"
+		else
+			lbg_display_warning "Your number is not between 1 and 10!"
+		fi
+
+	else
+		# if it is not a number
+		lbg_display_error "'$lbg_display_error' is not a number!"
+	fi
+else
+	ask_exit
+fi
+
+# bye
+lbg_display_info "DEMO is finished. Bye!"
 
 # exit
 quit_demo
