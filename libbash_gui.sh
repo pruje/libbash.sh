@@ -9,7 +9,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 0.3.1 (2017-03-07)                          #
+#  Version 0.3.2 (2017-03-21)                          #
 #                                                      #
 ########################################################
 
@@ -522,13 +522,15 @@ lbg_notify() {
 			;;
 
 		zenity)
+			lbg_notify_opts=""
+
 			# set a timeout
 			if [ -n "$lbg_notify_timeout" ] ; then
 				lbg_notify_opts="--timeout=$lbg_notify_timeout"
 			fi
 
 			# run command
-			echo "message:$*" | zenity --notification $lbg_notify_opts --listen 2> /dev/null
+			zenity --notification $lbg_notify_opts --text "$*" 2> /dev/null
 			;;
 
 		osascript)

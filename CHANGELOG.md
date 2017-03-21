@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2 (2017-03-21)
+- Fix bug on zenity notifications that hung scripts (removed the --listen option)
+
 ## 0.3.1 (2017-03-07)
 - Bugfixes and improvements on lb_result(), lb_short_result() and lb_exit()
 - New `--error-exitcode` option for lb_result() and lb_short_result() to set a custom exit code if error
