@@ -1114,7 +1114,7 @@ lb_df_fstype() {
 	fi
 
 	# get filesystem type
-	if [ "$(lb_detect_os)" == "macOS" ] ; then
+	if [ "$lb_current_os" == "macOS" ] ; then
 		# get mountpoint
 		lb_dffstype_mountpoint="$(lb_df_mountpoint "$lb_dffstype_path")"
 		if [ $? != 0 ] ; then
@@ -1160,7 +1160,7 @@ lb_df_space_left() {
 	fi
 
 	# get space available
-	if [ "$(lb_detect_os)" == "macOS" ] ; then
+	if [ "$lb_current_os" == "macOS" ] ; then
 		df -b "$lb_dfspaceleft_path" 2> /dev/null | tail -n 1 | awk '{print $4}'
 	else
 		df -B1 --output=avail "$lb_dfspaceleft_path" 2> /dev/null | tail -n 1
@@ -1199,7 +1199,7 @@ lb_df_mountpoint() {
 	fi
 
 	# get mountpoint
-	if [ "$(lb_detect_os)" == "macOS" ] ; then
+	if [ "$lb_current_os" == "macOS" ] ; then
 		df "$lb_dfmountpoint_path" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
 	else
 		df --output=target "$lb_dfmountpoint_path" 2> /dev/null | tail -n 1
@@ -1239,7 +1239,7 @@ lb_df_uuid() {
 	fi
 
 	# macOS systems
-	if [ "$(lb_detect_os)" == "macOS" ] ; then
+	if [ "$lb_current_os" == "macOS" ] ; then
 		# get mountpoint
 		lb_dfuuid_mountpoint="$(lb_df_mountpoint "$lb_dfuuid_path")"
 		if [ $? != 0 ] ; then
@@ -1434,7 +1434,7 @@ lb_realpath() {
 		return 1
 	fi
 
-	if [ "$(lb_detect_os)" == "macOS" ] ; then
+	if [ "$lb_current_os" == "macOS" ] ; then
 		# macOS which does not support readlink -f option
 		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1"
 	else
@@ -2138,18 +2138,19 @@ lb_log_debug() {
 }
 
 
-####################
-#  INITIALIZATION  #
-####################
-
-# if macOS, do not print with colours
-if [ "$(lb_detect_os)" == "macOS" ] ; then
-	lb_format_print=false
-fi
+############################
+#  SCRIPTS INITIALIZATION  #
+############################
 
 # context variables
 lb_current_script="$0"
 lb_current_script_name="$(basename $0)"
 lb_current_script_directory="$(dirname $0)"
 lb_current_path="$(pwd)"
+lb_current_os="$(lb_detect_os)"
 lb_exitcode=0
+
+# if macOS, do not print with colours
+if [ "$lb_current_os" == "macOS" ] ; then
+	lb_format_print=false
+fi

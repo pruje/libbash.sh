@@ -27,6 +27,7 @@ You can use the following variables that are initialized when you include `libba
 - `$lb_current_script_name`: your current script name (result of command `basename $0`)
 - `$lb_current_script_directory`: your current script name (result of command `dirname $0`)
 - `$lb_current_path`: your current script name (result of command `pwd`)
+- `$lb_current_os`: your current Operating System (result of function `lb_detect_os`)
 - `$lb_exitcode`: script exit code (0 by default) that will be send if using `lb_exit` (equivalent to run `exit $lb_exitcode`)
 
 ## Functions

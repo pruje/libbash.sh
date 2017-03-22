@@ -110,7 +110,7 @@ lbg_set_gui() {
 			fi
 		else
 			# test if X server started (not for macOS)
-			if [ "$(lb_detect_os)" != "macOS" ] ; then
+			if [ "$lb_current_os" != "macOS" ] ; then
 				if [ -z "$DISPLAY" ] ; then
 					lbg_setgui_res=4
 					continue

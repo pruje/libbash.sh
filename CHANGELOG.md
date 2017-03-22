@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.3.3 (2017-03-22)
+- New `$lb_current_os` variable with current OS
 - lbg_set_gui() with no argument now sets the default GUI tool (useful when reseting)
 - Delete lb_log() write error messages
 
