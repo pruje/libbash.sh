@@ -916,14 +916,16 @@ lb_log() {
 	# prepare text
 	lb_log_text+="$*"
 
-	# print into log file
-	if $lb_log_erase ; then
-		# overwrite mode
-		echo -e $lb_log_opts$lb_log_text > "$lb_logfile"
-	else
-		# append to file
-		echo -e $lb_log_opts$lb_log_text >> "$lb_logfile"
+	# tee options
+	lb_log_teeopts=""
+
+	# if not erase, append to file with tee -a
+	if ! $lb_log_erase ; then
+		lb_log_teeopts="-a "
 	fi
+
+	# print into log file; do not output text or errors
+	echo -e $lb_log_opts$lb_log_text | tee $lb_log_teeopts"$lb_logfile" &> /dev/null
 
 	# unknown write error
 	if [ $? != 0 ] ; then
