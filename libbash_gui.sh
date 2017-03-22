@@ -59,57 +59,76 @@ lbg_get_gui() {
 }
 
 
-# Set default GUI display
-# Usage: lbg_set_gui GUI_TOOL
+# Set GUI display to use
+# Usage: lbg_set_gui [GUI_TOOL...]
+# Options:
+#   GUI_TOOL  command name; if not set, a default one will be chosen
+#             if multiple values, the first available will be set
 # Exit codes:
 #   0: GUI tool set
-#   1: usage error
-#   2: GUI tool not supported
+#   1: GUI tool not supported
 #   3: GUI tool not available on this system
 #   4: GUI tool available, but currently no X server is running
 lbg_set_gui() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
+	# default options
+	local lbg_setgui_tools=(${lbg_supported_gui[@]})
+	local lbg_setgui_res=0
+
+	# if args set, test list of commands
+	if [ $# -gt 0 ] ; then
+		lbg_setgui_tools=($*)
 	fi
 
-	local lbg_setgui_gui="$*"
+	# test GUI tools
+	for lbg_sgt in ${lbg_setgui_tools[@]} ; do
 
-	# set console mode is always OK
-	if [ "$lbg_setgui_gui" == "console" ] ; then
-		lbg_gui="console"
-		return 0
-	fi
-
-	# test if GUI is supported
-	if ! lb_array_contains "$lbg_setgui_gui" "${lbg_supported_gui[@]}" ; then
-		return 2
-	fi
-
-	# test if command exists
-	if ! lb_command_exists "$lbg_setgui_gui" ; then
-		return 3
-	fi
-
-	# dialog command
-	if [ "$lbg_setgui_gui" == "dialog" ] ; then
-		# get console size
-		if ! lbg_get_console_size ; then
-			return 4
+		# set console mode is always OK
+		if [ "$lbg_sgt" == "console" ] ; then
+			lbg_setgui_res=0
+			break
 		fi
-	else
-		# test if X server started (not for macOS)
-		if [ "$(lb_detect_os)" != "macOS" ] ; then
-			if [ -z "$DISPLAY" ] ; then
-				return 4
+
+		# test if GUI is supported
+		if ! lb_array_contains "$lbg_sgt" "${lbg_supported_gui[@]}" ; then
+			lbg_setgui_res=1
+			continue
+		fi
+
+		# test if command exists
+		if ! lb_command_exists "$lbg_sgt" ; then
+			lbg_setgui_res=3
+			continue
+		fi
+
+		# dialog command
+		if [ "$lbg_sgt" == "dialog" ] ; then
+			# get console size
+			if ! lbg_get_console_size ; then
+				lbg_setgui_res=4
+				continue
+			fi
+		else
+			# test if X server started (not for macOS)
+			if [ "$(lb_detect_os)" != "macOS" ] ; then
+				if [ -z "$DISPLAY" ] ; then
+					lbg_setgui_res=4
+					continue
+				fi
 			fi
 		fi
-	fi
+
+		# all tests passed: tool can be set
+		lbg_setgui_res=0
+		break
+	done
 
 	# set gui tool
-	lbg_gui="$lbg_setgui_gui"
-	return 0
+	if [ $lbg_setgui_res == 0 ] ; then
+		lbg_gui="$lbg_sgt"
+	fi
+
+	return $lbg_setgui_res
 }
 
 
@@ -1558,14 +1577,5 @@ lbg_display_debug() {
 #  DEFAULT GUI SELECTION  #
 ###########################
 
-# test supported GUI tools
-for lbg_sgt in ${lbg_supported_gui[@]} ; do
-
-	# try to set GUI tool
-	lbg_set_gui "$lbg_sgt"
-
-	if [ -n "$lbg_gui" ] ; then
-		# set first available as default
-		break
-	fi
-done
+# set the default GUI tool
+lbg_set_gui
