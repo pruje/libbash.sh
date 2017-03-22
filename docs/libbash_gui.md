@@ -33,7 +33,7 @@ export DISPLAY=":0"
 
 You can get users current display with the following command (replace `myuser` by your user):
 ```bash
-who | grep "^myuser .*(:[0-9])$" | head -1  | sed "s/.*(\(:[0-9]*\))$/\1/g"
+who | grep "^myuser .*(:[0-9])$" | head -1 | sed "s/.*(\(:[0-9]*\))$/\1/g"
 ```
 
 **Note**: If you set the DISPLAY variable AFTER integrate libbash GUI, then you have to reset the GUI tool with calling the `lbg_set_gui` function (see usage below).

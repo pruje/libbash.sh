@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3 (2017-03-22)
+- lbg_set_gui() with no argument now sets the default GUI tool (useful when reseting)
+- Delete lb_log() write error messages
+
 ## 0.3.2 (2017-03-21)
 - Fix bug on zenity notifications that hung scripts (removed the --listen option)
 
