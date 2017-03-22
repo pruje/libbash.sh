@@ -20,7 +20,23 @@ source "/path/to/libbash_gui.sh"
 ```
 Then call the functions described below.
 
-**Note:** The `libash_gui.sh` file does not need to be in the same directory than `libbash.sh`.
+**Note**: The `libash_gui.sh` file does not need to be in the same directory than `libbash.sh`.
+
+## The case of cron jobs (on Linux)
+If you plan to execute a script from a cron job, dialogs (like notifications) may no be printed.
+It's because the `$DISPLAY` variable is not set in the cron job context.
+
+To avoid that, you have to manually set the DISPLAY variable in your script with the command:
+```bash
+export DISPLAY=":0"
+```
+
+You can get users current display with the following command (replace `myuser` by your user):
+```bash
+who | grep "^myuser .*(:[0-9])$" | head -1  | sed "s/.*(\(:[0-9]*\))$/\1/g"
+```
+
+**Note**: If you set the DISPLAY variable AFTER integrate libbash GUI, then you have to reset the GUI tool with calling the `lbg_set_gui` function (see usage below).
 
 ## Functions documentation
 All functions are named with the `lbg_` prefix.
@@ -69,21 +85,22 @@ gui_tool=$(lbg_get_gui)
 ---------------------------------------------------------------
 <a name="lbg_set_gui"></a>
 ### lbg_set_gui
-Specify a GUI tool to be used (see the supported tools above).
-By default, the first tool available in the list is used.
+Set a GUI tool to be used (see the supported tools above).
+By default, the first tool available in the list is used. If no tool specified,
+the default one will be set.
+If multiple tools are given, the first available will be set.
 
 e.g. if `kdialog` and `zenity` are installed, `kdialog` will be used over `zenity`,
 that's why you can set `zenity` if you prefer.
 
 #### Usage
 ```bash
-lbg_set_gui GUI_TOOL
+lbg_set_gui [GUI_TOOL...]
 ```
 
 #### Exit codes
 - 0: GUI tool set
-- 1: usage error
-- 2: GUI tool not supported
+- 1: GUI tool not supported
 - 3: GUI tool not available on this system
 - 4: GUI tool available, but no X server is currently running (stay in console mode)
 
