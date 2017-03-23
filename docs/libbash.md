@@ -55,6 +55,7 @@ All functions are named with the `lb_` prefix.
 * Operations on variables
 	* [lb_is_number](#lb_is_number)
 	* [lb_is_integer](#lb_is_integer)
+	* [lb_is_boolean](#lb_is_boolean)
 	* [lb_array_contains](#lb_array_contains)
 	* [lb_is_comment](#lb_is_comment)
 * Filesystem
@@ -566,6 +567,28 @@ lb_is_integer VALUE
 x="-1"
 if lb_is_integer $x ; then
 	echo "x is an integer"
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_is_boolean"></a>
+### lb_is_boolean
+Test if a value is a boolean.
+
+#### Usage
+```bash
+lb_is_boolean VALUE
+```
+
+#### Exit codes
+- 0: value is a boolean
+- 1: value is not a boolean
+
+#### Example
+```bash
+x=false
+if lb_is_boolean $x ; then
+	echo "x is a boolean"
 fi
 ```
 

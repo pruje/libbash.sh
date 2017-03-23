@@ -984,6 +984,25 @@ lb_is_integer() {
 }
 
 
+# Test if a value is a boolean
+# Usage: lb_is_boolean VALUE
+# Exit codes:
+#   0: value is a boolean
+#   1: value is not a boolean
+lb_is_boolean() {
+
+	case "$1" in
+		"true"|"false")
+			return 0
+			;;
+		*)
+			return 1
+			;;
+	esac
+}
+
+
+
 # Check if an array contains a value
 # Usage: lb_array_contains VALUE "${ARRAY[@]}"
 # Warning: put your array between quotes or it will fail if you have spaces in values
