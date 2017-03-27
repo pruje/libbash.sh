@@ -205,7 +205,7 @@ lbg_display_info() {
 	while true ; do
 		case "$1" in
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_dinf_title="$2"
@@ -302,7 +302,7 @@ lbg_display_warning() {
 	while true ; do
 		case "$1" in
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_dwn_title="$2"
@@ -388,7 +388,7 @@ lbg_display_error() {
 	while true ; do
 		case "$1" in
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_derr_title="$2"
@@ -479,14 +479,14 @@ lbg_notify() {
 	while true ; do
 		case "$1" in
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_notify_title="$2"
 				shift 2
 				;;
 			--timeout)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				if ! lb_is_integer $2 ; then
@@ -608,7 +608,7 @@ lbg_yesno() {
 				shift
 				;;
 			--yes-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_yn_yeslbl="$2"
@@ -778,21 +778,21 @@ lbg_choose_option() {
 	while true ; do
 		case "$1" in
 			-d|--default)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_chop_default="$2"
 				shift 2
 				;;
 			-l|--label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_chop_label="$2"
 				shift 2
 				;;
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_chop_title="$2"
@@ -1002,14 +1002,14 @@ lbg_input_text() {
 	while true ; do
 		case "$1" in
 			-d|--default)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inp_default="$2"
 				shift 2
 				;;
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inp_title="$2"
@@ -1108,7 +1108,7 @@ lbg_input_password() {
 	while true ; do
 		case "$1" in
 			-l|--label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inpw_label="$2"
@@ -1119,7 +1119,7 @@ lbg_input_password() {
 				shift
 				;;
 			--confirm-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inpw_confirm_label="$2"
@@ -1249,7 +1249,7 @@ lbg_choose_directory() {
 				shift
 				;;
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_chdir_title="$2"
@@ -1383,7 +1383,7 @@ lbg_choose_file() {
 				shift
 				;;
 			-f|--filter)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_choosefile_filters+=("$2")
@@ -1394,7 +1394,7 @@ lbg_choose_file() {
 				shift
 				;;
 			-t|--title)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_choosefile_title="$2"

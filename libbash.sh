@@ -282,7 +282,7 @@ lb_display() {
 				shift
 				;;
 			-l|--level)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_display_level="$2"
@@ -409,21 +409,21 @@ lb_result() {
 	while true ; do
 		case "$1" in
 			--ok-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_result_ok="$2"
 				shift 2
 				;;
 			--failed-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_result_failed="$2"
 				shift 2
 				;;
 			-l|--log-level)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_result_opts="-l $2 "
@@ -531,7 +531,7 @@ lb_short_result() {
 	while true ; do
 		case "$1" in
 			-l|--log-level)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_shres_opts="-l $2 "
@@ -853,7 +853,7 @@ lb_log() {
 				shift
 				;;
 			-l|--level)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_log_level="$2"
@@ -1057,7 +1057,7 @@ lb_is_comment() {
 	while true ; do
 		case "$1" in
 			-s|--symbol)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_iscom_symbols=("$2")
@@ -1563,35 +1563,35 @@ lb_email() {
 	while true ; do
 		case "$1" in
 			-s|--subject)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_subject="$2"
 				shift 2
 				;;
 			--sender)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_sender="$2"
 				shift 2
 				;;
 			-r|--reply-to)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_replyto="$2"
 				shift 2
 				;;
 			-c|--cc)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_cc="$2"
 				shift 2
 				;;
 			-b|--bcc)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_bcc="$2"
@@ -1722,21 +1722,21 @@ lb_yesno() {
 				shift
 				;;
 			--yes-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_yn_yeslbl="$2"
 				shift 2
 				;;
 			--no-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_yn_nolbl="$2"
 				shift 2
 				;;
 			--cancel-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_yn_cancellbl="$2"
@@ -1833,21 +1833,21 @@ lb_choose_option() {
 	while true ; do
 		case "$1" in
 			-d|--default)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_chop_default="$2"
 				shift 2
 				;;
 			-l|--label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_chop_label="$2"
 				shift 2
 				;;
 			-c|--cancel-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_chop_cancel_label="$2"
@@ -1971,7 +1971,7 @@ lb_input_text() {
 	while true ; do
 		case "$1" in
 			-d|--default)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_inp_default="$2"
@@ -2046,7 +2046,7 @@ lb_input_password() {
 	while true ; do
 		case "$1" in
 			-l|--label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_inpw_label="$2"
@@ -2057,7 +2057,7 @@ lb_input_password() {
 				shift
 				;;
 			--confirm-label)
-				if lb_test_arguments -eq 0 $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_inpw_confirm_label="$2"
