@@ -1037,6 +1037,209 @@ lb_array_contains() {
 }
 
 
+# Compare software versions using semantic versionning (http://semver.org)
+# Usage: lb_compare_versions VERSION_1 OPERATOR VERSION_2
+# Arguments:
+#    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
+#    N         expected number to compare to
+#    ARG       your arguments; (e.g. $* without quotes)
+# Exit code:
+#   0: comparison OK
+#   1: usage error
+#   2: comparison not OK
+lb_compare_versions() {
+
+	# we wait for at least an operator and 2 versions
+	if [ $# -lt 3 ] ; then
+		return 1
+	fi
+
+	# get operator
+	local lb_cpver_operator="$2"
+
+	# check operator validity
+	case "$lb_cpver_operator" in
+		-eq|-ne|-lt|-le|-gt|-ge)
+			# do nothing, continue
+			;;
+		*)
+			# bad operator
+			return 1
+			;;
+	esac
+
+	# get versions, ignore builds (e.g. 1.0.0-rc.1+20170320 => 1.0.0-rc.1)
+	local lb_cpver_v1="$(echo $1 | cut -d+ -f1)"
+	local lb_cpver_v2="$(echo $3 | cut -d+ -f1)"
+
+	# global comparison
+	if [ "$lb_cpver_v1" == "$lb_cpver_v2" ] ; then
+		# versions are equal
+		case "$lb_cpver_operator" in
+			-eq|-le|-ge)
+				return 0
+				;;
+			-ne)
+				return 2
+				;;
+		esac
+	fi
+
+	# get main version numbers
+	local lb_cpver_v1_main="$(echo $lb_cpver_v1 | cut -d- -f1)"
+	local lb_cpver_v2_main="$(echo $lb_cpver_v2 | cut -d- -f1)"
+
+	# compare main version numbers
+	if [ "$lb_cpver_v1_main" != "$lb_cpver_v2_main" ] ; then
+
+		declare -i lb_cpver_i=1
+
+		while true ; do
+
+			if [[ "$lb_cpver_v1_main" == *"."* ]] ; then
+				lb_cpver_v1_num=$(echo "$lb_cpver_v1_main" | cut -d. -f$lb_cpver_i)
+			else
+				if [ $lb_cpver_i == 1 ] ; then
+					lb_cpver_v1_num=$lb_cpver_v1_main
+				else
+					# v3 => v3.0
+					# v2.1 => v2.1.0
+					lb_cpver_v1_num=0
+				fi
+			fi
+
+			if [[ "$lb_cpver_v2_main" == *"."* ]] ; then
+				lb_cpver_v2_num=$(echo "$lb_cpver_v2_main" | cut -d. -f$lb_cpver_i)
+			else
+				if [ $lb_cpver_i == 1 ] ; then
+					lb_cpver_v2_num=$lb_cpver_v2_main
+				else
+					# v3 => v3.0
+					# v2.1 => v2.1.0
+					lb_cpver_v2_num=0
+				fi
+			fi
+
+			if [ "$lb_cpver_v1_num" == "$lb_cpver_v2_num" ] ; then
+
+				# end of comparison
+				if [ $lb_cpver_v1_num == 0 ] && [ $lb_cpver_v2_num == 0 ] ; then
+					break
+				fi
+
+				# compare next numbers
+				lb_cpver_i+=1
+				continue
+			fi
+
+			if lb_is_integer $lb_cpver_v1_num && lb_is_integer $lb_cpver_v2_num ; then
+				# compare versions and quit
+				[ "$lb_cpver_v1_num" $lb_cpver_operator "$lb_cpver_v2_num" ]
+				return $?
+			else
+				# if not integer, error
+				return 1
+			fi
+		done
+	fi
+
+	# get pre-release tags
+	local lb_cpver_v1_tag=""
+	if [[ "$lb_cpver_v1" == *"-"* ]] ; then
+		lb_cpver_v1_tag="$(echo $lb_cpver_v1 | cut -d- -f2)"
+	fi
+
+	local lb_cpver_v2_tag=""
+	if [[ "$lb_cpver_v2" == *"-"* ]] ; then
+		lb_cpver_v2_tag="$(echo $lb_cpver_v2 | cut -d- -f2)"
+	fi
+
+	# tags are equal
+	# this can happen if main versions are different
+	# e.g. v1.0 == v1.0.0 or v2.1-beta == v2.1.0-beta
+	if [ "$lb_cpver_v1_tag" == "$lb_cpver_v2_tag" ] ; then
+		case "$lb_cpver_operator" in
+			-eq|-le|-ge)
+				return 0
+				;;
+			-ne|-lt|-gt)
+				return 2
+				;;
+		esac
+	else
+		# tags are different
+		case "$lb_cpver_operator" in
+			-eq)
+				return 2
+				;;
+			-ne)
+				return 0
+				;;
+		esac
+	fi
+
+	# 1st tag is empty: final version is always superior to pre-release tags
+	# e.g. v1.0.0 > v1.0.0-rc
+	if [ -z "$lb_cpver_v1_tag" ] ; then
+		case "$lb_cpver_operator" in
+			-gt|-ge)
+				return 0
+				;;
+			-lt|-le)
+				return 2
+				;;
+		esac
+	fi
+
+	# 2nd tag is empty: final version is always superior to pre-release tags
+	# e.g. v1.0.0-rc < v1.0.0
+	if [ -z "$lb_cpver_v2_tag" ] ; then
+		case "$lb_cpver_operator" in
+			-gt|-ge)
+				return 2
+				;;
+			-lt|-le)
+				return 0
+				;;
+		esac
+	fi
+
+	# compare tags
+	lb_cpver_tags=("$lb_cpver_v1_tag" "$lb_cpver_v2_tag")
+
+	# save current field separator
+	lb_cpver_IFS=$IFS
+	# set new one
+	IFS=$'\n'
+	lb_cpver_tags_2=($(sort <<<"${lb_cpver_tags[*]}"))
+
+	# restore field separator
+	IFS=$lb_cpver_IFS
+
+	# tags order has changed => v1 > v2
+	# e.g. (1.0.0-beta 1.0.0-alpha) => (1.0.0-alpha 1.0.0-beta)
+	if [ "${lb_cpver_tags[0]}" != "${lb_cpver_tags_2[0]}" ] ; then
+		case "$lb_cpver_operator" in
+			-gt|-ge)
+				return 0
+				;;
+			-lt|-le)
+				return 2
+				;;
+		esac
+	else
+		case "$lb_cpver_operator" in
+			-gt|-ge)
+				return 2
+				;;
+			-lt|-le)
+				return 0
+				;;
+		esac
+	fi
+}
+
+
 # Test if a text is a comment
 # Usage: lb_is_comment [OPTIONS] TEXT
 # Options:
