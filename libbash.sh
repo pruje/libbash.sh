@@ -1211,32 +1211,32 @@ lb_compare_versions() {
 	lb_cpver_IFS=$IFS
 	# set new one
 	IFS=$'\n'
+
+	# sort tags in alphanumerical order
 	lb_cpver_tags_2=($(sort <<<"${lb_cpver_tags[*]}"))
 
 	# restore field separator
 	IFS=$lb_cpver_IFS
 
 	# tags order has changed => v1 > v2
-	# e.g. (1.0.0-beta 1.0.0-alpha) => (1.0.0-alpha 1.0.0-beta)
+	# e.g. ("1.0.0-beta" "1.0.0-alpha") => ("1.0.0-alpha" "1.0.0-beta")
 	if [ "${lb_cpver_tags[0]}" != "${lb_cpver_tags_2[0]}" ] ; then
 		case "$lb_cpver_operator" in
 			-gt|-ge)
 				return 0
 				;;
-			-lt|-le)
-				return 2
-				;;
 		esac
 	else
+		# tags order has NOT changed => v1 < v2
 		case "$lb_cpver_operator" in
-			-gt|-ge)
-				return 2
-				;;
 			-lt|-le)
 				return 0
 				;;
 		esac
 	fi
+
+	# other cases are errors
+	return 2
 }
 
 
