@@ -1730,6 +1730,55 @@ lb_detect_os() {
 }
 
 
+
+# Generate a random password
+# Usage: lb_generate_password [SIZE]
+# Options:
+#   SIZE  Set the password size (16 by default, use value between 1 and 32)
+# Return: password
+# Exit codes:
+#   0: password generated
+#   1: usage error
+#   2: command not available
+lb_generate_password() {
+
+	# default options
+	local lb_genpwd_size=16
+
+	# get size option
+	if [ -n "$1" ] ; then
+		# check if is integer
+		if lb_is_integer $1 ; then
+			# test size
+			if [ $lb_genpwd_size -ge 1 ] && [ $lb_genpwd_size -le 32 ] ; then
+				lb_genpwd_size=$1
+			else
+				return 1
+			fi
+		else
+			return 1
+		fi
+	fi
+
+	# generate password
+	if lb_command_exists openssl ; then
+		# with openssl random command
+		lb_genpwd_pwd=$(openssl rand -base64 32 2> /dev/null)
+	else
+		# print date timestamp + nanoseconds then generate md5 checksum
+		# then encode in base64
+		if [ "$lb_current_os" == "macOS" ] ; then
+			lb_genpwd_pwd=$(date +%s%N | md5 | base64)
+		else
+			lb_genpwd_pwd=$(date +%s%N | md5sum | base64)
+		fi
+	fi
+
+	# return password at the right size
+	echo ${lb_genpwd_pwd:0:$lb_genpwd_size}
+}
+
+
 # Send an email
 # Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 # Options:
