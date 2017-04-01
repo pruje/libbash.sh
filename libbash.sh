@@ -1767,9 +1767,9 @@ lb_generate_password() {
 		# print date timestamp + nanoseconds then generate md5 checksum
 		# then encode in base64
 		if [ "$lb_current_os" == "macOS" ] ; then
-			lb_genpwd_pwd=$(date +%s%N | md5 | base64)
+			lb_genpwd_pwd=$(date +%s%N | shasum -a 256 | base64)
 		else
-			lb_genpwd_pwd=$(date +%s%N | md5sum | base64)
+			lb_genpwd_pwd=$(date +%s%N | sha256sum | base64)
 		fi
 	fi
 
