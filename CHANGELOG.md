@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 (2017-04-01)
+- New functions: lb_is_boolean(), lb_compare_versions() and lb_generate_password()
+- Minor code improvements
+
 ## 0.3.3 (2017-03-22)
 - New `$lb_current_os` variable with current OS
 - lbg_set_gui() with no argument now sets the default GUI tool (useful when reseting)
