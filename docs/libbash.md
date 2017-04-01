@@ -57,6 +57,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_is_boolean](#lb_is_boolean)
 	* [lb_array_contains](#lb_array_contains)
+	* [lb_compare_versions](#lb_compare_versions)
 	* [lb_is_comment](#lb_is_comment)
 * Filesystem
 	* [lb_df_fstype](#lb_df_fstype)
@@ -71,6 +72,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_is_writable](#lb_is_writable)
 * System utilities
 	* [lb_detect_os](#lb_detect_os)
+	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)
 * User interaction
 	* [lb_yesno](#lb_yesno)
@@ -617,6 +619,42 @@ fi
 ```
 
 ---------------------------------------------------------------
+<a name="lb_compare_versions"></a>
+### lb_compare_versions
+Compare 2 software versions.
+
+Versions must be in semantic versionning format (http://semver.org),
+but can support incomplete versions (e.g. 1.0 and 2 are converted to 1.0.0 and 2.0.0 respectively).
+
+#### Usage
+```bash
+lb_compare_versions VERSION_1 OPERATOR VERSION_2
+```
+
+#### Options
+```
+VERSION_1  software version
+OPERATOR   common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
+VERSION_2  software version
+```
+
+#### Exit codes
+- 0: Comparison OK
+- 1: Usage error
+- 2: Comparison NOT OK
+
+#### Example
+```bash
+version1="2.0.1"
+version2="1.8.9"
+if lb_compare_versions $version1 -ge $version2 ; then
+	echo "Newer version: $version1"
+else
+	echo "Newer version: $version2"
+fi
+```
+
+---------------------------------------------------------------
 <a name="lb_is_comment"></a>
 ### lb_is_comment
 Test if a text is a code comment.
@@ -869,6 +907,31 @@ lb_detect_os
 if [ "$(lb_detect_os)" == "macOS" ] ; then
 	echo "You are on a macOS system."
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_generate_password"></a>
+### lb_generate_password
+Generate a random password.
+
+#### Usage
+```bash
+lb_generate_password [SIZE]
+```
+
+#### Options
+```
+SIZE  Set the password size (16 by default, use value between 1 and 32)
+```
+
+#### Exit codes
+- 0: Email sent
+- 1: Usage error
+
+#### Example
+```bash
+# generate a password of 12 characters
+password=$(lb_generate_password 12)
 ```
 
 ---------------------------------------------------------------

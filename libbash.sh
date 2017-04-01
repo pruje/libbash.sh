@@ -1040,9 +1040,9 @@ lb_array_contains() {
 # Compare software versions using semantic versionning (http://semver.org)
 # Usage: lb_compare_versions VERSION_1 OPERATOR VERSION_2
 # Arguments:
-#    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
-#    N         expected number to compare to
-#    ARG       your arguments; (e.g. $* without quotes)
+#    VERSION_1  software version
+#    OPERATOR   common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
+#    VERSION_2  software version
 # Exit code:
 #   0: comparison OK
 #   1: usage error
@@ -1739,7 +1739,6 @@ lb_detect_os() {
 # Exit codes:
 #   0: password generated
 #   1: usage error
-#   2: command not available
 lb_generate_password() {
 
 	# default options
