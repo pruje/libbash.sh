@@ -1002,6 +1002,29 @@ lb_is_boolean() {
 }
 
 
+# Trim a text: removes spaces before and after text
+# Usage: lb_trim TEXT
+# Exit codes:
+#   0: OK
+#   1: usage error
+lb_trim() {
+
+	# usage errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	local lb_trim_text="$*"
+
+	# remove spaces before text
+	lb_trim_text="${lb_trim_text#"${lb_trim_text%%[![:space:]]*}"}"
+
+	# remove spaces after text
+	lb_trim_text="${lb_trim_text%"${lb_trim_text##*[![:space:]]}"}"
+
+	echo "$lb_trim_text"
+}
+
 
 # Check if an array contains a value
 # Usage: lb_array_contains VALUE "${ARRAY[@]}"
