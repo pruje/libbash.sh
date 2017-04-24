@@ -56,6 +56,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_is_number](#lb_is_number)
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_is_boolean](#lb_is_boolean)
+	* [lb_trim](#lb_trim)
 	* [lb_array_contains](#lb_array_contains)
 	* [lb_compare_versions](#lb_compare_versions)
 	* [lb_is_comment](#lb_is_comment)
@@ -592,6 +593,26 @@ x=false
 if lb_is_boolean $x ; then
 	echo "x is a boolean"
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_trim"></a>
+### lb_trim
+Deletes spaces before and after a string.
+
+#### Usage
+```bash
+lb_trim TEXT
+```
+
+#### Exit codes
+- 0: OK
+- 1: usage error
+
+#### Example
+```bash
+config_line="    param=value "
+config=$(lb_trim "$config_line")
 ```
 
 ---------------------------------------------------------------
