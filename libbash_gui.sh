@@ -55,7 +55,7 @@ lbg_get_gui() {
 	fi
 
 	# return current GUI tool
-	echo $lbg_gui
+	echo "$lbg_gui"
 }
 
 
@@ -175,7 +175,7 @@ lbg_dialog_size() {
 	fi
 
 	# return "height width"
-	echo "$lbg_dialog_height $lbg_dialog_width"
+	echo $lbg_dialog_height $lbg_dialog_width
 }
 
 

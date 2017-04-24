@@ -345,19 +345,19 @@ lb_display() {
 	if $lb_display_prefix ; then
 		case "$lb_display_level" in
 			"$lb_default_critical_label")
-				lb_display_msgprefix="$(lb_print --red $lb_display_level)"
+				lb_display_msgprefix="$(lb_print --red "$lb_display_level")"
 				;;
 			"$lb_default_error_label")
-				lb_display_msgprefix="$(lb_print --red $lb_display_level)"
+				lb_display_msgprefix="$(lb_print --red "$lb_display_level")"
 				;;
 			"$lb_default_warning_label")
-				lb_display_msgprefix="$(lb_print --yellow $lb_display_level)"
+				lb_display_msgprefix="$(lb_print --yellow "$lb_display_level")"
 				;;
 			"$lb_default_info_label")
-				lb_display_msgprefix="$(lb_print --green $lb_display_level)"
+				lb_display_msgprefix="$(lb_print --green "$lb_display_level")"
 				;;
 			"$lb_default_debug_label")
-				lb_display_msgprefix="$(lb_print --cyan $lb_display_level)"
+				lb_display_msgprefix="$(lb_print --cyan "$lb_display_level")"
 				;;
 			*)
 				lb_display_msgprefix="$lb_display_level"
@@ -585,12 +585,12 @@ lb_short_result() {
 	# if result OK (code 0)
 	if [ $lb_shres_res == 0 ] ; then
 		if ! $lb_shres_quiet ; then
-			lb_display $lb_shres_opts"[ $(echo $lb_default_ok_label | tr '[:lower:]' '[:upper:]') ]"
+			lb_display $lb_shres_opts"[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]"
 		fi
 	else
 		# if error (code 1-255)
 		if ! $lb_shres_quiet ; then
-			lb_display $lb_shres_opts"[ $(echo $lb_default_failed_label | tr '[:lower:]' '[:upper:]') ]"
+			lb_display $lb_shres_opts"[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]"
 		fi
 
 		# if save exit code is not set,
@@ -636,7 +636,7 @@ lb_get_logfile() {
 	fi
 
 	# return log file path
-	echo $lb_logfile
+	echo "$lb_logfile"
 }
 
 
@@ -778,9 +778,9 @@ lb_get_loglevel() {
 		# if found, return it
 		if [ "${lb_loglevels[$lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
 			if $lb_getloglevel_getid ; then
-				echo $lb_getloglevel_i
+				echo "$lb_getloglevel_i"
 			else
-				echo ${lb_loglevels[$lb_getloglevel_i]}
+				echo "${lb_loglevels[$lb_getloglevel_i]}"
 			fi
 			return 0
 		fi
@@ -925,7 +925,7 @@ lb_log() {
 	fi
 
 	# print into log file; do not output text or errors
-	echo -e $lb_log_opts$lb_log_text | tee $lb_log_teeopts"$lb_logfile" &> /dev/null
+	echo -e $lb_log_opts"$lb_log_text" | tee $lb_log_teeopts"$lb_logfile" &> /dev/null
 
 	# unknown write error
 	if [ $? != 0 ] ; then
@@ -1530,7 +1530,7 @@ lb_df_uuid() {
 			# search if file is linked to the same device
 			if [ "$(lb_realpath "$lb_dfuuid_link")" == "$lb_dfuuid_dev" ] ; then
 				# if found, return UUID and exit
-				echo $(basename "$lb_dfuuid_link")
+				echo "$(basename "$lb_dfuuid_link")"
 				return 0
 			fi
 		done
@@ -1797,7 +1797,7 @@ lb_generate_password() {
 	fi
 
 	# return password at the right size
-	echo ${lb_genpwd_pwd:0:$lb_genpwd_size}
+	echo "${lb_genpwd_pwd:0:$lb_genpwd_size}"
 }
 
 
@@ -1896,7 +1896,7 @@ lb_email() {
 
 	# search compatible command to send email
 	for lb_email_c in ${lb_email_commands[@]} ; do
-		if lb_command_exists $lb_email_c ; then
+		if lb_command_exists "$lb_email_c" ; then
 			lb_email_command=$lb_email_c
 			break
 		fi
@@ -2029,14 +2029,14 @@ lb_yesno() {
 
 	# defines choice question
 	if $lb_yn_defaultyes ; then
-		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:lower:]' '[:upper:]')/$(echo $lb_yn_nolbl | tr '[:upper:]' '[:lower:]')"
+		lb_yn_choice="($(echo "$lb_yn_yeslbl" | tr '[:lower:]' '[:upper:]')/$(echo "$lb_yn_nolbl" | tr '[:upper:]' '[:lower:]')"
 	else
-		lb_yn_choice="($(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')/$(echo $lb_yn_nolbl | tr '[:lower:]' '[:upper:]')"
+		lb_yn_choice="($(echo "$lb_yn_yeslbl" | tr '[:upper:]' '[:lower:]')/$(echo "$lb_yn_nolbl" | tr '[:lower:]' '[:upper:]')"
 	fi
 
 	# add cancel choice
 	if $lb_yn_cancel ; then
-		lb_yn_choice+="/$(echo $lb_yn_cancellbl | tr '[:upper:]' '[:lower:]')"
+		lb_yn_choice+="/$(echo "$lb_yn_cancellbl" | tr '[:upper:]' '[:lower:]')"
 	fi
 
 	# ends question
@@ -2056,11 +2056,11 @@ lb_yesno() {
 		fi
 	else
 		# compare to confirmation string
-		if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" != "$(echo $lb_yn_yeslbl | tr '[:upper:]' '[:lower:]')" ] ; then
+		if [ "$(echo "$lb_yn_confirm" | tr '[:upper:]' '[:lower:]')" != "$(echo "$lb_yn_yeslbl" | tr '[:upper:]' '[:lower:]')" ] ; then
 
 			# cancel case
 			if $lb_yn_cancel ; then
-				if [ "$(echo $lb_yn_confirm | tr '[:upper:]' '[:lower:]')" == "$(echo $lb_yn_cancellbl | tr '[:upper:]' '[:lower:]')" ] ; then
+				if [ "$(echo "$lb_yn_confirm" | tr '[:upper:]' '[:lower:]')" == "$(echo "$lb_yn_cancellbl" | tr '[:upper:]' '[:lower:]')" ] ; then
 					return 3
 				fi
 			fi
@@ -2162,7 +2162,7 @@ lb_choose_option() {
 	fi
 
 	# print question
-	echo -e $lb_chop_label
+	echo -e "$lb_chop_label"
 
 	# print options
 	for ((lb_chop_i=1 ; lb_chop_i < ${#lb_chop_options[@]} ; lb_chop_i++)) ; do
@@ -2437,8 +2437,8 @@ lb_log_debug() {
 
 # context variables
 lb_current_script="$0"
-lb_current_script_name="$(basename $0)"
-lb_current_script_directory="$(dirname $0)"
+lb_current_script_name="$(basename "$0")"
+lb_current_script_directory="$(dirname "$0")"
 lb_current_path="$(pwd)"
 lb_current_os="$(lb_detect_os)"
 lb_exitcode=0
