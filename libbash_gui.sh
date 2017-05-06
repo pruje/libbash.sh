@@ -9,7 +9,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 0.4.1 (2017-04-24)                          #
+#  Version 1.0.0 (2017-05-06)                          #
 #                                                      #
 ########################################################
 
@@ -1576,9 +1576,12 @@ lbg_display_debug() {
 }
 
 
-###########################
-#  DEFAULT GUI SELECTION  #
-###########################
+################################
+#  LIBBASH GUI INITIALIZATION  #
+################################
+
+# libbash GUI path
+lbg_path=$BASH_SOURCE
 
 # set the default GUI tool
 lbg_set_gui

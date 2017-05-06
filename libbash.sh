@@ -2435,6 +2435,9 @@ lb_log_debug() {
 #  LIBBASH INITIALIZATION  #
 ############################
 
+# libbash path
+lb_path=$BASH_SOURCE
+
 # context variables
 lb_current_script=$0
 lb_current_script_name=$(basename "$0")

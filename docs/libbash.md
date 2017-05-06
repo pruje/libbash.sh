@@ -19,16 +19,19 @@ source "/path/to/libbash/locales/LANG.sh"
 ```
 
 Supported languages:
+- English (default)
 - French (fr)
 
 ## Variables
-You can use the following variables that are initialized when you include `libbash.sh` in your scripts:
-- `$lb_current_script`: your current script (equal to `$0`)
-- `$lb_current_script_name`: your current script name (result of command `basename $0`)
-- `$lb_current_script_directory`: your current script name (result of command `dirname $0`)
-- `$lb_current_path`: your current script name (result of command `pwd`)
-- `$lb_current_os`: your current Operating System (result of function `lb_detect_os`)
-- `$lb_exitcode`: script exit code (0 by default) that will be send if using `lb_exit` (equivalent to run `exit $lb_exitcode`)
+You can use the following variables that are initialized when you include libbash.sh in your scripts:
+- `$lb_version`: the current libbash.sh version
+- `$lb_path`: the current path of libbash.sh
+- `$lb_current_script`: path of your current script (same as `$0`)
+- `$lb_current_script_name`: name of your current script (same as `basename $0`)
+- `$lb_current_script_directory`: directory of your current script (same as `dirname $0`)
+- `$lb_current_path`: your current path (same as `pwd`)
+- `$lb_current_os`: your current Operating System (result of `lb_detect_os` function)
+- `$lb_exitcode`: script exit code (0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
 
 ## Functions
 All functions are named with the `lb_` prefix.
