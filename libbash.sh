@@ -13,12 +13,15 @@
 #                                                      #
 ########################################################
 
+
+####################
+#  INITIALIZATION  #
+####################
+
+# libbash main variables
 lb_version="1.0.0"
-
-
-####################
-#  DEFAULT VALUES  #
-####################
+lb_path=$BASH_SOURCE
+lb_directory=$(dirname "$lb_path")
 
 # default labels
 lb_default_result_ok_label="... Done!"
@@ -2435,9 +2438,6 @@ lb_log_debug() {
 #  LIBBASH INITIALIZATION  #
 ############################
 
-# libbash path
-lb_path=$BASH_SOURCE
-
 # context variables
 lb_current_script=$0
 lb_current_script_name=$(basename "$0")
@@ -2449,4 +2449,44 @@ lb_exitcode=0
 # if macOS, do not print with colours
 if [ "$lb_current_os" == "macOS" ] ; then
 	lb_format_print=false
+fi
+
+# simple catch of options; no errors if bad options
+lb_load_gui=false
+lb_load_locale=""
+
+while [ -n "$1" ] ; do
+	case $1 in
+		-g|--gui)
+			lb_load_gui=true
+			;;
+		-l|--locale)
+			if [ -n "$2" ] ; then
+				lb_load_locale=$2
+				shift
+			fi
+			;;
+   esac
+
+	# get next option
+   shift
+done
+
+# load libbash GUI
+if $lb_load_gui ; then
+	source "$lb_directory/libbash_gui.sh"
+	# in case of bad load, return error
+	if [ $? != 0 ] ; then
+		echo >&2 "Error: cannot load libbash GUI. Please verify the path $lb_directory."
+		return 2
+	fi
+fi
+
+# load locales
+if [ -n "$lb_load_locale" ] ; then
+	source "$lb_directory/locales/$lb_load_locale.sh"
+	# in case of bad load, print error but do not return error (not critical)
+	if [ $? != 0 ] ; then
+		echo >&2 "Error: cannot load the following libbash translation: $lb_load_locale"
+	fi
 fi
