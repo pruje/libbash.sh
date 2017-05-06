@@ -9,11 +9,11 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 0.4.1 (2017-04-24)                          #
+#  Version 1.0.0 (2017-05-05)                          #
 #                                                      #
 ########################################################
 
-lb_version="0.4.1"
+lb_version="1.0.0"
 
 
 ####################
@@ -138,12 +138,12 @@ lb_test_arguments() {
 		return 1
 	fi
 
-	local lb_testarg_operator="$1"
+	local lb_testarg_operator=$1
 	local lb_testarg_value=$2
 	shift 2
 
 	# test if operator is ok
-	case "$lb_testarg_operator" in
+	case $lb_testarg_operator in
 		-eq|-ne|-lt|-le|-gt|-ge)
 			# execute test on arguments number
 			[ $# $lb_testarg_operator $lb_testarg_value ]
@@ -204,7 +204,7 @@ lb_print() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-n)
 				lb_print_opts+="-n "
 				shift
@@ -276,7 +276,7 @@ lb_display() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-n)
 				lb_display_opts="-n "
 				shift
@@ -285,7 +285,7 @@ lb_display() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_display_level="$2"
+				lb_display_level=$2
 				shift 2
 				;;
 			-p|--prefix)
@@ -343,24 +343,24 @@ lb_display() {
 
 	# enable coloured prefixes
 	if $lb_display_prefix ; then
-		case "$lb_display_level" in
-			"$lb_default_critical_label")
-				lb_display_msgprefix="$(lb_print --red "$lb_display_level")"
+		case $lb_display_level in
+			$lb_default_critical_label)
+				lb_display_msgprefix=$(lb_print --red "$lb_display_level")
 				;;
-			"$lb_default_error_label")
-				lb_display_msgprefix="$(lb_print --red "$lb_display_level")"
+			$lb_default_error_label)
+				lb_display_msgprefix=$(lb_print --red "$lb_display_level")
 				;;
-			"$lb_default_warning_label")
-				lb_display_msgprefix="$(lb_print --yellow "$lb_display_level")"
+			$lb_default_warning_label)
+				lb_display_msgprefix=$(lb_print --yellow "$lb_display_level")
 				;;
-			"$lb_default_info_label")
-				lb_display_msgprefix="$(lb_print --green "$lb_display_level")"
+			$lb_default_info_label)
+				lb_display_msgprefix=$(lb_print --green "$lb_display_level")
 				;;
-			"$lb_default_debug_label")
-				lb_display_msgprefix="$(lb_print --cyan "$lb_display_level")"
+			$lb_default_debug_label)
+				lb_display_msgprefix=$(lb_print --cyan "$lb_display_level")
 				;;
 			*)
-				lb_display_msgprefix="$lb_display_level"
+				lb_display_msgprefix=$lb_display_level
 				;;
 		esac
 
@@ -397,8 +397,8 @@ lb_result() {
 	local lb_result_res=$?
 
 	# default values and options
-	local lb_result_ok="$lb_default_result_ok_label"
-	local lb_result_failed="$lb_default_result_failed_label"
+	local lb_result_ok=$lb_default_result_ok_label
+	local lb_result_failed=$lb_default_result_failed_label
 	local lb_result_opts=""
 	local lb_result_quiet=false
 	local lb_result_save_exitcode=false
@@ -407,19 +407,19 @@ lb_result() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			--ok-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_result_ok="$2"
+				lb_result_ok=$2
 				shift 2
 				;;
 			--failed-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_result_failed="$2"
+				lb_result_failed=$2
 				shift 2
 				;;
 			-l|--log-level)
@@ -529,7 +529,7 @@ lb_short_result() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-l|--log-level)
 				if [ -z "$2" ] ; then
 					return 1
@@ -664,7 +664,7 @@ lb_set_logfile() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-a|--append)
 				lb_setlogfile_append=true
 				shift
@@ -685,7 +685,7 @@ lb_set_logfile() {
 	fi
 
 	# get file path
-	local lb_setlogfile_file="$*"
+	local lb_setlogfile_file=$*
 
 	# cancel if path exists but is not a regular file
 	if [ -e "$lb_setlogfile_file" ] ; then
@@ -714,7 +714,7 @@ lb_set_logfile() {
 	fi
 
 	# set log file path
-	lb_logfile="$lb_setlogfile_file"
+	lb_logfile=$lb_setlogfile_file
 
 	# if not set, set higher log level
 	if [ -z "$lb_loglevel" ] ; then
@@ -744,7 +744,7 @@ lb_get_loglevel() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			--id)
 				lb_getloglevel_getid=true
 				shift
@@ -847,7 +847,7 @@ lb_log() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-n)
 				lb_log_opts="-n "
 				shift
@@ -856,7 +856,7 @@ lb_log() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_log_level="$2"
+				lb_log_level=$2
 				shift 2
 				;;
 			-p|--prefix)
@@ -914,7 +914,7 @@ lb_log() {
 	fi
 
 	# prepare text
-	lb_log_text+="$*"
+	lb_log_text+=$*
 
 	# tee options
 	lb_log_teeopts=""
@@ -991,8 +991,8 @@ lb_is_integer() {
 #   1: value is not a boolean
 lb_is_boolean() {
 
-	case "$1" in
-		"true"|"false")
+	case $1 in
+		true|false)
 			return 0
 			;;
 		*)
@@ -1014,13 +1014,13 @@ lb_trim() {
 		return 1
 	fi
 
-	local lb_trim_text="$*"
+	local lb_trim_text=$*
 
 	# remove spaces before text
-	lb_trim_text="${lb_trim_text#"${lb_trim_text%%[![:space:]]*}"}"
+	lb_trim_text=${lb_trim_text#${lb_trim_text%%[![:space:]]*}}
 
 	# remove spaces after text
-	lb_trim_text="${lb_trim_text%"${lb_trim_text##*[![:space:]]}"}"
+	lb_trim_text=${lb_trim_text%${lb_trim_text##*[![:space:]]}}
 
 	echo "$lb_trim_text"
 }
@@ -1041,7 +1041,7 @@ lb_array_contains() {
 	fi
 
 	# first arg is the value to search
-	local lb_arraycontains_search="$1"
+	local lb_arraycontains_search=$1
 	shift
 
 	# get array to search in
@@ -1078,10 +1078,10 @@ lb_compare_versions() {
 	fi
 
 	# get operator
-	local lb_cpver_operator="$2"
+	local lb_cpver_operator=$2
 
 	# check operator validity
-	case "$lb_cpver_operator" in
+	case $lb_cpver_operator in
 		-eq|-ne|-lt|-le|-gt|-ge)
 			# do nothing, continue
 			;;
@@ -1092,13 +1092,13 @@ lb_compare_versions() {
 	esac
 
 	# get versions, ignore builds (e.g. 1.0.0-rc.1+20170320 => 1.0.0-rc.1)
-	local lb_cpver_v1="$(echo $1 | cut -d+ -f1)"
-	local lb_cpver_v2="$(echo $3 | cut -d+ -f1)"
+	local lb_cpver_v1=$(echo $1 | cut -d+ -f1)
+	local lb_cpver_v2=$(echo $3 | cut -d+ -f1)
 
 	# global comparison
 	if [ "$lb_cpver_v1" == "$lb_cpver_v2" ] ; then
 		# versions are equal
-		case "$lb_cpver_operator" in
+		case $lb_cpver_operator in
 			-eq|-le|-ge)
 				return 0
 				;;
@@ -1109,8 +1109,8 @@ lb_compare_versions() {
 	fi
 
 	# get main version numbers
-	local lb_cpver_v1_main="$(echo $lb_cpver_v1 | cut -d- -f1)"
-	local lb_cpver_v2_main="$(echo $lb_cpver_v2 | cut -d- -f1)"
+	local lb_cpver_v1_main=$(echo $lb_cpver_v1 | cut -d- -f1)
+	local lb_cpver_v2_main=$(echo $lb_cpver_v2 | cut -d- -f1)
 
 	# compare main version numbers
 	if [ "$lb_cpver_v1_main" != "$lb_cpver_v2_main" ] ; then
@@ -1169,19 +1169,19 @@ lb_compare_versions() {
 	# get pre-release tags
 	local lb_cpver_v1_tag=""
 	if [[ "$lb_cpver_v1" == *"-"* ]] ; then
-		lb_cpver_v1_tag="$(echo $lb_cpver_v1 | cut -d- -f2)"
+		lb_cpver_v1_tag=$(echo $lb_cpver_v1 | cut -d- -f2)
 	fi
 
 	local lb_cpver_v2_tag=""
 	if [[ "$lb_cpver_v2" == *"-"* ]] ; then
-		lb_cpver_v2_tag="$(echo $lb_cpver_v2 | cut -d- -f2)"
+		lb_cpver_v2_tag=$(echo $lb_cpver_v2 | cut -d- -f2)
 	fi
 
 	# tags are equal
 	# this can happen if main versions are different
 	# e.g. v1.0 == v1.0.0 or v2.1-beta == v2.1.0-beta
 	if [ "$lb_cpver_v1_tag" == "$lb_cpver_v2_tag" ] ; then
-		case "$lb_cpver_operator" in
+		case $lb_cpver_operator in
 			-eq|-le|-ge)
 				return 0
 				;;
@@ -1191,7 +1191,7 @@ lb_compare_versions() {
 		esac
 	else
 		# tags are different
-		case "$lb_cpver_operator" in
+		case $lb_cpver_operator in
 			-eq)
 				return 2
 				;;
@@ -1204,7 +1204,7 @@ lb_compare_versions() {
 	# 1st tag is empty: final version is always superior to pre-release tags
 	# e.g. v1.0.0 > v1.0.0-rc
 	if [ -z "$lb_cpver_v1_tag" ] ; then
-		case "$lb_cpver_operator" in
+		case $lb_cpver_operator in
 			-gt|-ge)
 				return 0
 				;;
@@ -1217,7 +1217,7 @@ lb_compare_versions() {
 	# 2nd tag is empty: final version is always superior to pre-release tags
 	# e.g. v1.0.0-rc < v1.0.0
 	if [ -z "$lb_cpver_v2_tag" ] ; then
-		case "$lb_cpver_operator" in
+		case $lb_cpver_operator in
 			-gt|-ge)
 				return 2
 				;;
@@ -1244,14 +1244,14 @@ lb_compare_versions() {
 	# tags order has changed => v1 > v2
 	# e.g. ("1.0.0-beta" "1.0.0-alpha") => ("1.0.0-alpha" "1.0.0-beta")
 	if [ "${lb_cpver_tags[0]}" != "${lb_cpver_tags_2[0]}" ] ; then
-		case "$lb_cpver_operator" in
+		case $lb_cpver_operator in
 			-gt|-ge)
 				return 0
 				;;
 		esac
 	else
 		# tags order has NOT changed => v1 < v2
-		case "$lb_cpver_operator" in
+		case $lb_cpver_operator in
 			-lt|-le)
 				return 0
 				;;
@@ -1281,7 +1281,7 @@ lb_is_comment() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-s|--symbol)
 				if [ -z "$2" ] ; then
 					return 1
@@ -1317,7 +1317,7 @@ lb_is_comment() {
 	else
 		# test if text starts with comment symbols
 		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
-			lb_iscom_symbol="${lb_iscom_symbols[$lb_iscom_i]}"
+			lb_iscom_symbol=${lb_iscom_symbols[$lb_iscom_i]}
 
 			if [ "${lb_iscom_line:0:${#lb_iscom_symbol}}" == "$lb_iscom_symbol" ] ; then
 				# is a comment: exit
@@ -1351,7 +1351,7 @@ lb_df_fstype() {
 	fi
 
 	# get path
-	local lb_dffstype_path="$*"
+	local lb_dffstype_path=$*
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dffstype_path" ] ; then
@@ -1361,7 +1361,7 @@ lb_df_fstype() {
 	# get filesystem type
 	if [ "$lb_current_os" == "macOS" ] ; then
 		# get mountpoint
-		lb_dffstype_mountpoint="$(lb_df_mountpoint "$lb_dffstype_path")"
+		lb_dffstype_mountpoint=$(lb_df_mountpoint "$lb_dffstype_path")
 		if [ $? != 0 ] ; then
 			return 3
 		fi
@@ -1397,7 +1397,7 @@ lb_df_space_left() {
 	fi
 
 	# get path
-	local lb_dfspaceleft_path="$*"
+	local lb_dfspaceleft_path=$*
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dfspaceleft_path" ] ; then
@@ -1436,7 +1436,7 @@ lb_df_mountpoint() {
 	fi
 
 	# get path
-	local lb_dfmountpoint_path="$*"
+	local lb_dfmountpoint_path=$*
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dfmountpoint_path" ] ; then
@@ -1476,7 +1476,7 @@ lb_df_uuid() {
 	fi
 
 	# get path
-	local lb_dfuuid_path="$*"
+	local lb_dfuuid_path=$*
 
 	# if path does not exists, error
 	if ! [ -e "$lb_dfuuid_path" ] ; then
@@ -1486,7 +1486,7 @@ lb_df_uuid() {
 	# macOS systems
 	if [ "$lb_current_os" == "macOS" ] ; then
 		# get mountpoint
-		lb_dfuuid_mountpoint="$(lb_df_mountpoint "$lb_dfuuid_path")"
+		lb_dfuuid_mountpoint=$(lb_df_mountpoint "$lb_dfuuid_path")
 		if [ $? != 0 ] ; then
 			return 3
 		fi
@@ -1587,7 +1587,7 @@ lb_dir_is_empty() {
 	fi
 
 	# get directory path
-	local lb_dir_is_empty_path="$*"
+	local lb_dir_is_empty_path=$*
 
 	# test if directory exists
 	if ! [ -d "$lb_dir_is_empty_path" ] ; then
@@ -1595,7 +1595,7 @@ lb_dir_is_empty() {
 	fi
 
 	# test if directory is empty
-	lb_dir_is_empty_res="$(ls -A "$lb_dir_is_empty_path" 2> /dev/null)"
+	lb_dir_is_empty_res=$(ls -A "$lb_dir_is_empty_path" 2> /dev/null)
 	if [ $? != 0 ] ; then
 		# ls error means an access rights error
 		return 2
@@ -1625,8 +1625,8 @@ lb_abspath() {
 	fi
 
 	# get directory and file names
-	local lb_abspath_dir="$(dirname "$*")"
-	local lb_abspath_file="$(basename "$*")"
+	local lb_abspath_dir=$(dirname "$*")
+	local lb_abspath_file=$(basename "$*")
 	local lb_abspath_path=""
 
 	# root directory is always ok
@@ -1634,7 +1634,7 @@ lb_abspath() {
 		lb_abspath_path="/"
 	else
 		# get absolute path of the parent directory
-		lb_abspath_path="$(cd "$lb_abspath_dir" &> /dev/null && pwd)"
+		lb_abspath_path=$(cd "$lb_abspath_dir" &> /dev/null && pwd)
 
 		# if path does not exists, error
 		if [ $? != 0 ] ; then
@@ -1708,7 +1708,7 @@ lb_is_writable() {
 		return 1
 	fi
 
-	local lb_is_writable_path="$*"
+	local lb_is_writable_path=$*
 
 	# if file/folder exists
 	if [ -e "$lb_is_writable_path" ] ; then
@@ -1835,40 +1835,40 @@ lb_email() {
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-s|--subject)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_subject="$2"
+				lb_email_subject=$2
 				shift 2
 				;;
 			--sender)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_sender="$2"
+				lb_email_sender=$2
 				shift 2
 				;;
 			-r|--reply-to)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_replyto="$2"
+				lb_email_replyto=$2
 				shift 2
 				;;
 			-c|--cc)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_cc="$2"
+				lb_email_cc=$2
 				shift 2
 				;;
 			-b|--bcc)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_bcc="$2"
+				lb_email_bcc=$2
 				shift 2
 				;;
 			*)
@@ -1882,7 +1882,7 @@ lb_email() {
 		return 1
 	fi
 
-	local lb_email_recepients="$1"
+	local lb_email_recepients=$1
 	shift
 
 	# usage error if missing message
@@ -1892,7 +1892,7 @@ lb_email() {
 	fi
 
 	# set email body
-	local lb_email_message="$*"
+	local lb_email_message=$*
 
 	# search compatible command to send email
 	for lb_email_c in ${lb_email_commands[@]} ; do
@@ -1934,7 +1934,7 @@ lb_email() {
 	lb_email_header+="MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\n"
 
 	# send email with program
-	case "$lb_email_command" in
+	case $lb_email_command in
 		/usr/sbin/sendmail)
 			echo -e "$lb_email_header\n$lb_email_message" | /usr/sbin/sendmail -t
 			# if unknown error
@@ -1980,13 +1980,13 @@ lb_yesno() {
 	# default options
 	local lb_yn_defaultyes=false
 	local lb_yn_cancel=false
-	local lb_yn_yeslbl="$lb_default_yes_shortlabel"
-	local lb_yn_nolbl="$lb_default_no_shortlabel"
-	local lb_yn_cancellbl="$lb_default_cancel_shortlabel"
+	local lb_yn_yeslbl=$lb_default_yes_shortlabel
+	local lb_yn_nolbl=$lb_default_no_shortlabel
+	local lb_yn_cancellbl=$lb_default_cancel_shortlabel
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-y|--yes)
 				lb_yn_defaultyes=true
 				shift
@@ -1999,21 +1999,21 @@ lb_yesno() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_yn_yeslbl="$2"
+				lb_yn_yeslbl=$2
 				shift 2
 				;;
 			--no-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_yn_nolbl="$2"
+				lb_yn_nolbl=$2
 				shift 2
 				;;
 			--cancel-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_yn_cancellbl="$2"
+				lb_yn_cancellbl=$2
 				shift 2
 				;;
 			*)
@@ -2099,32 +2099,32 @@ lb_choose_option() {
 
 	# default options and local variables
 	local lb_chop_default=0
-	local lb_chop_options=("")
-	local lb_chop_label="$lb_default_chopt_label"
-	local lb_chop_cancel_label="$lb_default_cancel_shortlabel"
+	local lb_chop_options=()
+	local lb_chop_label=$lb_default_chopt_label
+	local lb_chop_cancel_label=$lb_default_cancel_shortlabel
 
 	# get command options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_chop_default="$2"
+				lb_chop_default=$2
 				shift 2
 				;;
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_chop_label="$2"
+				lb_chop_label=$2
 				shift 2
 				;;
 			-c|--cancel-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_chop_cancel_label="$2"
+				lb_chop_cancel_label=$2
 				shift 2
 				;;
 			*)
@@ -2243,12 +2243,12 @@ lb_input_text() {
 
 	# catch options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_inp_default="$2"
+				lb_inp_default=$2
 				shift 2
 				;;
 			-n)
@@ -2283,7 +2283,7 @@ lb_input_text() {
 	if [ -z "$lb_input_text" ] ; then
 		# default value if set
 		if [ -n "$lb_inp_default" ] ; then
-			lb_input_text="$lb_inp_default"
+			lb_input_text=$lb_inp_default
 		else
 			return 2
 		fi
@@ -2312,18 +2312,18 @@ lb_input_password() {
 	lb_input_password=""
 
 	# default options
-	local lb_inpw_label="$lb_default_pwd_label"
+	local lb_inpw_label=$lb_default_pwd_label
 	local lb_inpw_confirm=false
-	local lb_inpw_confirm_label="$lb_default_pwd_confirm_label"
+	local lb_inpw_confirm_label=$lb_default_pwd_confirm_label
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_inpw_label="$2"
+				lb_inpw_label=$2
 				shift 2
 				;;
 			-c|--confirm)
@@ -2334,7 +2334,7 @@ lb_input_password() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_inpw_confirm_label="$2"
+				lb_inpw_confirm_label=$2
 				shift 2
 				;;
 			*)
@@ -2359,7 +2359,7 @@ lb_input_password() {
 	fi
 
 	# if confirmation, save current password
-	lb_inpw_password_confirm="$lb_input_password"
+	lb_inpw_password_confirm=$lb_input_password
 
 	# prompt password confirmation
 	read -s -p "$lb_inpw_confirm_label " lb_inpw_password_confirm
@@ -2432,15 +2432,15 @@ lb_log_debug() {
 
 
 ############################
-#  SCRIPTS INITIALIZATION  #
+#  LIBBASH INITIALIZATION  #
 ############################
 
 # context variables
-lb_current_script="$0"
-lb_current_script_name="$(basename "$0")"
-lb_current_script_directory="$(dirname "$0")"
-lb_current_path="$(pwd)"
-lb_current_os="$(lb_detect_os)"
+lb_current_script=$0
+lb_current_script_name=$(basename "$0")
+lb_current_script_directory=$(dirname "$0")
+lb_current_path=$(pwd)
+lb_current_os=$(lb_detect_os)
 lb_exitcode=0
 
 # if macOS, do not print with colours

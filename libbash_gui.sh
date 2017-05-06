@@ -125,7 +125,7 @@ lbg_set_gui() {
 
 	# set gui tool
 	if [ $lbg_setgui_res == 0 ] ; then
-		lbg_gui="$lbg_sgt"
+		lbg_gui=$lbg_sgt
 	fi
 
 	return $lbg_setgui_res
@@ -141,8 +141,8 @@ lbg_set_gui() {
 lbg_get_console_size() {
 
 	# get console width and height
-	lbg_console_width="$(tput cols 2> /dev/null)"
-	lbg_console_height="$(tput lines 2> /dev/null)"
+	lbg_console_width=$(tput cols 2> /dev/null)
+	lbg_console_height=$(tput lines 2> /dev/null)
 
 	# if error (script not running in a terminal)
 	if [ -z "$lbg_console_width" ] || [ -z "$lbg_console_height" ] ; then
@@ -161,8 +161,8 @@ lbg_get_console_size() {
 lbg_dialog_size() {
 
 	# given size
-	local lbg_dialog_width="$1"
-	local lbg_dialog_height="$2"
+	local lbg_dialog_width=$1
+	local lbg_dialog_height=$2
 
 	# if max width > console width, fit to console width
 	if [ "$lbg_dialog_width" -gt "$lbg_console_width" ] ; then
@@ -199,16 +199,16 @@ lbg_display_info() {
 	fi
 
 	# default options
-	local lbg_dinf_title="$lb_current_script_name"
+	local lbg_dinf_title=$lb_current_script_name
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_dinf_title="$2"
+				lbg_dinf_title=$2
 				shift 2
 				;;
 			*)
@@ -223,7 +223,7 @@ lbg_display_info() {
 	fi
 
 	# prepare command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			lbg_dinf_cmd=(kdialog --title "$lbg_dinf_title" --msgbox "$*")
 			;;
@@ -296,16 +296,16 @@ lbg_display_warning() {
 	fi
 
 	# default options
-	local lbg_dwn_title="$lb_current_script_name"
+	local lbg_dwn_title=$lb_current_script_name
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_dwn_title="$2"
+				lbg_dwn_title=$2
 				shift 2
 				;;
 			*)
@@ -320,7 +320,7 @@ lbg_display_warning() {
 	fi
 
 	# prepare command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			lbg_dwn_cmd=(kdialog --title "$lbg_dwn_title" --sorry "$*")
 			;;
@@ -382,16 +382,16 @@ lbg_display_error() {
 	fi
 
 	# default options
-	local lbg_derr_title="$lb_current_script_name"
+	local lbg_derr_title=$lb_current_script_name
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_derr_title="$2"
+				lbg_derr_title=$2
 				shift 2
 				;;
 			*)
@@ -406,7 +406,7 @@ lbg_display_error() {
 	fi
 
 	# prepare command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			lbg_derr_cmd=(kdialog --title "$lbg_derr_title" --error "$*")
 			;;
@@ -471,18 +471,18 @@ lbg_notify() {
 	fi
 
 	# default options
-	local lbg_notify_title="$lb_current_script_name"
+	local lbg_notify_title=$lb_current_script_name
 	local lbg_notify_timeout=""
 	local lbg_notify_use_notifysend=true
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_notify_title="$2"
+				lbg_notify_title=$2
 				shift 2
 				;;
 			--timeout)
@@ -492,7 +492,7 @@ lbg_notify() {
 				if ! lb_is_integer $2 ; then
 					return 1
 				fi
-				lbg_notify_timeout="$2"
+				lbg_notify_timeout=$2
 				shift 2
 				;;
 			--no-notify-send)
@@ -535,7 +535,7 @@ lbg_notify() {
 	fi
 
 	# run command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout 2> /dev/null
 			;;
@@ -597,12 +597,12 @@ lbg_yesno() {
 	local lbg_yn_defaultyes=false
 	local lbg_yn_yeslbl=""
 	local lbg_yn_nolbl=""
-	local lbg_yn_title="$lb_current_script_name"
+	local lbg_yn_title=$lb_current_script_name
 	local lbg_yn_cmd=()
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-y|--yes)
 				lbg_yn_defaultyes=true
 				shift
@@ -611,15 +611,15 @@ lbg_yesno() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_yn_yeslbl="$2"
+				lbg_yn_yeslbl=$2
 				shift 2
 				;;
 			--no-label)
-				lbg_yn_nolbl="$2"
+				lbg_yn_nolbl=$2
 				shift 2
 				;;
 			-t|--title)
-				lbg_yn_title="$2"
+				lbg_yn_title=$2
 				shift 2
 				;;
 			*)
@@ -634,7 +634,7 @@ lbg_yesno() {
 	fi
 
 	# prepare command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			lbg_yn_cmd=(kdialog --title "$lbg_yn_title")
 			if [ -n "$lbg_yn_yeslbl" ] ; then
@@ -653,10 +653,10 @@ lbg_yesno() {
 		osascript)
 			# set button labels
 			if [ -z "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_yeslbl="$lb_default_yes_label"
+				lbg_yn_yeslbl=$lb_default_yes_label
 			fi
 			if [ -z "$lbg_yn_nolbl" ] ; then
-				lbg_yn_nolbl="$lb_default_no_label"
+				lbg_yn_nolbl=$lb_default_no_label
 			fi
 
 			# set options
@@ -769,33 +769,33 @@ lbg_choose_option() {
 
 	# default options and local variables
 	local lbg_chop_default=0
-	local lbg_chop_options=("")
+	local lbg_chop_options=()
 	local lbg_chop_i
-	local lbg_chop_title="$lb_current_script_name"
-	local lbg_chop_label="$lb_default_chopt_label"
+	local lbg_chop_title=$lb_current_script_name
+	local lbg_chop_label=$lb_default_chopt_label
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chop_default="$2"
+				lbg_chop_default=$2
 				shift 2
 				;;
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chop_label="$2"
+				lbg_chop_label=$2
 				shift 2
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chop_title="$2"
+				lbg_chop_title=$2
 				shift 2
 				;;
 			*)
@@ -833,7 +833,7 @@ lbg_choose_option() {
 	fi
 
 	# prepare command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_label")
 
@@ -881,7 +881,7 @@ lbg_choose_option() {
 				# set default option
 				if [ $lbg_chop_default != 0 ] ; then
 					if [ $lbg_chop_default == $lbg_chop_i ] ; then
-						lbg_chop_default_option="${lbg_chop_options[$lbg_chop_i]}"
+						lbg_chop_default_option=${lbg_chop_options[$lbg_chop_i]}
 					fi
 				fi
 			done
@@ -945,7 +945,7 @@ EOF)
 			"${lbg_chop_cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_choose_option="$lb_choose_option"
+				lbg_choose_option=$lb_choose_option
 			fi
 			;;
 	esac
@@ -996,23 +996,23 @@ lbg_input_text() {
 
 	# default options
 	local lbg_inp_default=""
-	local lbg_inp_title="$lb_current_script_name"
+	local lbg_inp_title=$lb_current_script_name
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inp_default="$2"
+				lbg_inp_default=$2
 				shift 2
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inp_title="$2"
+				lbg_inp_title=$2
 				shift 2
 				;;
 			*)
@@ -1027,7 +1027,7 @@ lbg_input_text() {
 	fi
 
 	# run command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			lbg_input_text=$(kdialog --title "$lbg_inp_title" --inputbox "$*" "$lbg_inp_default" 2> /dev/null)
 			;;
@@ -1064,7 +1064,7 @@ EOF)
 			"${lbg_inp_cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_input_text="$lb_input_text"
+				lbg_input_text=$lb_input_text
 			fi
 			;;
 	esac
@@ -1099,19 +1099,19 @@ lbg_input_password() {
 	lbg_input_password=""
 
 	# default options
-	local lbg_inpw_label="$lb_default_pwd_label"
+	local lbg_inpw_label=$lb_default_pwd_label
 	local lbg_inpw_confirm=false
-	local lbg_inpw_confirm_label="$lb_default_pwd_confirm_label"
-	local lbg_inpw_title="$lb_current_script_name"
+	local lbg_inpw_confirm_label=$lb_default_pwd_confirm_label
+	local lbg_inpw_title=$lb_current_script_name
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inpw_label="$2"
+				lbg_inpw_label=$2
 				shift 2
 				;;
 			-c|--confirm)
@@ -1122,11 +1122,14 @@ lbg_input_password() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inpw_confirm_label="$2"
+				lbg_inpw_confirm_label=$2
 				shift 2
 				;;
 			-t|--title)
-				lbg_inpw_title="$2"
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lbg_inpw_title=$2
 				shift 2
 				;;
 			*)
@@ -1139,7 +1142,7 @@ lbg_input_password() {
 	for lbg_inpw_i in 1 2 ; do
 
 		# run command
-		case "$lbg_gui" in
+		case $lbg_gui in
 			kdialog)
 				lbg_input_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
 				;;
@@ -1172,7 +1175,7 @@ EOF)
 				lbg_inpw_res=$?
 				if [ $lbg_inpw_res == 0 ] ; then
 					# forward result
-					lbg_input_password="$lb_input_password"
+					lbg_input_password=$lb_input_password
 				else
 					return $lbg_inpw_res
 				fi
@@ -1193,10 +1196,10 @@ EOF)
 		# if first iteration,
 		if [ $lbg_inpw_i == 1 ] ; then
 			# save password
-			lbg_inpw_password_confirm="$lbg_input_password"
+			lbg_inpw_password_confirm=$lbg_input_password
 
 			# set new confirm label and continue
-			lbg_inpw_label="$lbg_inpw_confirm_label"
+			lbg_inpw_label=$lbg_inpw_confirm_label
 		else
 			# if 2nd iteration (confirmation)
 			# comparison with confirm password
@@ -1237,13 +1240,13 @@ lbg_choose_directory() {
 	lbg_choose_directory=""
 
 	# default options
-	local lbg_chdir_title="$lb_current_script_name"
+	local lbg_chdir_title=$lb_current_script_name
 	local lbg_chdir_path=""
 	local lbg_chdir_absolute=false
 
 	# get options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-a|--absolute-path)
 				lbg_chdir_absolute=true
 				shift
@@ -1252,7 +1255,7 @@ lbg_choose_directory() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chdir_title="$2"
+				lbg_chdir_title=$2
 				shift 2
 				;;
 			*)
@@ -1263,9 +1266,9 @@ lbg_choose_directory() {
 
 	# if no path specified, use current
 	if lb_test_arguments -eq 0 $* ; then
-		lbg_chdir_path="$lb_current_path"
+		lbg_chdir_path=$lb_current_path
 	else
-		lbg_chdir_path="$*"
+		lbg_chdir_path=$*
 	fi
 
 	# if path is not a directory, usage error
@@ -1274,7 +1277,7 @@ lbg_choose_directory() {
 	fi
 
 	# run command
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			lbg_choose_directory=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path" 2> /dev/null)
 			;;
@@ -1314,7 +1317,7 @@ EOF)
 			"${lbg_chdir_cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_choose_directory="$lb_input_text"
+				lbg_choose_directory=$lb_input_text
 			fi
 			;;
 	esac
@@ -1332,9 +1335,9 @@ EOF)
 
 	# return absolute path if option set
 	if $lbg_chdir_absolute ; then
-		lbg_chdir_abspath="$(lb_abspath "$lbg_choose_directory")"
+		lbg_chdir_abspath=$(lb_abspath "$lbg_choose_directory")
 		if [ $? == 0 ] ; then
-			lbg_choose_directory="$lbg_chdir_abspath"
+			lbg_choose_directory=$lbg_chdir_abspath
 		else
 			# in case of error, user can get returned path
 			return 4
@@ -1370,14 +1373,14 @@ lbg_choose_file() {
 
 	# default options
 	local lbg_choosefile_save=false
-	local lbg_choosefile_title="$lb_current_script_name"
+	local lbg_choosefile_title=$lb_current_script_name
 	local lbg_choosefile_path=""
 	local lbg_choosefile_filters=()
 	local lbg_choosefile_absolute=false
 
 	# catch options
 	while true ; do
-		case "$1" in
+		case $1 in
 			-s|--save)
 				lbg_choosefile_save=true
 				shift
@@ -1397,7 +1400,7 @@ lbg_choose_file() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_choosefile_title="$2"
+				lbg_choosefile_title=$2
 				shift 2
 				;;
 			*)
@@ -1408,9 +1411,9 @@ lbg_choose_file() {
 
 	# if no path specified, use current directory
 	if lb_test_arguments -eq 0 $* ; then
-		lbg_choosefile_path="$lb_current_path"
+		lbg_choosefile_path=$lb_current_path
 	else
-		lbg_choosefile_path="$*"
+		lbg_choosefile_path=$*
 	fi
 
 	# if directory does not exists (save mode), error
@@ -1426,14 +1429,14 @@ lbg_choose_file() {
 	fi
 
 	# display dialog
-	case "$lbg_gui" in
+	case $lbg_gui in
 		kdialog)
 			# kdialog has a strange behaviour: it takes a path but only as a file name.
 			# it starts on the current directory path. This is a hack to work:
 			lbg_choosefile_pathfile="."
 			if ! [ -d "$lbg_choosefile_path" ] ; then
-				lbg_choosefile_pathfile="$(basename "$lbg_choosefile_path")"
-				lbg_choosefile_path="$(dirname "$lbg_choosefile_path")"
+				lbg_choosefile_pathfile=$(basename "$lbg_choosefile_path")
+				lbg_choosefile_path=$(dirname "$lbg_choosefile_path")
 			fi
 
 			# set mode (open or save)
@@ -1463,15 +1466,15 @@ lbg_choose_file() {
 
 		osascript)
 			local lbg_choosefile_opts=""
-			local lbg_choosefile_file="$lb_default_newfile_name"
+			local lbg_choosefile_file=$lb_default_newfile_name
 
 			# set save mode
 			if $lbg_choosefile_save ; then
 				lbg_choosefile_mode="name"
 
 				if ! [ -d "$lbg_choosefile_path" ] ; then
-					lbg_choosefile_file="$(basename "$lbg_choosefile_path")"
-					lbg_choosefile_path="$(dirname "$lbg_choosefile_path")"
+					lbg_choosefile_file=$(basename "$lbg_choosefile_path")
+					lbg_choosefile_path=$(dirname "$lbg_choosefile_path")
 				fi
 
 				lbg_choosefile_opts="default name \"$lbg_choosefile_file\""
@@ -1507,7 +1510,7 @@ EOF)
 			"${lbg_choosefile_cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_choose_file="$lb_input_text"
+				lbg_choose_file=$lb_input_text
 			fi
 			;;
 	esac
@@ -1543,9 +1546,9 @@ EOF)
 
 	# return absolute path if option set
 	if $lbg_choosefile_absolute ; then
-		lbg_choosefile_abspath="$(lb_abspath "$lbg_choose_file")"
+		lbg_choosefile_abspath=$(lb_abspath "$lbg_choose_file")
 		if [ $? == 0 ] ; then
-			lbg_choose_file="$lbg_choosefile_abspath"
+			lbg_choose_file=$lbg_choosefile_abspath
 		else
 			# in case of error, user can get returned path
 			return 4
