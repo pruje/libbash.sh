@@ -2406,7 +2406,7 @@ lb_echo() {
 lb_error() {
 
 	# basic command
-	lb_cmd=(>&2 lb_print)
+	lb_cmd=(lb_print)
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2415,7 +2415,7 @@ lb_error() {
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	>&2 "${lb_cmd[@]}"
 }
 
 
