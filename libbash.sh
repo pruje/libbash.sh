@@ -2102,7 +2102,8 @@ lb_choose_option() {
 
 	# default options and local variables
 	local lb_chop_default=0
-	local lb_chop_options=()
+	# options: initialize with an empty first value (option ID starts to 1, not 0)
+	local lb_chop_options=("")
 	local lb_chop_label=$lb_default_chopt_label
 	local lb_chop_cancel_label=$lb_default_cancel_shortlabel
 

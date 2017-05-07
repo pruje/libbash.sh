@@ -773,7 +773,8 @@ lbg_choose_option() {
 
 	# default options and local variables
 	local lbg_chop_default=0
-	local lbg_chop_options=()
+	# options: initialize with an empty first value (option ID starts to 1, not 0)
+	local lbg_chop_options=("")
 	local lbg_chop_i
 	local lbg_chop_title=$lb_current_script_name
 	local lbg_chop_label=$lb_default_chopt_label
