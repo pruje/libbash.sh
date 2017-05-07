@@ -2451,18 +2451,21 @@ if [ "$lb_current_os" == "macOS" ] ; then
 	lb_format_print=false
 fi
 
-# simple catch of options; no errors if bad options
+# do not load libbash GUI by default
 lb_load_gui=false
-lb_load_locale=""
 
+# get current user language (e.g. fr, en, ...)
+lb_lang=${LANG:0:2}
+
+# simple catch of options; no errors if bad options
 while [ -n "$1" ] ; do
 	case $1 in
 		-g|--gui)
 			lb_load_gui=true
 			;;
-		-l|--locale)
+		-l|--lang)
 			if [ -n "$2" ] ; then
-				lb_load_locale=$2
+				lb_lang=$2
 				shift
 			fi
 			;;
@@ -2482,11 +2485,12 @@ if $lb_load_gui ; then
 	fi
 fi
 
-# load locales
-if [ -n "$lb_load_locale" ] ; then
-	source "$lb_directory/locales/$lb_load_locale.sh"
-	# in case of bad load, print error but do not return error (not critical)
-	if [ $? != 0 ] ; then
-		echo >&2 "Error: cannot load the following libbash translation: $lb_load_locale"
-	fi
-fi
+# load translations (do not exit if errors)
+case $lb_lang in
+	fr)
+		source "$lb_directory/locales/$lb_lang.sh" &> /dev/null
+		if [ $? != 0 ] ; then
+			echo >&2 "Error: cannot load the following libbash translation: $lb_lang"
+		fi
+		;;
+esac
