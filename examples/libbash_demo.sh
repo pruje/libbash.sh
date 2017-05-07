@@ -27,18 +27,12 @@ fi
 script_directory="$(dirname "$current_script")"
 
 # load libbash
-source "$script_directory/../libbash.sh" > /dev/null
+source "$script_directory/../libbash.sh" --gui > /dev/null
 if [ $? != 0 ] ; then
 	echo >&2 "Error: cannot load libbash. Please add it to the '$script_directory/../libbash.sh' directory."
 	exit 1
 fi
 
-# load libbash GUI
-source "$script_directory/../libbash_gui.sh" > /dev/null
-if [ $? != 0 ] ; then
-	echo >&2 "Error: cannot load libbash GUI. Please add it to the '$script_directory/../libbash.sh' directory."
-	exit 1
-fi
 
 # load translations
 

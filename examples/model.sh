@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  My custom script working only in console (no libbash.sh GUI)
+#  My custom script using libbash.sh
 #
 
 
@@ -19,23 +19,12 @@ fi
 # get directory of the current script
 script_directory="$(dirname "$current_script")"
 
-# load libbash
-source "$script_directory/libbash.sh/libbash.sh" > /dev/null
+# load libbash with GUI functions
+source "$script_directory/libbash/libbash.sh" --gui > /dev/null
 if [ $? != 0 ] ; then
-	echo >&2 "Error: cannot load libbash. Please add it to the '$script_directory/libbash.sh' directory."
+	echo >&2 "Error: cannot load libbash. Please add it to the '$script_directory/libbash.sh/' directory."
 	exit 1
 fi
-
-# load translations
-
-# get user language
-lang="${LANG:0:2}"
-# load translations (do not print errors if failed)
-case "$lang" in
-	fr)
-		source "$script_directory/libbash.sh/locales/$lang.sh" &> /dev/null
-		;;
-esac
 
 # change current script name
 lb_current_script_name="myscript"

@@ -1,6 +1,6 @@
 # libbash.sh examples
 
-This folder contains some examples of libbash.sh features.
+This folder contains some examples and models.
 
 ## Documentation
 - [libbash.sh](../docs/libbash.md)
