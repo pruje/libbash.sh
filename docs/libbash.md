@@ -10,17 +10,19 @@ source "/path/to/libbash.sh"
 ```
 Then call the functions described below.
 
-## Translations
-If you want to, you can also use a translated version of libbash.
-
-To use it, you have to include the locales **after** libbash.sh:
+If you want to use libbash.sh GUI, use the `--gui` option as argument when loading libbash:
 ```bash
-source "/path/to/libbash/locales/LANG.sh"
+source "/path/to/libbash.sh" --gui
+```
+
+By default, libbash.sh translation is loaded in the user language. You can specify a language with the `--lang` option:
+```bash
+source "/path/to/libbash.sh" --lang fr
 ```
 
 Supported languages:
-- English (default)
-- French (fr)
+- `en`: English (default)
+- `fr`: French
 
 ## Variables
 You can use the following variables that are initialized when you include libbash.sh in your scripts:
