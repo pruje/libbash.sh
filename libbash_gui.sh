@@ -9,22 +9,26 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.0.0 (2017-05-06)                          #
+#  Version 1.0.0 (2017-05-07)                          #
 #                                                      #
 ########################################################
 
 
-####################
-#  INITIALIZATION  #
-####################
-
-# test dependency
+# test if libbash.sh is loaded
 if [ -z "$lb_version" ] ; then
 	echo >&2 "Error: libbash core not loaded!"
 	echo >&2 "Please load it in your script before loading this library with command:"
 	echo >&2 "   source \"/path/to/libbash.sh\""
-	exit 1
+	return 1
 fi
+
+
+####################
+#  MAIN VARIABLES  #
+####################
+
+# libbash GUI path
+lbg_path=$BASH_SOURCE
 
 # set supported GUIs
 lbg_supported_gui=(kdialog zenity osascript dialog console)
@@ -1576,12 +1580,9 @@ lbg_display_debug() {
 }
 
 
-################################
-#  LIBBASH GUI INITIALIZATION  #
-################################
-
-# libbash GUI path
-lbg_path=$BASH_SOURCE
+####################
+#  INITIALIZATION  #
+####################
 
 # set the default GUI tool
 lbg_set_gui

@@ -9,13 +9,13 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.0.0 (2017-05-05)                          #
+#  Version 1.0.0 (2017-05-07)                          #
 #                                                      #
 ########################################################
 
 
 ####################
-#  INITIALIZATION  #
+#  MAIN VARIABLES  #
 ####################
 
 # libbash main variables
@@ -2434,9 +2434,9 @@ lb_log_debug() {
 }
 
 
-############################
-#  LIBBASH INITIALIZATION  #
-############################
+####################
+#  INITIALIZATION  #
+####################
 
 # context variables
 lb_current_script=$0
