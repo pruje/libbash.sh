@@ -2386,31 +2386,118 @@ lb_input_password() {
 # Print a message
 # See lb_print for usage
 lb_echo() {
-	lb_print $*
+
+	# basic command
+	lb_cmd=(lb_print)
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
 
 # Print a message to stderr
 # See lb_print for usage
 lb_error() {
-	>&2 lb_print $*
+
+	# basic command
+	lb_cmd=(>&2 lb_print)
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
 
 # Common display levels functions
 # See lb_display for usage
 lb_display_critical() {
-	lb_display -p -l "$lb_default_critical_label" $*
+
+	# basic command
+	lb_cmd=(lb_display -p -l "$lb_default_critical_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_display_error() {
-	lb_display -p -l "$lb_default_error_label" $*
+
+	# basic command
+	lb_cmd=(lb_display -p -l "$lb_default_error_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_display_warning() {
-	lb_display -p -l "$lb_default_warning_label" $*
+
+	# basic command
+	lb_cmd=(lb_display -p -l "$lb_default_warning_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_display_info() {
-	lb_display -p -l "$lb_default_info_label" $*
+
+	# basic command
+	lb_cmd=(lb_display -p -l "$lb_default_info_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_display_debug() {
-	lb_display -p -l "$lb_default_debug_label" $*
+
+	# basic command
+	lb_cmd=(lb_display -p -l "$lb_default_debug_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
 
 
@@ -2418,19 +2505,82 @@ lb_display_debug() {
 # Usage: lb_log_* [OPTIONS] TEXT
 # See lb_log for options usage
 lb_log_critical() {
-	lb_log -p -l "$lb_default_critical_label" $*
+
+	# basic command
+	lb_cmd=(lb_log -p -l "$lb_default_critical_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_log_error() {
-	lb_log -p -l "$lb_default_error_label" $*
+
+	# basic command
+	lb_cmd=(lb_log -p -l "$lb_default_error_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_log_warning() {
-	lb_log -p -l "$lb_default_warning_label" $*
+
+	# basic command
+	lb_cmd=(lb_log -p -l "$lb_default_warning_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_log_info() {
-	lb_log -p -l "$lb_default_info_label" $*
+
+	# basic command
+	lb_cmd=(lb_log -p -l "$lb_default_info_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
+
+
 lb_log_debug() {
-	lb_log -p -l "$lb_default_debug_label" $*
+
+	# basic command
+	lb_cmd=(lb_log -p -l "$lb_default_debug_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
 
 

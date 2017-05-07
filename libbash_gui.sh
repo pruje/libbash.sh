@@ -1570,13 +1570,35 @@ EOF)
 # Display a critical dialog
 # See lbg_display_error for usage
 lbg_display_critical() {
-	lbg_display_error $*
+
+	# basic command
+	lbg_cmd=(lbg_display_error)
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lbg_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lbg_cmd[@]}"
 }
 
 # Display a debug dialog
 # See lbg_display_info for usage
 lbg_display_debug() {
-	lbg_display_info $*
+
+	# basic command
+	lbg_cmd=(lbg_display_info)
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lbg_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lbg_cmd[@]}"
 }
 
 
