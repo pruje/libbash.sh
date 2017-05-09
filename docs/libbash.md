@@ -1078,14 +1078,14 @@ lb_input_text [OPTIONS] QUESTION_TEXT
 
 #### Options
 ```
--d, --default TEXT  default text if
--n                  no line return after question
+-d, --default TEXT  Default text
+-n                  No line return after question
 ```
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: user entered an empty text (cancelled)
+- 1: Usage error
+- 2: User entered an empty text (cancelled)
 
 #### Example
 ```bash
@@ -1111,6 +1111,7 @@ lb_input_password [OPTIONS]
 -l, --label TEXT      Set a label for the question
 -c, --confirm         Ask user to confirm password
 --confirm-label TEXT  Set a label for the confirm question
+-m, --min-size N      Force password to have at least N characters
 ```
 
 #### Exit codes
@@ -1118,6 +1119,7 @@ lb_input_password [OPTIONS]
 - 1: usage error
 - 2: password is empty (cancelled)
 - 3: passwords mismatch
+- 4: password is too small (if min-size option is set)
 
 #### Example
 ```bash

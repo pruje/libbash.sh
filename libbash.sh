@@ -1,5 +1,3 @@
-#!/bin/bash
-
 ########################################################
 #                                                      #
 #  libbash.sh                                          #
@@ -2229,13 +2227,13 @@ lb_choose_option() {
 # Ask user to enter a text
 # Usage: lb_input_text [OPTIONS] TEXT
 # Options:
-#    -d, --default TEXT  default text
-#    -n                  no line return after question
+#   -d, --default TEXT  Default text
+#   -n                  No line return after question
 # Return: user input is stored into $lb_input_text variable
 # Exit codes:
 #   0: OK
-#   1: usage error
-#   2: empty text (cancelled)
+#   1: Usage error
+#   2: User entered an empty text (cancelled)
 lb_input_text=""
 lb_input_text() {
 
@@ -2306,15 +2304,17 @@ lb_input_text() {
 # Ask user to enter a password (hidden)
 # Usage: lb_input_password [OPTIONS]
 # Options:
-#    -l, --label TEXT      label for question
-#    -c, --confirm         confirm password
-#    --confirm-label TEXT  confirmation label
+#   -l, --label TEXT      Set a label for the question
+#   -c, --confirm         Ask user to confirm password
+#   --confirm-label TEXT  Set a label for the confirm question
+#   -m, --min-size N      Force password to have at least N characters
 # Return: password is stored into $lb_input_password variable
 # Exit codes:
 #   0: OK
 #   1: usage error
 #   2: password is empty (cancelled)
 #   3: passwords mismatch
+#   4: password is too small (if min-size option is set)
 lb_input_password=""
 lb_input_password() {
 
@@ -2325,6 +2325,7 @@ lb_input_password() {
 	local lb_inpw_label=$lb_default_pwd_label
 	local lb_inpw_confirm=false
 	local lb_inpw_confirm_label=$lb_default_pwd_confirm_label
+	local lb_inpw_minsize=0
 
 	# get options
 	while true ; do
@@ -2347,6 +2348,15 @@ lb_input_password() {
 				lb_inpw_confirm_label=$2
 				shift 2
 				;;
+			--m|--min-size)
+				if ! lb_is_integer $2 ; then
+					return 1
+				fi
+				if [ $2 -lt 1 ] ; then
+					return 1
+				fi
+				lb_inpw_minsize=$2
+				shift 2
 			*)
 				break
 				;;
@@ -2361,6 +2371,14 @@ lb_input_password() {
 	# if empty, exit with error
 	if [ -z "$lb_input_password" ] ; then
 		return 2
+	fi
+
+	# check password size (if --min-size option is set)
+	if [ $lb_inpw_minsize -gt 0 ] ; then
+		if [ $(echo -n "$lb_input_password" | wc -m) -lt $lb_inpw_minsize ] ; then
+			lb_input_password=""
+			return 4
+		fi
 	fi
 
 	# if no confirmation, return OK
