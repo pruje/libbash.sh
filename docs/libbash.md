@@ -954,6 +954,7 @@ SIZE  Set the password size (16 by default, use value between 1 and 32)
 #### Exit codes
 - 0: Email sent
 - 1: Usage error
+- 2: Unknown command error
 
 #### Example
 ```bash

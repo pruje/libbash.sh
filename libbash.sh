@@ -1765,6 +1765,7 @@ lb_detect_os() {
 # Exit codes:
 #   0: password generated
 #   1: usage error
+#   2: unknown command error
 lb_generate_password() {
 
 	# default options
@@ -1797,6 +1798,11 @@ lb_generate_password() {
 		else
 			lb_genpwd_pwd=$(date +%s%N | sha256sum | base64)
 		fi
+	fi
+
+	# return error if command failed
+	if [ $? != 0 ] ; then
+		return 2
 	fi
 
 	# return password at the right size
