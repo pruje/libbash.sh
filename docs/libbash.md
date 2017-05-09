@@ -33,7 +33,7 @@ You can use the following variables that are initialized when you include libbas
 - `$lb_current_script_name`: name of your current script (same as `basename "$0"`)
 - `$lb_current_script_directory`: directory of your current script (same as `dirname "$0"`)
 - `$lb_current_path`: your current path (same as `pwd`)
-- `$lb_current_os`: your current Operating System (result of `lb_detect_os` function)
+- `$lb_current_os`: your current Operating System (result of `lb_current_os` function)
 - `$lb_exitcode`: script exit code (0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
 
 ## Functions
@@ -78,7 +78,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_realpath](#lb_realpath)
 	* [lb_is_writable](#lb_is_writable)
 * System utilities
-	* [lb_detect_os](#lb_detect_os)
+	* [lb_current_os](#lb_current_os)
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)
 * User interaction
@@ -920,19 +920,21 @@ fi
 ---------------------------------------------------------------
 ## System utilities
 ---------------------------------------------------------------
-<a name="lb_detect_os"></a>
-### lb_detect_os
+<a name="lb_current_os"></a>
+### lb_current_os
 Detect current operating system family (Linux or macOS).
 
 #### Usage
 ```bash
-lb_detect_os
+lb_current_os
 ```
 
 #### Example
 ```bash
-if [ "$(lb_detect_os)" == "macOS" ] ; then
+if [ "$(lb_current_os)" == "macOS" ] ; then
 	echo "You are on a macOS system."
+else
+	echo "You are on a Linux system."
 fi
 ```
 

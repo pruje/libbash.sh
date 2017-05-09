@@ -1743,9 +1743,9 @@ lb_is_writable() {
 ######################
 
 # Detect current operating system family
-# Usage: lb_detect_os
+# Usage: lb_current_os
 # Return: OS family (Linux/macOS)
-lb_detect_os() {
+lb_current_os() {
 
 	# get uname result
 	if [ "$(uname)" == "Darwin" ] ; then
@@ -2443,7 +2443,6 @@ lb_display_critical() {
 	"${lb_cmd[@]}"
 }
 
-
 lb_display_error() {
 
 	# basic command
@@ -2458,7 +2457,6 @@ lb_display_error() {
 	# run command
 	"${lb_cmd[@]}"
 }
-
 
 lb_display_warning() {
 
@@ -2475,7 +2473,6 @@ lb_display_warning() {
 	"${lb_cmd[@]}"
 }
 
-
 lb_display_info() {
 
 	# basic command
@@ -2490,7 +2487,6 @@ lb_display_info() {
 	# run command
 	"${lb_cmd[@]}"
 }
-
 
 lb_display_debug() {
 
@@ -2526,7 +2522,6 @@ lb_log_critical() {
 	"${lb_cmd[@]}"
 }
 
-
 lb_log_error() {
 
 	# basic command
@@ -2541,7 +2536,6 @@ lb_log_error() {
 	# run command
 	"${lb_cmd[@]}"
 }
-
 
 lb_log_warning() {
 
@@ -2558,7 +2552,6 @@ lb_log_warning() {
 	"${lb_cmd[@]}"
 }
 
-
 lb_log_info() {
 
 	# basic command
@@ -2573,7 +2566,6 @@ lb_log_info() {
 	# run command
 	"${lb_cmd[@]}"
 }
-
 
 lb_log_debug() {
 
@@ -2591,6 +2583,12 @@ lb_log_debug() {
 }
 
 
+# Aliases for old functions compatibility
+lb_detect_os() {
+	lb_current_os
+}
+
+
 ####################
 #  INITIALIZATION  #
 ####################
@@ -2600,7 +2598,7 @@ lb_current_script=$0
 lb_current_script_name=$(basename "$0")
 lb_current_script_directory=$(dirname "$0")
 lb_current_path=$(pwd)
-lb_current_os=$(lb_detect_os)
+lb_current_os=$(lb_current_os)
 lb_exitcode=0
 
 # if macOS, do not print with colours
