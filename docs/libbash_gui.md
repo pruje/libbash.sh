@@ -385,10 +385,11 @@ Password is stored into the `$lbg_input_password` variable.
 
 #### Options
 ```
--l, --label TEXT      Change label (not available on zenity)
+-l, --label TEXT      Set a label for the question (not available on zenity)
 -c, --confirm         Display a confirm password dialog
---confirm-label TEXT  Change confirmation label (not available on zenity)
--t, --title TEXT      Set a title to the dialog
+--confirm-label TEXT  Set the confirmation label (not available on zenity)
+-m, --min-size N      Force password to have at least N characters
+-t, --title TEXT      Set a title for the dialog
 ```
 
 #### Exit codes
@@ -396,6 +397,7 @@ Password is stored into the `$lbg_input_password` variable.
 - 1: Usage error
 - 2: Cancelled
 - 3: Passwords mismatch
+- 4: Password is too short (if `--min-size` option is set)
 
 #### Example
 ```bash

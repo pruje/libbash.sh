@@ -1085,16 +1085,18 @@ EOF)
 # Ask user to enter a password
 # Usage: lbg_input_password [OPTIONS]
 # Options:
-#    -l, --label TEXT        set label (not available on zenity)
-#    -t, --title TEXT        dialog title
-#    -c, --confirm           display a confirmation dialog
-#    --confirm-label TEXT    set confirm label (not available on zenity)
+#   -l, --label TEXT      Set a label for the question (not available on zenity)
+#   -c, --confirm         Display a confirm password dialog
+#   --confirm-label TEXT  Set the confirmation label (not available on zenity)
+#   -m, --min-size N      Force password to have at least N characters
+#   -t, --title TEXT      Set a title for the dialog
 # Return: password is stored into $lbg_input_password variable
 # Exit codes:
 #   0: OK
-#   1: usage error
-#   2: cancelled
-#   3: passwords mismatch
+#   1: Usage error
+#   2: Cancelled
+#   3: Passwords mismatch
+#   4: Password is too short (if `--min-size` option is set)
 lbg_input_password=""
 lbg_input_password() {
 
@@ -1106,39 +1108,52 @@ lbg_input_password() {
 	local lbg_inpw_confirm=false
 	local lbg_inpw_confirm_label=$lb_default_pwd_confirm_label
 	local lbg_inpw_title=$lb_current_script_name
+	local lbg_inpw_minsize=0
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inpw_label=$2
-				shift 2
+				shift
 				;;
 			-c|--confirm)
 				lbg_inpw_confirm=true
-				shift
 				;;
 			--confirm-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inpw_confirm_label=$2
-				shift 2
+				shift
+				;;
+			-m|--min-size)
+				if ! lb_is_integer $2 ; then
+					return 1
+				fi
+				if [ $2 -lt 1 ] ; then
+					return 1
+				fi
+				lbg_inpw_minsize=$2
+				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inpw_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+
+		# get next argument
+		shift
 	done
 
 	# display dialog
@@ -1189,6 +1204,14 @@ EOF)
 		if [ -z "$lbg_input_password" ] ; then
 			lbg_input_password=""
 			return 2
+		fi
+
+		# check password size (if --min-size option is set)
+		if [ $lbg_inpw_minsize -gt 0 ] ; then
+			if [ $(echo -n "$lbg_input_password" | wc -m) -lt $lbg_inpw_minsize ] ; then
+				lbg_input_password=""
+				return 4
+			fi
 		fi
 
 		# if no confirm, quit

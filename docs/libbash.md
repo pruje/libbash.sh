@@ -1116,10 +1116,10 @@ lb_input_password [OPTIONS]
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: password is empty (cancelled)
-- 3: passwords mismatch
-- 4: password is too small (if min-size option is set)
+- 1: Usage error
+- 2: Password is empty (cancelled)
+- 3: Passwords mismatch
+- 4: Password is too short (if `--min-size` option is set)
 
 #### Example
 ```bash
