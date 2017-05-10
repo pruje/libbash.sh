@@ -61,10 +61,6 @@ lb_format_print=true
 
 # Check if a command exists
 # Usage: lb_command_exists COMMAND
-# Exit codes:
-#   0: command exists
-#   1: usage error
-#   2: command does not exists
 lb_command_exists() {
 
 	# usage error
@@ -84,11 +80,6 @@ lb_command_exists() {
 
 # Check if a function exists
 # Usage: lb_function_exists FUNCTION
-# Exit codes:
-#   0: function exists
-#   1: usage error
-#   2: function does not exists
-#   3: command exists, but is not a function
 lb_function_exists() {
 
 	# usage error
@@ -112,18 +103,8 @@ lb_function_exists() {
 }
 
 
-# Test arguments of a function
+# Test number of arguments passed to a script/function
 # Usage: lb_test_arguments OPERATOR N [ARG...]
-# Note: A common usage of this function would be lb_test_arguments -ge 1 $*
-#       to test if user has passed at least one argument to your script.
-# Arguments:
-#    OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
-#    N         expected number to compare to
-#    ARG       your arguments; (e.g. $* without quotes)
-# Exit code:
-#   0: arguments OK
-#   1: usage error
-#   2: arguments not OK
 lb_test_arguments() {
 
 	# NOTE: be careful with improving this function to not use
@@ -166,8 +147,6 @@ lb_test_arguments() {
 
 # Exit script with defined exit code
 # Usage: lb_exit [EXIT_CODE]
-# Options:
-#   EXIT_CODE  Specify an exit code (if not set, $lb_exitcode will be used)
 lb_exit() {
 
 	# if exit code is set,
@@ -192,11 +171,6 @@ lb_exit() {
 
 # Print a message to the console, with colors and formatting
 # Usage: lb_print [OPTIONS] TEXT
-# Options:
-#   -n      no line return
-#   --bold  print in bold format
-#   --cyan, --green, --yellow, --red  print in selected color
-# Exit code: exit code of the `echo` command
 lb_print() {
 
 	local lb_print_format=()
@@ -256,16 +230,6 @@ lb_print() {
 
 # Print a message to the console, can set a verbose level and can append to logs
 # Usage: lb_display [OPTIONS] TEXT
-# Options:
-#   -n                 no line return
-#   -l, --level LEVEL  choose a display level (will be the same for logs)
-#   -p, --prefix       print [LEVEL] prefix before text
-#   --log              append text to log file if defined
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: logs could not be written
-#   3: unknown error while printing
 lb_display() {
 
 	# default options
@@ -380,18 +344,6 @@ lb_display() {
 
 # Manage command result and display label
 # Usage: lb_result [OPTIONS] [EXIT_CODE]
-# Options:
-#   --ok-label TEXT            set a ok label
-#   --failed-label TEXT        set a failed label
-#   -l, --log-level LEVEL      set a log level
-#   --log                      print result into log file
-#   -s, --save-exitcode        save result to exit code
-#   -e, --error-exitcode CODE  set an exitcode if error
-#   -x, --exit-on-error        exit if result is not ok
-#   -q, --quiet                quiet mode (do not print anything)
-# Note: a very simple usage is to execute lb_result just after a command
-#       and get result with $? just after that
-# Exit code: 1 if usage error; forward exit code of the command
 lb_result() {
 
 	# get last command result
@@ -507,15 +459,6 @@ lb_result() {
 
 # Manage command result and display label in short mode
 # Usage: lb_short_result [OPTIONS] [EXIT_CODE]
-# Options:
-#   -l, --log-level LEVEL      set a log level
-#   --log                      print result into log file
-#   -s, --save-exitcode        save result to exit code
-#   -e, --error-exitcode CODE  set an exitcode if error
-#   -x, --exit-on-error        exit if result is not ok
-#   -q, --quiet                quiet mode (do not print anything)
-# See lb_result for options usage.
-# Exit code: same than lb_result
 lb_short_result() {
 
 	# get last command result
@@ -617,13 +560,8 @@ lb_short_result() {
 #  LOGS  #
 ##########
 
-# Get log file path
+# Return path of the defined log file
 # Usage: lb_get_logfile
-# Return: path of the log file
-# Exit codes:
-#   0: file ok
-#   1: log file not defined
-#   2: log file is not writable
 lb_get_logfile() {
 
 	# if no log file defined
@@ -641,17 +579,8 @@ lb_get_logfile() {
 }
 
 
-# Set log file
-# Usage: lb_set_logfile [OPTIONS] FILE
-# Options:
-#   -a, --append     if file already exists, append to it
-#   -x, --overwrite  if file already exists, overwrite it
-# Exit codes:
-#   0: ok
-#   1: usage error
-#   2: file cannot be created or is not writable
-#   3: file already exists, but append option is not set
-#   4: path exists but is not a regular file
+# Set path of the log file
+# Usage: lb_set_logfile [OPTIONS] PATH
 lb_set_logfile() {
 
 	# usage errors
@@ -730,13 +659,6 @@ lb_set_logfile() {
 
 # Get current log level
 # Usage: lb_get_loglevel [OPTIONS] [LEVEL]
-# Options:
-#   --id  get log level id instead of name
-# Return: level (name or id)
-# Exit codes:
-#   0: OK
-#   1: no log level is set
-#   2: specified level not found
 lb_get_loglevel() {
 
 	# default options
@@ -794,10 +716,6 @@ lb_get_loglevel() {
 
 # Set log level
 # Usage: lb_set_loglevel LEVEL
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: level not found
 lb_set_loglevel() {
 
 	# usage errors
@@ -820,18 +738,7 @@ lb_set_loglevel() {
 
 
 # Print text into log file
-# Usage: lb_log [options] TEXT
-# Options:
-#   -n                  no line return
-#   -l, --level LEVEL   set log level
-#   -p, --level-prefix  print [LEVEL] prefix
-#   -d, --date-prefix   print [date] prefix
-#   -a, --all-prefix    print level and date prefixes
-#   -x, --overwrite     clean before print in log file
-# Exit codes:
-#   0: OK
-#   1: log file is not set
-#   2: error while writing into file
+# Usage: lb_log [OPTIONS] TEXT
 lb_log() {
 
 	# exit if log file is not set
@@ -943,9 +850,6 @@ lb_log() {
 
 # Test if a value is a number
 # Usage: lb_is_number VALUE
-# Exit codes:
-#   0: value is a number
-#   1: value is not a number
 lb_is_number() {
 
 	# if empty, is not a number (not an usage error)
@@ -964,9 +868,6 @@ lb_is_number() {
 
 # Test if a value is integer
 # Usage: lb_is_integer VALUE
-# Exit codes:
-#   0: value is an integer
-#   1: value is not an integer
 lb_is_integer() {
 
 	# if empty, is not an integer (not an usage error)
@@ -987,9 +888,6 @@ lb_is_integer() {
 
 # Test if a value is a boolean
 # Usage: lb_is_boolean VALUE
-# Exit codes:
-#   0: value is a boolean
-#   1: value is not a boolean
 lb_is_boolean() {
 
 	case $1 in
@@ -1003,11 +901,8 @@ lb_is_boolean() {
 }
 
 
-# Trim a text: removes spaces before and after text
+# Deletes spaces before and after a text
 # Usage: lb_trim TEXT
-# Exit codes:
-#   0: OK
-#   1: usage error
 lb_trim() {
 
 	# usage errors
@@ -1029,11 +924,6 @@ lb_trim() {
 
 # Check if an array contains a value
 # Usage: lb_array_contains VALUE "${ARRAY[@]}"
-# Warning: put your array between quotes or it will fail if you have spaces in values
-# Exit codes:
-#   0: value is in array
-#   1: usage error
-#   2: value is not in array
 lb_array_contains() {
 
 	# get usage errors
@@ -1061,16 +951,8 @@ lb_array_contains() {
 }
 
 
-# Compare software versions using semantic versionning (http://semver.org)
+# Compare software versions using semantic versionning
 # Usage: lb_compare_versions VERSION_1 OPERATOR VERSION_2
-# Arguments:
-#    VERSION_1  software version
-#    OPERATOR   common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
-#    VERSION_2  software version
-# Exit code:
-#   0: comparison OK
-#   1: usage error
-#   2: comparison not OK
 lb_compare_versions() {
 
 	# we wait for at least an operator and 2 versions
@@ -1266,14 +1148,6 @@ lb_compare_versions() {
 
 # Test if a text is a comment
 # Usage: lb_is_comment [OPTIONS] TEXT
-# Options:
-#   -s, --symbol STRING  Detect symbol as a comment (can use multiple values, '#' by default)
-#   -n, --not-empty      Empty values are not considered as comments
-# Exit codes:
-#   0: is a comment
-#   1: usage error
-#   2: is not a comment
-#   3: is empty (if --not-empty option is set)
 lb_is_comment() {
 
 	# default options
@@ -1338,12 +1212,6 @@ lb_is_comment() {
 
 # Get filesystem type
 # Usage: lb_df_fstype PATH
-# Return: fs type
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: path does not exists
-#   3: unknown error
 lb_df_fstype() {
 
 	# usage errors
@@ -1384,12 +1252,6 @@ lb_df_fstype() {
 
 # Get space left on partition in bytes
 # Usage: lb_df_space_left PATH
-# Return: bytes available
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: PATH does not exists
-#   3: unknown error
 lb_df_space_left() {
 
 	# if path does not exists, error
@@ -1421,14 +1283,8 @@ lb_df_space_left() {
 }
 
 
-# Get mount point path
+# Get mount point path of a partition
 # Usage: lb_df_mountpoint PATH
-# Return: mount point path
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: path does not exists
-#   3: unknown error
 lb_df_mountpoint() {
 
 	# usage errors
@@ -1462,13 +1318,6 @@ lb_df_mountpoint() {
 
 # Get disk UUID
 # Usage: lb_df_uuid PATH
-# Return: disk UUID
-# Exit codes:
-#   O: OK
-#   1: usage error
-#   2: path does not exists
-#   3: unknown error
-#   4: UUID not found
 lb_df_uuid() {
 
 	# if path does not exists, error
@@ -1548,11 +1397,6 @@ lb_df_uuid() {
 
 # Get user's home directory
 # Usage: lb_get_home_directory [USER]
-# Options: user (if not set, use current user)
-# Return: home path
-# Exit codes:
-#   0: OK
-#   1: path not found
 lb_homepath() {
 
 	# get ~user value
@@ -1575,11 +1419,6 @@ lb_homepath() {
 
 # Test if a directory is empty
 # Usage: lb_dir_is_empty PATH
-# Exit codes:
-#   0: directory is empty
-#   1: path is not a directory
-#   2: access rights issue
-#   3: directory is not empty
 lb_dir_is_empty() {
 
 	# usage error
@@ -1613,11 +1452,6 @@ lb_dir_is_empty() {
 
 # Get absolute path of a file/directory
 # Usage: lb_abspath PATH
-# Return: absolute path
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: parent directory not found
 lb_abspath() {
 
 	# usage error
@@ -1663,11 +1497,6 @@ lb_abspath() {
 
 # Get real path of a file/directory
 # Usage: lb_realpath PATH
-# Return: real path
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: path not found
 lb_realpath() {
 
 	# usage error
@@ -1696,12 +1525,6 @@ lb_realpath() {
 
 # Test if a path is writable
 # Usage: lb_is_writable PATH
-# Exit codes:
-#   0: is writable (exists or can be created)
-#   1: usage error
-#   2: exists but is not writable
-#   3: does not exists; parent directory is not writable
-#   4: does not exists; parent directory does not exists
 lb_is_writable() {
 
 	# usage errors
@@ -1740,9 +1563,8 @@ lb_is_writable() {
 #  SYSTEM UTILITIES  #
 ######################
 
-# Detect current operating system family
+# Detect current OS family
 # Usage: lb_current_os
-# Return: OS family (Linux/macOS)
 lb_current_os() {
 
 	# get uname result
@@ -1754,16 +1576,8 @@ lb_current_os() {
 }
 
 
-
 # Generate a random password
 # Usage: lb_generate_password [SIZE]
-# Options:
-#   SIZE  Set the password size (16 by default, use value between 1 and 32)
-# Return: password
-# Exit codes:
-#   0: password generated
-#   1: usage error
-#   2: unknown command error
 lb_generate_password() {
 
 	# default options
@@ -1810,17 +1624,6 @@ lb_generate_password() {
 
 # Send an email
 # Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
-# Options:
-#   -s, --subject TEXT           Email subject
-#   --sender EMAIL               Sender email address
-#   -r, --reply-to EMAIL         Email address to reply
-#   -c, --cc EMAIL[,EMAIL,...]   Add email addresses in CC
-#   -b, --bcc EMAIL[,EMAIL,...]  Add email addresses in BCC
-# Exit codes:
-#   0: email sent
-#   1: usage error
-#   2: no command to send email
-#   3: unknown error from the program sender
 lb_email() {
 
 	# usage errors
@@ -1963,20 +1766,8 @@ lb_email() {
 #  USER INTERACTION  #
 ######################
 
-
-# Prompt user to confirm an action
+# Ask a question to user to answer by yes or no
 # Usage: lb_yesno [OPTIONS] TEXT
-# Options:
-#    -y, --yes            return yes by default
-#    -c, --cancel         add a cancel option
-#    --yes-label TEXT     label to use as "YES"
-#    --no-label TEXT      label to use as "NO"
-#    --cancel-label TEXT  label to use for cancel option
-# Exit codes:
-#   0: yes
-#   1: usage error
-#   2: no
-#   3: cancel
 lb_yesno() {
 
 	# usage errors
@@ -2083,16 +1874,6 @@ lb_yesno() {
 
 # Prompt user to choose an option
 # Usage: lb_choose_option [OPTIONS] CHOICE [CHOICE...]
-# Options:
-#   -d, --default ID         option to use by default
-#   -l, --label TEXT         set a question text (default: Choose an option:)
-#   -c, --cancel-label TEXT  set a cancel label (default: c)
-# Return: choice ID is stored into $lb_choose_option variable
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: cancelled
-#   3: bad choice
 lb_choose_option=""
 lb_choose_option() {
 
@@ -2226,14 +2007,6 @@ lb_choose_option() {
 
 # Ask user to enter a text
 # Usage: lb_input_text [OPTIONS] TEXT
-# Options:
-#   -d, --default TEXT  Default text
-#   -n                  No line return after question
-# Return: user input is stored into $lb_input_text variable
-# Exit codes:
-#   0: OK
-#   1: Usage error
-#   2: User entered an empty text (cancelled)
 lb_input_text=""
 lb_input_text() {
 
@@ -2301,20 +2074,8 @@ lb_input_text() {
 }
 
 
-# Ask user to enter a password (hidden)
+# Ask user to enter a password
 # Usage: lb_input_password [OPTIONS]
-# Options:
-#   -l, --label TEXT      Set a label for the question
-#   -c, --confirm         Ask user to confirm password
-#   --confirm-label TEXT  Set a label for the confirm question
-#   -m, --min-size N      Force password to have at least N characters
-# Return: password is stored into $lb_input_password variable
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: password is empty (cancelled)
-#   3: passwords mismatch
-#   4: password is too small (if min-size option is set)
 lb_input_password=""
 lb_input_password() {
 

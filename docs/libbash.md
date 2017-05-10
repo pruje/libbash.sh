@@ -92,7 +92,8 @@ All functions are named with the `lb_` prefix.
 ---------------------------------------------------------------
 <a name="lb_command_exists"></a>
 ### lb_command_exists
-Check if a command (or executable file) exists.
+Check if a command exists.
+Works for commands, functions and executable files.
 
 #### Usage
 ```bash
@@ -100,14 +101,14 @@ lb_command_exists COMMAND
 ```
 
 #### Exit codes
-- 0: command exists
-- 1: usage error
-- 2: command does not exists
+- 0: Command exists
+- 1: Usage error
+- 2: Command does not exists
 
 #### Example
 ```bash
 if lb_command_exists supertux2 ; then
-	echo "You're ready to play to supertux!"
+    echo "You're ready to play to supertux!"
 fi
 ```
 
@@ -122,26 +123,29 @@ lb_function_exists FUNCTION
 ```
 
 #### Exit codes
-- 0: function exists
-- 1: usage error
-- 2: function does not exists
-- 3: command exists, but is not a function
+- 0: Function exists
+- 1: Usage error
+- 2: Function does not exists
+- 3: Command exists, but is not a function
 
 #### Example
 ```bash
 print_hello() {
-	echo "Hello"
+    echo "Hello"
 }
 
 if lb_function_exists print_hello ; then
-	print_hello
+    print_hello
 fi
 ```
 
 ---------------------------------------------------------------
 <a name="lb_test_arguments"></a>
 ### lb_test_arguments
-Test number of arguments passed to a function.
+Test number of arguments passed to a script/function.
+
+Note: A common usage of this function would be `lb_test_arguments -ge 1 $*`
+to test if user has passed at least one argument to your script/function.
 
 #### Usage
 ```bash
@@ -156,14 +160,14 @@ ARG       your arguments; (e.g. $* without quotes)
 ```
 
 #### Exit codes
-- 0: arguments OK
-- 1: usage error
-- 2: arguments not OK
+- 0: Arguments OK
+- 1: Usage error
+- 2: Arguments not OK
 
 #### Example
 ```bash
 if lb_test_arguments -lt 2 $* ; then
-	echo "You have to give at least 2 arguments to this script."
+    echo "You have to give at least 2 arguments to this script."
 fi
 ```
 
@@ -185,7 +189,8 @@ EXIT_CODE  Specify an exit code (if not set, $lb_exitcode will be used)
 #### Example
 ```bash
 # exit script with code 1
-lb_exit 1
+lb_exitcode=1
+lb_exit
 ```
 
 ---------------------------------------------------------------
@@ -205,7 +210,7 @@ lb_echo [OPTIONS] TEXT
 ```
 
 #### macOS case
-For now, messages are not formatted for macOS consoles.
+For now, messages are not formatted in macOS terminal.
 
 #### Options
 ```
@@ -268,8 +273,9 @@ lb_display [OPTIONS] TEXT
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: logs could not be written
+- 1: Usage error
+- 2: Logs could not be written
+- 3: Unknown error while printing
 
 #### Example
 ```bash
@@ -297,7 +303,7 @@ lb_display_critical "This is a critical error!"
 ---------------------------------------------------------------
 <a name="lb_result"></a>
 ### lb_result
-Manage a result and print a label to the console to indicate if a command succeeded or failed.
+Manage a command result code and print a label to the console to indicate if a command succeeded or failed.
 
 #### Usage
 ```bash
@@ -306,20 +312,20 @@ lb_result [OPTIONS] [EXIT_CODE]
 
 #### Options
 ```
---ok-label LABEL           Set a ok label
---failed-label LABEL       Set a failed label
---log                      Append result to log file
+--ok-label LABEL           Set a success label (default: OK)
+--failed-label LABEL       Set a failed label (default: FAILED)
+--log                      Append text to log file
 -l, --log-level LEVEL      Choose a display level (will be the same for logs)
 -s, --save-exitcode        Save the result to the $lb_exitcode variable
 -e, --error-exitcode CODE  Set a custom code to the $lb_exitcode variable if error
 -x, --exit-on-error        Exit if result is not ok (exit code not to 0)
--q, --quiet                Do not print anything
+-q, --quiet                Quiet mode, do not print anything (just follow result code)
 
-EXIT_CODE              Specify an exit code. If not set, variable $? will be used.
+EXIT_CODE                  Specify an exit code. If not set, variable $? will be used
 ```
 
 #### Exit codes
-Exit code forwarded of the command (1 could also mean an usage error).
+Exit code forwarded of the command (beware that 1 could also mean an usage error).
 
 #### Example
 ```bash
@@ -342,24 +348,24 @@ lb_short_result [OPTIONS] [EXIT_CODE]
 
 #### Options
 ```
---log                      Append result to log file
+--log                      Append text to log file
 -l, --log-level LEVEL      Choose a display level (will be the same for logs)
 -s, --save-exitcode        Save the result to the $lb_exitcode variable
 -e, --error-exitcode CODE  Set a custom code to the $lb_exitcode variable if error
 -x, --exit-on-error        Exit if result is not ok (exit code not to 0)
 -q, --quiet                Do not print anything
 
-EXIT_CODE              Specify an exit code. If not set, variable $? will be used.
+EXIT_CODE                  Specify an exit code. If not set, variable $? will be used
 ```
 
 #### Exit codes
-Exit code forwarded of the command (1 could also mean an usage error).
+Exit code forwarded of the command (beware that 1 could also mean an usage error).
 
 #### Example
 ```bash
 echo -n "Starting service...   "
 my_service &> /dev/null
-lb_short_result $?
+lb_short_result
 ```
 
 ---------------------------------------------------------------
@@ -389,19 +395,17 @@ logfile=$(lb_get_logfile)
 ---------------------------------------------------------------
 <a name="lb_set_logfile"></a>
 ### lb_set_logfile
-Return path of the defined log file.
-
-To set a log file, see [lb_set_logfile](#lb_set_logfile).
+Set path of the log file.
 
 #### Usage
 ```bash
-lb_set_logfile [OPTIONS] FILE
+lb_set_logfile [OPTIONS] PATH
 ```
 
 #### Options
 ```
--a, --append     If log file already exists, append to it
--x, --overwrite  If log file already exists, overwrite it
+-a, --append     Append to the file if exists
+-x, --overwrite  Overwrite file if exists
 ```
 
 #### Exit codes
@@ -409,7 +413,7 @@ lb_set_logfile [OPTIONS] FILE
 - 1: Usage error
 - 2: Log file cannot be created or is not writable
 - 3: Log file already exists, but append option is not set
-- 4: Path exists but is not a regular file
+- 4: Path exists, but is not a regular file
 
 #### Example
 ```bash
@@ -481,7 +485,7 @@ lb_set_loglevel INFO
 ---------------------------------------------------------------
 <a name="lb_log"></a>
 ### lb_log
-Print text into a log file.
+Print text into the log file.
 
 If you use the `--level MYLEVEL` option, the message will be logged
 only if `MYLEVEL` is greater or equal to the current log level.
@@ -546,14 +550,14 @@ lb_is_number VALUE
 ```
 
 #### Exit codes
-- 0: value is a number
-- 1: value is not a number
+- 0: Value is a number
+- 1: Value is not a number
 
 #### Example
 ```bash
 x="-42.9"
 if lb_is_number $x ; then
-	echo "x is a number"
+    echo "x is a number"
 fi
 ```
 
@@ -568,14 +572,14 @@ lb_is_integer VALUE
 ```
 
 #### Exit codes
-- 0: value is an integer
-- 1: value is not an integer
+- 0: Value is an integer
+- 1: Value is not an integer
 
 #### Example
 ```bash
 x="-1"
 if lb_is_integer $x ; then
-	echo "x is an integer"
+    echo "x is an integer"
 fi
 ```
 
@@ -590,21 +594,21 @@ lb_is_boolean VALUE
 ```
 
 #### Exit codes
-- 0: value is a boolean
-- 1: value is not a boolean
+- 0: Value is a boolean
+- 1: Value is not a boolean
 
 #### Example
 ```bash
 x=false
 if lb_is_boolean $x ; then
-	echo "x is a boolean"
+    echo "x is a boolean"
 fi
 ```
 
 ---------------------------------------------------------------
 <a name="lb_trim"></a>
 ### lb_trim
-Deletes spaces before and after a string.
+Deletes spaces before and after a text.
 
 #### Usage
 ```bash
@@ -613,11 +617,12 @@ lb_trim TEXT
 
 #### Exit codes
 - 0: OK
-- 1: usage error
+- 1: Usage error
 
 #### Example
 ```bash
-config_line="    param=value "
+# get config line without spaces before and after text
+config_line="    param='value with spaces'  "
 config=$(lb_trim "$config_line")
 ```
 
@@ -633,15 +638,15 @@ lb_array_contains VALUE "${ARRAY[@]}"
 **Warning**: put your array between quotes or search will fail if you have spaces in values.
 
 #### Exit codes
-- 0: value was found in array
-- 1: usage error
-- 2: value is NOT in array
+- 0: Value is in array
+- 1: Usage error
+- 2: Value is NOT in array
 
 #### Example
 ```bash
 array=(one two three)
 if lb_array_contains "one" "${array[@]}" ; then
-	echo "one is in array"
+    echo "one is in array"
 fi
 ```
 
@@ -651,7 +656,8 @@ fi
 Compare 2 software versions.
 
 Versions must be in semantic versionning format (http://semver.org),
-but can support incomplete versions (e.g. 1.0 and 2 are converted to 1.0.0 and 2.0.0 respectively).
+but the function can support incomplete versions
+(e.g. 1.0 and 2 are converted to 1.0.0 and 2.0.0 respectively).
 
 #### Usage
 ```bash
@@ -660,9 +666,9 @@ lb_compare_versions VERSION_1 OPERATOR VERSION_2
 
 #### Options
 ```
-VERSION_1  software version
-OPERATOR   common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
-VERSION_2  software version
+VERSION_1  Software version
+OPERATOR   Bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
+VERSION_2  Software version
 ```
 
 #### Exit codes
@@ -675,16 +681,18 @@ VERSION_2  software version
 version1="2.0.1"
 version2="1.8.9"
 if lb_compare_versions $version1 -ge $version2 ; then
-	echo "Newer version: $version1"
+    echo "Newer version: $version1"
 else
-	echo "Newer version: $version2"
+    echo "Newer version: $version2"
 fi
 ```
 
 ---------------------------------------------------------------
 <a name="lb_is_comment"></a>
 ### lb_is_comment
-Test if a text is a code comment.
+Test if a text is a comment.
+
+In source codes, comments are preceded by a symbol like `#`, `//`, ...
 
 #### Usage
 ```bash
@@ -693,8 +701,8 @@ lb_is_comment [OPTIONS] TEXT
 
 #### Options
 ```
--s, --symbol STRING  Detect symbol as a comment (can use multiple values, '#' by default)
--n, --not-empty      Empty values are not considered as comments
+-s, --symbol STRING  Comment symbol (can use multiple values, '#' by default)
+-n, --not-empty      Empty text are not considered as comments
 ```
 
 #### Exit codes
@@ -707,9 +715,9 @@ lb_is_comment [OPTIONS] TEXT
 ```bash
 # read config file without comments
 while read line ; do
-	if ! is_comment $line ; then
-		echo "$line"
-	fi
+    if ! is_comment $line ; then
+        echo "$line"
+    fi
 done < "config.sh"
 ```
 
@@ -718,19 +726,19 @@ done < "config.sh"
 ---------------------------------------------------------------
 <a name="lb_df_fstype"></a>
 ### lb_df_fstype
-Give the filesystem type of a path.
+Give the filesystem type of a partition.
 
 #### Usage
 ```bash
 lb_df_fstype PATH
 ```
-Note: PATH may also be a device path (e.g. /dev/sda1)
+Note: PATH may be any folder/file (not only mount points) or a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: PATH does not exists
-- 3: unknown error
+- 1: Usage error
+- 2: Given PATH does not exists
+- 3: Unknown error
 
 #### Example
 ```bash
@@ -746,13 +754,13 @@ Get space left on partition in bytes.
 ```bash
 lb_df_space_left PATH
 ```
-Note: PATH may also be a device path (e.g. /dev/sda1)
+Note: PATH may be any folder/file (not only mount points) or a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: PATH does not exists
-- 3: unknown error
+- 1: Usage error
+- 2: Given PATH does not exists
+- 3: Unknown error
 
 #### Example
 ```bash
@@ -762,18 +770,18 @@ space_left=$(lb_df_space_left /)
 ---------------------------------------------------------------
 <a name="lb_df_mountpoint"></a>
 ### lb_df_mountpoint
-Get mount point of a partition.
+Get the mount point path of a partition.
 
 #### Usage
 ```bash
 lb_df_mountpoint PATH
 ```
-Note: PATH may also be a device path (e.g. /dev/sda1)
+Note: PATH may be any folder/file (not only mount points) or a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
 - 1: usage error
-- 2: PATH does not exists
+- 2: Given PATH does not exists
 - 3: unknown error
 
 #### Example
@@ -790,20 +798,22 @@ Get the disk UUID for a given path.
 ```bash
 lb_df_uuid PATH
 ```
-Note: PATH may also be a device path (e.g. /dev/sda1)
+Note: PATH may be any folder/file (not only mount points) or a device path (e.g. /dev/sda1)
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: path does not exists
-- 3: unknown error
-- 4: disk UUID not found
+- 1: Usage error
+- 2: Given PATH does not exists
+- 3: Unknown error
+- 4: Disk UUID not found
 
 #### Example
 ```bash
 disk_uuid=$(lb_df_uuid /media/usbkey)
 ```
 
+---------------------------------------------------------------
+## Files and directories
 ---------------------------------------------------------------
 <a name="lb_homepath"></a>
 ### lb_homepath
@@ -817,7 +827,7 @@ If USER not set, using current user.
 
 #### Exit codes
 - 0: OK
-- 1: path not found
+- 1: Home path not found
 
 #### Example
 ```bash
@@ -835,16 +845,16 @@ lb_dir_is_empty PATH
 ```
 
 #### Exit codes
-- 0: directory is empty
-- 1: path is not a directory
-- 2: access rights issue
-- 3: directory is not empty
+- 0: Directory is empty
+- 1: Given PATH is not a directory
+- 2: Access rights error
+- 3: Directory is not empty
 
 #### Example
 ```bash
 # if directory is empty, delete it
 if lb_dir_is_empty /empty/directory/ ; then
-	rmdir /empty/directory/
+    rmdir /empty/directory/
 fi
 ```
 
@@ -860,8 +870,8 @@ lb_abspath PATH
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: parent directory does not exists
+- 1: Usage error
+- 2: Cannot resolve path (parent directory does not exists)
 
 #### Example
 ```bash
@@ -884,8 +894,8 @@ lb_realpath PATH
 
 #### Exit codes
 - 0: OK
-- 1: usage error
-- 2: unknown error
+- 1: Usage error
+- 2: Path not found
 
 #### Example
 ```bash
@@ -903,17 +913,17 @@ lb_is_writable PATH
 ```
 
 #### Exit codes
-- 0: is writable (exists or can be created)
-- 1: usage error
-- 2: exists but is not writable
-- 3: does not exists; parent directory is not writable
-- 4: does not exists; parent directory does not exists
+- 0: Is writable (exists or can be created)
+- 1: Usage error
+- 2: Exists but is not writable
+- 3: Does not exists and parent directory is not writable
+- 4: Does not exists and parent directory does not exists
 
 #### Example
 ```bash
 # create file if pat his writable
 if lb_is_writable /path/to/file ; then
-	touch /path/to/file
+    touch /path/to/file
 fi
 ```
 
@@ -932,9 +942,9 @@ lb_current_os
 #### Example
 ```bash
 if [ "$(lb_current_os)" == "macOS" ] ; then
-	echo "You are on a macOS system."
+    echo "You are on a macOS system."
 else
-	echo "You are on a Linux system."
+    echo "You are on a Linux system."
 fi
 ```
 
@@ -950,11 +960,11 @@ lb_generate_password [SIZE]
 
 #### Options
 ```
-SIZE  Set the password size (16 by default, use value between 1 and 32)
+SIZE  Set the password size (16 by default; use value between 1 and 32)
 ```
 
 #### Exit codes
-- 0: Email sent
+- 0: OK
 - 1: Usage error
 - 2: Unknown command error
 
@@ -970,8 +980,7 @@ password=$(lb_generate_password 12)
 Send an email.
 
 You must have sendmail installed and a proper SMTP server or relay configured.
-You can install the `ssmtp` program (on Linux) to easely send emails via an existing account
-(like GMail or else).
+You can install the `ssmtp` program (on Linux) to easely send emails via an existing account (like GMail or else).
 
 #### Usage
 ```bash
@@ -1028,16 +1037,16 @@ lb_yesno [OPTIONS] TEXT
 #### Example
 ```bash
 if ! lb_yesno "Do you want to continue?" ; then
-	exit
+    exit
 fi
 ```
 
 ---------------------------------------------------------------
 <a name="lb_choose_option"></a>
 ### lb_choose_option
-Ask user to choice for an option.
+Ask user to choose an option.
 
-User choice is set into the `$lb_choose_option` variable.
+The chosen ID is set into the `$lb_choose_option` variable.
 
 #### Usage
 ```bash
@@ -1046,8 +1055,8 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Options
 ```
--d, --default ID         Option to use by default
--l, --label TEXT         Set a label question (default: Choose an option:)
+-d, --default ID         Option to use by default (IDs starts to 1)
+-l, --label TEXT         Set a label question (default: "Choose an option:")
 -c, --cancel-label TEXT  Set a cancel label (default: c)
 ```
 
@@ -1059,8 +1068,8 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Example
 ```bash
-if lb_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
-	chosen_option="$lb_choose_option"
+if lb_choose_option --label "Choose a country:" --default 1 "France" "USA" "Other" ; then
+    chosen_country=$lb_choose_option
 fi
 ```
 
@@ -1069,7 +1078,7 @@ fi
 ### lb_input_text
 Ask user to enter a text.
 
-Return text is set into the `$lb_input_text` variable.
+Input text is set into the `$lb_input_text` variable.
 
 #### Usage
 ```bash
@@ -1089,17 +1098,17 @@ lb_input_text [OPTIONS] QUESTION_TEXT
 
 #### Example
 ```bash
-if lb_input_text "Please enter your name :" ; then
-	user_name="$lb_input_text"
+if lb_input_text "Please enter your name:" ; then
+    user_name="$lb_input_text"
 fi
 ```
 
 ---------------------------------------------------------------
 <a name="lb_input_password"></a>
 ### lb_input_password
-Ask user to enter a password (hidden).
+Ask user to enter a password.
 
-Returned password is set into the `$lb_input_password` variable.
+Input password is set into the `$lb_input_password` variable.
 
 #### Usage
 ```bash
