@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.0.0 (2017-05-07)                          #
+#  Version 1.0.0-beta.1 (2017-05-11)                   #
 #                                                      #
 ########################################################
 
@@ -17,7 +17,7 @@
 ####################
 
 # libbash main variables
-lb_version="1.0.0"
+lb_version="1.0.0-beta.1"
 lb_path=$BASH_SOURCE
 lb_directory=$(dirname "$lb_path")
 
@@ -2379,6 +2379,7 @@ lb_current_script_name=$(basename "$0")
 lb_current_script_directory=$(dirname "$0")
 lb_current_path=$(pwd)
 lb_current_os=$(lb_current_os)
+lb_current_user=$(whoami)
 lb_exitcode=0
 
 # if macOS, do not print with colours

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0 (2017-05-11)
+- New options to libbash.sh load GUI and locales
+- Automatic loading of locales for user language
+- New variable `$lb_current_user` to get current user name
+- Various improvements in source code and documentation
+
 ## 0.4.1 (2017-04-24)
 - New function: lb_trim()
 - Fix missing quotes that could cause bugs in paths with spaces

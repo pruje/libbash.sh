@@ -34,6 +34,7 @@ You can use the following variables that are initialized when you include libbas
 - `$lb_current_script_directory`: directory of your current script (same as `dirname "$0"`)
 - `$lb_current_path`: your current path (same as `pwd`)
 - `$lb_current_os`: your current Operating System (result of `lb_current_os` function)
+- `$lb_current_user`: your user name (same as `whoami`)
 - `$lb_exitcode`: script exit code (0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
 
 ## Functions
