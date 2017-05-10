@@ -2348,7 +2348,7 @@ lb_input_password() {
 				lb_inpw_confirm_label=$2
 				shift 2
 				;;
-			--m|--min-size)
+			-m|--min-size)
 				if ! lb_is_integer $2 ; then
 					return 1
 				fi
@@ -2357,6 +2357,7 @@ lb_input_password() {
 				fi
 				lb_inpw_minsize=$2
 				shift 2
+				;;
 			*)
 				break
 				;;
