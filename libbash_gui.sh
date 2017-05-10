@@ -39,16 +39,62 @@ lbg_console_width=""
 lbg_console_height=""
 
 
+##################################
+#  INTERNAL FUNCTIONS            #
+#  DO NOT PUBLISH DOCUMENTATION  #
+##################################
+
+# Get console size and update lbg_console_width and lbg_console_height variables
+# Usage: lbg_get_console_size()
+# Exit codes:
+#   0: OK
+#   1: No terminal available
+lbg_get_console_size() {
+
+	# get console width and height
+	lbg_console_width=$(tput cols 2> /dev/null)
+	lbg_console_height=$(tput lines 2> /dev/null)
+
+	# if error (script not running in a terminal)
+	if [ -z "$lbg_console_width" ] || [ -z "$lbg_console_height" ] ; then
+		return 1
+	fi
+
+	return 0
+}
+
+
+# Set dialog size to fit console
+# Usage: lbg_dialog_size MAX_WIDTH MAX_HEIGHT
+# Return: "HEIGHT WIDTH"
+# e.g. dialog --msgbox "Hello world" $(lbg_dialog_size 50 10)
+lbg_dialog_size() {
+
+	# given size
+	local lbg_dialog_width=$1
+	local lbg_dialog_height=$2
+
+	# if max width > console width, fit to console width
+	if [ "$lbg_dialog_width" -gt "$lbg_console_width" ] ; then
+		lbg_dialog_width=$lbg_console_width
+	fi
+
+	# if max height > console height, fit to console height
+	if [ "$lbg_dialog_height" -gt "$lbg_console_height" ] ; then
+		lbg_dialog_height=$lbg_console_height
+	fi
+
+	# return "height width"
+	echo $lbg_dialog_height $lbg_dialog_width
+}
+
+
 ###############
 #  GUI TOOLS  #
 ###############
 
 # Get current GUI tool
 # Usage: lbg_get_gui
-# Return: GUI tool
-# Exit codes:
-#  0: OK
-#  1: no GUI tool available
 lbg_get_gui() {
 
 	# if no GUI tool defined
@@ -63,14 +109,6 @@ lbg_get_gui() {
 
 # Set GUI display to use
 # Usage: lbg_set_gui [GUI_TOOL...]
-# Options:
-#   GUI_TOOL  command name; if not set, a default one will be chosen
-#             if multiple values, the first available will be set
-# Exit codes:
-#   0: GUI tool set
-#   1: GUI tool not supported
-#   3: GUI tool not available on this system
-#   4: GUI tool available, but currently no X server is running
 lbg_set_gui() {
 
 	# default options
@@ -134,65 +172,12 @@ lbg_set_gui() {
 }
 
 
-# Get console size and update lbg_console_width and lbg_console_height variables
-# FOR LIBBASH INTERNAL USES; DO NOT PUBLISH DOCUMENTATION
-# Usage: lbg_get_console_size()
-# Exit codes:
-#   0: OK
-#   1: no terminal available
-lbg_get_console_size() {
-
-	# get console width and height
-	lbg_console_width=$(tput cols 2> /dev/null)
-	lbg_console_height=$(tput lines 2> /dev/null)
-
-	# if error (script not running in a terminal)
-	if [ -z "$lbg_console_width" ] || [ -z "$lbg_console_height" ] ; then
-		return 1
-	fi
-
-	return 0
-}
-
-
-# Set dialog size to fit console
-# FOR LIBBASH INTERNAL USES; DO NOT PUBLISH DOCUMENTATION
-# Usage: lbg_dialog_size MAX_WIDTH MAX_HEIGHT
-# Return: "HEIGHT WIDTH"
-# e.g. dialog --msgbox "Hello world" $(lbg_dialog_size 50 10)
-lbg_dialog_size() {
-
-	# given size
-	local lbg_dialog_width=$1
-	local lbg_dialog_height=$2
-
-	# if max width > console width, fit to console width
-	if [ "$lbg_dialog_width" -gt "$lbg_console_width" ] ; then
-		lbg_dialog_width=$lbg_console_width
-	fi
-
-	# if max height > console height, fit to console height
-	if [ "$lbg_dialog_height" -gt "$lbg_console_height" ] ; then
-		lbg_dialog_height=$lbg_console_height
-	fi
-
-	# return "height width"
-	echo $lbg_dialog_height $lbg_dialog_width
-}
-
-
 ################################
 #  MESSAGES AND NOTIFICATIONS  #
 ################################
 
 # Display an info dialog
 # Usage: lbg_display_info [OPTIONS] TEXT
-# Options:
-#   -t, --title TEXT  set dialog title
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: dialog command error
 lbg_display_info() {
 
 	# usage errors
@@ -284,12 +269,6 @@ EOF
 
 # Display a warning message
 # Usage: lbg_display_warning [OPTIONS] TEXT
-# Options:
-#   -t, --title TEXT  set dialog title
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: dialog command error
 lbg_display_warning() {
 
 	# usage errors
@@ -370,12 +349,6 @@ EOF
 
 # Display an error message
 # Usage: lbg_display_error [OPTIONS] TEXT
-# Options:
-#   -t, --title TEXT  set dialog title
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: dialog command error
 lbg_display_error() {
 
 	# usage errors
@@ -456,15 +429,6 @@ EOF
 
 # Display a notification popup
 # Usage: lbg_notify [OPTIONS] TEXT
-# Options:
-#   -t, --title TEXT   notification title
-#   --timeout SECONDS  timeout before notification disapears
-#                      No available on macOS
-#   --no-notify-send   do not use the notify-send command if exists
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: notification command error
 lbg_notify() {
 
 	# usage errors
@@ -583,16 +547,6 @@ EOF
 
 # Prompt user to confirm an action in graphical mode
 # Usage: lbg_yesno [OPTIONS] TEXT
-# Options:
-#   -y, --yes         Set Yes as selected button (not available on kdialog and zenity)
-#   --yes-label TEXT  Change Yes label (not available on zenity)
-#   --no-label TEXT   Change No label (not available on zenity)
-#   -t, --title TEXT  Set a title to the dialog
-# Exit codes:
-#   0: yes
-#   1: usage error
-#   2: no
-#   3: cancelled
 lbg_yesno() {
 
 	# default options
@@ -748,16 +702,6 @@ EOF)
 
 # Ask user to choose an option
 # Usage: lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
-# Options:
-#   -d, --default ID  option to use by default
-#   -l, --label TEXT  set a question text (default: "Choose an option:")
-#   -t, --title TEXT  Set a title to the dialog
-# Return: choice is stored into $lbg_choose_option variable
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: cancelled
-#   3: bad choice
 lbg_choose_option=""
 lbg_choose_option() {
 
@@ -978,14 +922,6 @@ EOF)
 
 # Ask user to enter a text
 # Usage: lbg_input_text [OPTIONS] TEXT
-# Options:
-#    -d, --default TEXT  default text
-#    -t, --title TEXT    dialog title
-# Return: user input is stored into $lbg_input_text variable
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: cancelled
 lbg_input_text=""
 lbg_input_text() {
 
@@ -1084,19 +1020,6 @@ EOF)
 
 # Ask user to enter a password
 # Usage: lbg_input_password [OPTIONS]
-# Options:
-#   -l, --label TEXT      Set a label for the question (not available on zenity)
-#   -c, --confirm         Display a confirm password dialog
-#   --confirm-label TEXT  Set the confirmation label (not available on zenity)
-#   -m, --min-size N      Force password to have at least N characters
-#   -t, --title TEXT      Set a title for the dialog
-# Return: password is stored into $lbg_input_password variable
-# Exit codes:
-#   0: OK
-#   1: Usage error
-#   2: Cancelled
-#   3: Passwords mismatch
-#   4: Password is too short (if `--min-size` option is set)
 lbg_input_password=""
 lbg_input_password() {
 
@@ -1249,16 +1172,6 @@ EOF)
 
 # Ask user to choose an existing directory
 # Usage: lbg_choose_directory [OPTIONS] [PATH]
-# Options:
-#   -a, --absolute-path  Return absolute path of the directory
-#   -t, --title TITLE    Set dialog title
-#   PATH                 Starting path (current by default)
-# Return: choosed directory path is stored into $lbg_choose_directory variable
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: cancelled
-#   3: choosed path is not a directory
 lbg_choose_directory=""
 lbg_choose_directory() {
 
@@ -1376,21 +1289,6 @@ EOF)
 
 # Dialog to choose a file
 # Usage: lbg_choose_file [OPTIONS] [PATH]
-# Options:
-#   -s, --save           save mode (can create file instead of open existing)
-#   -f, --filter FILTER  set filters (WARNING: not supported with dialog command)
-#                        e.g. -f "*.sh" to filter by bash files
-#                        OPTION NOT SUPPORTED YET ON macOS
-#   -a, --absolute-path  get absolute path of file
-#   -t, --title TITLE    set a dialog title
-#   PATH                 starting path or selected file (current by default)
-# Return: choosed file path is stored into $lbg_choose_file variable
-# Exit codes:
-#   0: OK
-#   1: usage error
-#   2: cancelled
-#   3: chosen file is not valid
-#   4: cannot get absolute path
 lbg_choose_file=""
 lbg_choose_file() {
 

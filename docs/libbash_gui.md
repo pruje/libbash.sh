@@ -79,7 +79,7 @@ lbg_get_gui
 
 #### Exit codes
 - 0: OK
-- 1: no GUI tool available on this system
+- 1: No GUI tool available on this system
 
 #### Example
 ```bash
@@ -90,6 +90,7 @@ gui_tool=$(lbg_get_gui)
 <a name="lbg_set_gui"></a>
 ### lbg_set_gui
 Set a GUI tool to be used (see the supported tools above).
+
 By default, the first tool available in the list is used. If no tool specified,
 the default one will be set.
 If multiple tools are given, the first available will be set.
@@ -111,7 +112,7 @@ lbg_set_gui [GUI_TOOL...]
 #### Example
 ```bash
 if lbg_set_gui zenity ; then
-	echo "Using zenity for dialogs."
+    echo "Using zenity for dialogs."
 fi
 ```
 
@@ -270,7 +271,7 @@ But if you want, you can use the `--no-notify-send` option to not use it and use
 #### Exit codes
 - 0: OK
 - 1: Usage error
-- 2: Unknown command error
+- 2: Notification command error
 
 #### Example
 ```bash
@@ -282,7 +283,7 @@ lbg_notify --timeout 5 "This notification will disapper in 5 seconds..."
 ---------------------------------------------------------------
 <a name="lbg_yesno"></a>
 ### lbg_yesno
-Displays a dialog to ask a question to user.
+Displays a dialog to ask a question to answer by yes or no.
 
 #### Usage
 ```bash
@@ -291,22 +292,21 @@ lbg_yesno [OPTIONS] TEXT
 
 #### Options
 ```
--y, --yes         Set Yes as selected button (not available on kdialog and zenity)
+-y, --yes         Set Yes as default button (not available on kdialog and zenity)
 --yes-label TEXT  Change Yes label (not available on zenity)
 --no-label TEXT   Change No label (not available on zenity)
 -t, --title TEXT  Set a title to the dialog
 ```
 
 #### Exit codes
-- 0: yes
-- 1: usage error
-- 2: no
-- 3: cancelled
+- 0: Yes
+- 1: Usage error
+- 2: No
 
 #### Example
 ```bash
 if ! lbg_yesno "Do you want to continue?" ; then
-	exit
+    exit
 fi
 ```
 
@@ -324,7 +324,7 @@ lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Options
 ```
--d, --default ID  Option ID to use by default (first ID to 1)
+-d, --default ID  Option ID to use by default (IDs starts to 1)
 -l, --label TEXT  Set a question text (default: "Choose an option:")
 -t, --title TEXT  Set a title to the dialog
 ```
@@ -338,7 +338,7 @@ lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 #### Example
 ```bash
 if lbg_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
-	chosen_option="$lbg_choose_option"
+    chosen_option=$lbg_choose_option
 fi
 ```
 
@@ -347,7 +347,7 @@ fi
 ### lbg_input_text
 Displays a dialog to ask user to input a text.
 
-Result is stored into the `$lbg_input_text` variable.
+Input text is stored into the `$lbg_input_text` variable.
 
 #### Usage
 ```bash
@@ -368,7 +368,7 @@ lbg_input_text [OPTIONS] TEXT
 #### Example
 ```bash
 if lbg_input_text --default "$(whoami)" "Please enter your username:" ; then
-	user_name="$lbg_input_text"
+    user_name="$lbg_input_text"
 fi
 ```
 
@@ -402,7 +402,7 @@ Password is stored into the `$lbg_input_password` variable.
 #### Example
 ```bash
 if lbg_input_password ; then
-	user_password="$lbg_input_password"
+    user_password="$lbg_input_password"
 fi
 ```
 
@@ -436,7 +436,7 @@ PATH                 Starting path (current directory by default)
 #### Example
 ```bash
 if lbg_choose_directory "/opt/" ; then
-	opt_path="$lbg_choose_directory"
+    opt_path="$lbg_choose_directory"
 fi
 ```
 
@@ -477,7 +477,7 @@ PATH                 Starting path or default file path (open current directory 
 #### Example
 ```bash
 if lbg_choose_file --filter "*.txt" ; then
-	text_file="$lbg_choose_file"
+    text_file="$lbg_choose_file"
 fi
 ```
 
