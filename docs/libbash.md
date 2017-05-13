@@ -55,8 +55,8 @@ All functions are named with the `lb_` prefix.
 * Logs
 	* [lb_get_logfile](#lb_get_logfile)
 	* [lb_set_logfile](#lb_set_logfile)
-	* [lb_get_loglevel](#lb_get_loglevel)
-	* [lb_set_loglevel](#lb_set_loglevel)
+	* [lb_get_log_level](#lb_get_log_level)
+	* [lb_set_log_level](#lb_set_log_level)
 	* [lb_log](#lb_log)
 	* [lb_log_critical, lb_log_error, lb_log_warning, lb_log_info, lb_log_debug](#lb_log_presets)
 * Operations on variables
@@ -255,7 +255,7 @@ Print a message to the console, can set a verbose level and can append to logs.
 If you use the `--level MYLEVEL` option, the message will be displayed (and logged if option `--log` is set)
 only if `MYLEVEL` is greater or equal to the current log level.
 
-To set a log level, see [lb_set_loglevel](#lb_set_loglevel).
+To set a log level, see [lb_set_log_level](#lb_set_log_level).
 
 To set a log file, see [lb_set_logfile](#lb_set_logfile).
 
@@ -422,15 +422,15 @@ lb_set_logfile /path/to/logfile.log
 ```
 
 ---------------------------------------------------------------
-<a name="lb_get_loglevel"></a>
-### lb_get_loglevel
+<a name="lb_get_log_level"></a>
+### lb_get_log_level
 Get the current log level (or the id of a level).
 
-See [lb_set_loglevel](#lb_set_loglevel) for more details on default log levels.
+See [lb_set_log_level](#lb_set_log_level) for more details on default log levels.
 
 #### Usage
 ```bash
-lb_get_loglevel [OPTIONS] [LEVEL]
+lb_get_log_level [OPTIONS] [LEVEL_NAME]
 ```
 
 #### Options
@@ -445,17 +445,17 @@ lb_get_loglevel [OPTIONS] [LEVEL]
 
 #### Example
 ```bash
-current_loglevel=$(lb_get_loglevel)
+current_log_level=$(lb_get_log_level)
 ```
 
 ---------------------------------------------------------------
-<a name="lb_set_loglevel"></a>
-### lb_set_loglevel
+<a name="lb_set_log_level"></a>
+### lb_set_log_level
 Set the log level for logging.
 
 #### Usage
 ```bash
-lb_set_loglevel LEVEL
+lb_set_log_level LEVEL_NAME
 ```
 
 #### Log levels
@@ -480,7 +480,7 @@ If you display/log a message with an unknown log level, it will always be displa
 #### Example
 ```bash
 # set normal logs
-lb_set_loglevel INFO
+lb_set_log_level INFO
 ```
 
 ---------------------------------------------------------------
@@ -491,7 +491,7 @@ Print text into the log file.
 If you use the `--level MYLEVEL` option, the message will be logged
 only if `MYLEVEL` is greater or equal to the current log level.
 
-To set a log level, see [lb_set_loglevel](#lb_set_loglevel).
+To set a log level, see [lb_set_log_level](#lb_set_log_level).
 
 To set a log file, see [lb_set_logfile](#lb_set_logfile).
 

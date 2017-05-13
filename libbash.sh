@@ -45,11 +45,11 @@ lb_default_critical_label="CRITICAL"
 lb_default_newfile_name="New file"
 
 # log levels, by default: CRITICAL ERROR WARNING INFO DEBUG
-lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
+lb_log_levels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
 # set log file and default log level
 lb_logfile=""
-lb_loglevel=""
+lb_log_level=""
 
 # print format
 lb_format_print=true
@@ -270,13 +270,13 @@ lb_display() {
 	# if a default log level is set,
 	if [ -n "$lb_display_level" ] ; then
 		# test current log level
-		if [ -n "$lb_loglevel" ] ; then
-			lb_display_idlvl=$(lb_get_loglevel --id "$lb_display_level")
+		if [ -n "$lb_log_level" ] ; then
+			lb_display_idlvl=$(lb_get_log_level --id "$lb_display_level")
 
 			# (if failed, we will continue logging)
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
-				if [ $lb_display_idlvl -gt $lb_loglevel ] ; then
+				if [ $lb_display_idlvl -gt $lb_log_level ] ; then
 					return 0
 				fi
 			fi
@@ -647,9 +647,9 @@ lb_set_logfile() {
 	lb_logfile=$lb_setlogfile_path
 
 	# if not set, set higher log level
-	if [ -z "$lb_loglevel" ] ; then
-		if [ ${#lb_loglevels[@]} -gt 0 ] ; then
-			lb_loglevel=$((${#lb_loglevels[@]} - 1))
+	if [ -z "$lb_log_level" ] ; then
+		if [ ${#lb_log_levels[@]} -gt 0 ] ; then
+			lb_log_level=$((${#lb_log_levels[@]} - 1))
 		fi
 	fi
 
@@ -658,11 +658,11 @@ lb_set_logfile() {
 
 
 # Get current log level
-# Usage: lb_get_loglevel [OPTIONS] [LEVEL]
-lb_get_loglevel() {
+# Usage: lb_get_log_level [OPTIONS] [LEVEL]
+lb_get_log_level() {
 
 	# default options
-	local lb_getloglevel_level=$lb_loglevel
+	local lb_getloglevel_level=$lb_log_level
 	local lb_getloglevel_getid=false
 
 	# get options
@@ -680,14 +680,14 @@ lb_get_loglevel() {
 
 	# if not specified, get actual log level
 	if [ -z "$1" ] ; then
-		if [ -z "$lb_loglevel" ] ; then
+		if [ -z "$lb_log_level" ] ; then
 			return 1
 		else
 			# print actual and exit
 			if $lb_getloglevel_getid ; then
-				echo $lb_loglevel
+				echo "$lb_log_level"
 			else
-				echo ${lb_loglevels[$lb_loglevel]}
+				echo "${lb_log_levels[$lb_log_level]}"
 			fi
 			return 0
 		fi
@@ -697,13 +697,13 @@ lb_get_loglevel() {
 	fi
 
 	# search log level id for a gived level name
-	for ((lb_getloglevel_i=0 ; lb_getloglevel_i < ${#lb_loglevels[@]} ; lb_getloglevel_i++)) ; do
+	for ((lb_getloglevel_i=0 ; lb_getloglevel_i < ${#lb_log_levels[@]} ; lb_getloglevel_i++)) ; do
 		# if found, return it
-		if [ "${lb_loglevels[$lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
+		if [ "${lb_log_levels[$lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
 			if $lb_getloglevel_getid ; then
 				echo "$lb_getloglevel_i"
 			else
-				echo "${lb_loglevels[$lb_getloglevel_i]}"
+				echo "${lb_log_levels[$lb_getloglevel_i]}"
 			fi
 			return 0
 		fi
@@ -715,8 +715,8 @@ lb_get_loglevel() {
 
 
 # Set log level
-# Usage: lb_set_loglevel LEVEL
-lb_set_loglevel() {
+# Usage: lb_set_log_level LEVEL
+lb_set_log_level() {
 
 	# usage errors
 	if [ $# == 0 ] ; then
@@ -724,10 +724,10 @@ lb_set_loglevel() {
 	fi
 
 	# search if level exists
-	for ((lb_setloglevel_i=0 ; lb_setloglevel_i < ${#lb_loglevels[@]} ; lb_setloglevel_i++)) ; do
+	for ((lb_setloglevel=0 ; lb_setloglevel < ${#lb_log_levels[@]} ; lb_setloglevel++)) ; do
 		# search by name and set level id
-		if [ "${lb_loglevels[$lb_setloglevel_i]}" == "$1" ] ; then
-			lb_loglevel=$lb_setloglevel_i
+		if [ "${lb_log_levels[$lb_setloglevel]}" == "$1" ] ; then
+			lb_log_level=$lb_setloglevel
 			return 0
 		fi
 	done
@@ -793,13 +793,13 @@ lb_log() {
 	# if a default log level is set,
 	if [ -n "$lb_log_level" ] ; then
 		# test current log level
-		if [ -n "$lb_loglevel" ] ; then
-			lb_log_idlvl=$(lb_get_loglevel --id "$lb_log_level")
+		if [ -n "$lb_log_level" ] ; then
+			lb_log_idlvl=$(lb_get_log_level --id "$lb_log_level")
 
 			# (if failed, we will continue logging)
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
-				if [ $lb_log_idlvl -gt $lb_loglevel ] ; then
+				if [ $lb_log_idlvl -gt $lb_log_level ] ; then
 					return 0
 				fi
 			fi
@@ -2201,6 +2201,40 @@ lb_error() {
 
 	# run command
 	>&2 "${lb_cmd[@]}"
+}
+
+
+# Get log level
+# See lb_get_log_level for usage
+lb_get_loglevel() {
+	# basic command
+	lb_cmd=(lb_get_log_level)
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
+}
+
+
+# Set log level
+# See lb_set_log_level for usage
+lb_set_loglevel() {
+	# basic command
+	lb_cmd=(lb_set_log_level)
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
 }
 
 
