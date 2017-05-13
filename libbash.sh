@@ -170,6 +170,86 @@ lb_exit() {
 #  DISPLAY  #
 #############
 
+# Get current display level
+# Usage: lb_get_display_level [OPTIONS] [LEVEL_NAME]
+lb_get_display_level() {
+
+	# default options
+	local lb_getdisplevel_level=$lb_display_level
+	local lb_getdisplevel_getid=false
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			--id)
+				lb_getdisplevel_getid=true
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
+
+	# if not specified, get actual log level
+	if [ -z "$1" ] ; then
+		if [ -z "$lb_display_level" ] ; then
+			return 1
+		else
+			# print actual and exit
+			if $lb_getdisplevel_getid ; then
+				echo "$lb_display_level"
+			else
+				echo "${lb_log_levels[$lb_display_level]}"
+			fi
+			return 0
+		fi
+	else
+		# get gived level name
+		lb_getdisplevel_level=$1
+	fi
+
+	# search log level id for a gived level name
+	for ((lb_getdisplevel_i=0 ; lb_getdisplevel_i < ${#lb_log_levels[@]} ; lb_getdisplevel_i++)) ; do
+		# if found, return it
+		if [ "${lb_log_levels[$lb_getdisplevel_i]}" == "$lb_getdisplevel_level" ] ; then
+			if $lb_getdisplevel_getid ; then
+				echo "$lb_getdisplevel_i"
+			else
+				echo "${lb_log_levels[$lb_getdisplevel_i]}"
+			fi
+			return 0
+		fi
+	done
+
+	# if not found, return error
+	return 2
+}
+
+
+# Set log level
+# Usage: lb_set_display_level LEVEL_NAME
+lb_set_display_level() {
+
+	# usage error
+	if [ -z "$1" ] ; then
+		return 1
+	fi
+
+	# search if level exists
+	for ((lb_setdisplevel_id=0 ; lb_setdisplevel_id < ${#lb_log_levels[@]} ; lb_setdisplevel_id++)) ; do
+		# search by name and set level id
+		if [ "${lb_log_levels[$lb_setdisplevel_id]}" == "$1" ] ; then
+			lb_display_level=$lb_setdisplevel_id
+			return 0
+		fi
+	done
+
+	# if specified level not found, error
+	return 2
+}
+
+
 # Print a message to the console, with colors and formatting
 # Usage: lb_print [OPTIONS] TEXT
 lb_print() {
@@ -238,7 +318,6 @@ lb_display() {
 	local lb_display_prefix=false
 	local lb_display_opts=""
 	local lb_display_displevel=""
-	local lb_display_exit=0
 
 	# get options
 	while [ -n "$1" ] ; do
@@ -266,17 +345,21 @@ lb_display() {
 		shift # load next argument
 	done
 
+	# other options
+	local lb_display_exitcode=0
+	local lb_display_display=true
+
 	# if a display level is set,
 	if [ -n "$lb_display_displevel" ] ; then
 		# test current display level
-		if [ -n "$lb_log_level" ] ; then
-			lb_display_idlvl=$(lb_get_log_level --id "$lb_display_displevel")
+		if [ -n "$lb_display_level" ] ; then
+			lb_display_idlvl=$(lb_get_display_level --id "$lb_display_displevel")
 
-			# (if failed, we will continue logging)
+			# Note: if level is unknown, message will be displayed
 			if [ $? == 0 ] ; then
-				# if log level is higher than default, do not log
-				if [ $lb_display_idlvl -gt $lb_log_level ] ; then
-					return 0
+				# if display level is higher than default, do not display
+				if [ $lb_display_idlvl -gt $lb_display_level ] ; then
+					lb_display_display=false
 				fi
 			fi
 		fi
@@ -301,10 +384,16 @@ lb_display() {
 
 		lb_display_logcmd+=("$lb_display_msgprefix$*")
 
+		# execute lb_log
 		"${lb_display_logcmd[@]}"
 		if [ $? != 0 ] ; then
-			lb_display_exit=2
+			lb_display_exitcode=2
 		fi
+	fi
+
+	# if no display, return
+	if ! $lb_display_display ; then
+		return $lb_display_exitcode
 	fi
 
 	# enable coloured prefixes
@@ -339,7 +428,7 @@ lb_display() {
 		return 3
 	fi
 
-	return $lb_display_exit
+	return $lb_display_exitcode
 }
 
 
@@ -793,7 +882,7 @@ lb_log() {
 		if [ -n "$lb_log_level" ] ; then
 			lb_log_idlvl=$(lb_get_log_level --id "$lb_log_loglevel")
 
-			# Note: if level unknown, we will continue logging
+			# Note: if level unknown, message will be logged
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
 				if [ $lb_log_idlvl -gt $lb_log_level ] ; then
