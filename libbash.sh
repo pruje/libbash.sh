@@ -44,12 +44,13 @@ lb_default_error_label="ERROR"
 lb_default_critical_label="CRITICAL"
 lb_default_newfile_name="New file"
 
-# log levels, by default: CRITICAL ERROR WARNING INFO DEBUG
+# default log and display levels (CRITICAL ERROR WARNING INFO DEBUG)
 lb_log_levels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
-# set log file and default log level
+# initialize log file, log level and display level variables
 lb_logfile=""
 lb_log_level=""
+lb_display_level=""
 
 # print format
 lb_format_print=true
@@ -236,42 +237,40 @@ lb_display() {
 	local lb_display_log=false
 	local lb_display_prefix=false
 	local lb_display_opts=""
-	local lb_display_level=""
+	local lb_display_displevel=""
 	local lb_display_exit=0
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-n)
 				lb_display_opts="-n "
-				shift
 				;;
 			-l|--level)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_display_level=$2
-				shift 2
+				lb_display_displevel=$2
+				shift
 				;;
 			-p|--prefix)
 				lb_display_prefix=true
-				shift
 				;;
 			--log)
 				lb_display_log=true
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
-	# if a default log level is set,
-	if [ -n "$lb_display_level" ] ; then
-		# test current log level
+	# if a display level is set,
+	if [ -n "$lb_display_displevel" ] ; then
+		# test current display level
 		if [ -n "$lb_log_level" ] ; then
-			lb_display_idlvl=$(lb_get_log_level --id "$lb_display_level")
+			lb_display_idlvl=$(lb_get_log_level --id "$lb_display_displevel")
 
 			# (if failed, we will continue logging)
 			if [ $? == 0 ] ; then
@@ -285,17 +284,19 @@ lb_display() {
 
 	local lb_display_msgprefix=""
 
-	# add prefix
-	if $lb_display_prefix ; then
-		lb_display_msgprefix="[$lb_display_level]  "
+	# add level prefix
+	if [ -n "$lb_display_displevel" ] ; then
+		if $lb_display_prefix ; then
+			lb_display_msgprefix="[$lb_display_displevel]  "
+		fi
 	fi
 
 	# print into logfile
 	if $lb_display_log ; then
 		lb_display_logcmd=(lb_log $lb_display_opts)
 
-		if [ -n "$lb_display_level" ] ; then
-			lb_display_logcmd+=(--level "$lb_display_level")
+		if [ -n "$lb_display_displevel" ] ; then
+			lb_display_logcmd+=(--level "$lb_display_displevel")
 		fi
 
 		lb_display_logcmd+=("$lb_display_msgprefix$*")
@@ -308,24 +309,24 @@ lb_display() {
 
 	# enable coloured prefixes
 	if $lb_display_prefix ; then
-		case $lb_display_level in
+		case $lb_display_displevel in
 			$lb_default_critical_label)
-				lb_display_msgprefix=$(lb_print --red "$lb_display_level")
+				lb_display_msgprefix=$(lb_print --red "$lb_display_displevel")
 				;;
 			$lb_default_error_label)
-				lb_display_msgprefix=$(lb_print --red "$lb_display_level")
+				lb_display_msgprefix=$(lb_print --red "$lb_display_displevel")
 				;;
 			$lb_default_warning_label)
-				lb_display_msgprefix=$(lb_print --yellow "$lb_display_level")
+				lb_display_msgprefix=$(lb_print --yellow "$lb_display_displevel")
 				;;
 			$lb_default_info_label)
-				lb_display_msgprefix=$(lb_print --green "$lb_display_level")
+				lb_display_msgprefix=$(lb_print --green "$lb_display_displevel")
 				;;
 			$lb_default_debug_label)
-				lb_display_msgprefix=$(lb_print --cyan "$lb_display_level")
+				lb_display_msgprefix=$(lb_print --cyan "$lb_display_displevel")
 				;;
 			*)
-				lb_display_msgprefix=$lb_display_level
+				lb_display_msgprefix=$lb_display_displevel
 				;;
 		esac
 
@@ -658,7 +659,7 @@ lb_set_logfile() {
 
 
 # Get current log level
-# Usage: lb_get_log_level [OPTIONS] [LEVEL]
+# Usage: lb_get_log_level [OPTIONS] [LEVEL_NAME]
 lb_get_log_level() {
 
 	# default options
@@ -666,16 +667,16 @@ lb_get_log_level() {
 	local lb_getloglevel_getid=false
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			--id)
 				lb_getloglevel_getid=true
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# if not specified, get actual log level
@@ -715,19 +716,19 @@ lb_get_log_level() {
 
 
 # Set log level
-# Usage: lb_set_log_level LEVEL
+# Usage: lb_set_log_level LEVEL_NAME
 lb_set_log_level() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
+	# usage error
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
 	# search if level exists
-	for ((lb_setloglevel=0 ; lb_setloglevel < ${#lb_log_levels[@]} ; lb_setloglevel++)) ; do
+	for ((lb_setloglevel_id=0 ; lb_setloglevel_id < ${#lb_log_levels[@]} ; lb_setloglevel_id++)) ; do
 		# search by name and set level id
-		if [ "${lb_log_levels[$lb_setloglevel]}" == "$1" ] ; then
-			lb_log_level=$lb_setloglevel
+		if [ "${lb_log_levels[$lb_setloglevel_id]}" == "$1" ] ; then
+			lb_log_level=$lb_setloglevel_id
 			return 0
 		fi
 	done
@@ -751,52 +752,48 @@ lb_log() {
 	local lb_log_prefix=false
 	local lb_log_erase=false
 	local lb_log_opts=""
-	local lb_log_level=""
+	local lb_log_loglevel=""
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-n)
 				lb_log_opts="-n "
-				shift
 				;;
 			-l|--level)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_log_level=$2
-				shift 2
+				lb_log_loglevel=$2
+				shift
 				;;
 			-p|--prefix)
 				lb_log_prefix=true
-				shift
 				;;
 			-d|--date-prefix)
 				lb_log_date=true
-				shift
 				;;
 			-a|--all-prefixes)
 				lb_log_prefix=true
 				lb_log_date=true
-				shift
 				;;
 			-x|--overwrite)
 				lb_log_erase=true
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# if a default log level is set,
-	if [ -n "$lb_log_level" ] ; then
+	if [ -n "$lb_log_loglevel" ] ; then
 		# test current log level
 		if [ -n "$lb_log_level" ] ; then
-			lb_log_idlvl=$(lb_get_log_level --id "$lb_log_level")
+			lb_log_idlvl=$(lb_get_log_level --id "$lb_log_loglevel")
 
-			# (if failed, we will continue logging)
+			# Note: if level unknown, we will continue logging
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
 				if [ $lb_log_idlvl -gt $lb_log_level ] ; then
@@ -815,9 +812,9 @@ lb_log() {
 	fi
 
 	# add level prefix
-	if [ -n "$lb_log_level" ] ; then
+	if [ -n "$lb_log_loglevel" ] ; then
 		if $lb_log_prefix ; then
-			lb_log_text+="[$lb_log_level] "
+			lb_log_text+="[$lb_log_loglevel] "
 		fi
 	fi
 
