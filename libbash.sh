@@ -44,12 +44,12 @@ lb_default_error_label="ERROR"
 lb_default_critical_label="CRITICAL"
 lb_default_newfile_name="New file"
 
-# set log file and default log levels
+# log levels, by default: CRITICAL ERROR WARNING INFO DEBUG
+lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
+
+# set log file and default log level
 lb_logfile=""
 lb_loglevel=""
-
-# log levels, by default: ERROR WARNING INFO DEBUG
-lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
 # print format
 lb_format_print=true
@@ -615,26 +615,26 @@ lb_set_logfile() {
 	fi
 
 	# get file path
-	local lb_setlogfile_file=$*
+	local lb_setlogfile_path=$*
 
 	# cancel if path exists but is not a regular file
-	if [ -e "$lb_setlogfile_file" ] ; then
-		if ! [ -f "$lb_setlogfile_file" ] ; then
+	if [ -e "$lb_setlogfile_path" ] ; then
+		if ! [ -f "$lb_setlogfile_path" ] ; then
 			return 4
 		fi
 	fi
 
 	# cancel if file is not writable
-	if ! lb_is_writable "$lb_setlogfile_file" ; then
+	if ! lb_is_writable "$lb_setlogfile_path" ; then
 		return 2
 	fi
 
 	# if file exists
-	if [ -f "$lb_setlogfile_file" ] ; then
+	if [ -f "$lb_setlogfile_path" ] ; then
 		# overwrite file
 		if $lb_setlogfile_erase ; then
 			# empty file
-			> "$lb_setlogfile_file"
+			> "$lb_setlogfile_path"
 		else
 			# cancel if can not be append
 			if ! $lb_setlogfile_append ; then
@@ -644,7 +644,7 @@ lb_set_logfile() {
 	fi
 
 	# set log file path
-	lb_logfile=$lb_setlogfile_file
+	lb_logfile=$lb_setlogfile_path
 
 	# if not set, set higher log level
 	if [ -z "$lb_loglevel" ] ; then
@@ -2173,7 +2173,6 @@ lb_input_password() {
 # Print a message
 # See lb_print for usage
 lb_echo() {
-
 	# basic command
 	lb_cmd=(lb_print)
 
@@ -2191,7 +2190,6 @@ lb_echo() {
 # Print a message to stderr
 # See lb_print for usage
 lb_error() {
-
 	# basic command
 	lb_cmd=(lb_print)
 
@@ -2209,7 +2207,6 @@ lb_error() {
 # Common display levels functions
 # See lb_display for usage
 lb_display_critical() {
-
 	# basic command
 	lb_cmd=(lb_display -p -l "$lb_default_critical_label")
 
@@ -2224,7 +2221,6 @@ lb_display_critical() {
 }
 
 lb_display_error() {
-
 	# basic command
 	lb_cmd=(lb_display -p -l "$lb_default_error_label")
 
@@ -2239,7 +2235,6 @@ lb_display_error() {
 }
 
 lb_display_warning() {
-
 	# basic command
 	lb_cmd=(lb_display -p -l "$lb_default_warning_label")
 
@@ -2254,7 +2249,6 @@ lb_display_warning() {
 }
 
 lb_display_info() {
-
 	# basic command
 	lb_cmd=(lb_display -p -l "$lb_default_info_label")
 
@@ -2269,7 +2263,6 @@ lb_display_info() {
 }
 
 lb_display_debug() {
-
 	# basic command
 	lb_cmd=(lb_display -p -l "$lb_default_debug_label")
 
@@ -2288,7 +2281,6 @@ lb_display_debug() {
 # Usage: lb_log_* [OPTIONS] TEXT
 # See lb_log for options usage
 lb_log_critical() {
-
 	# basic command
 	lb_cmd=(lb_log -p -l "$lb_default_critical_label")
 
@@ -2303,7 +2295,6 @@ lb_log_critical() {
 }
 
 lb_log_error() {
-
 	# basic command
 	lb_cmd=(lb_log -p -l "$lb_default_error_label")
 
@@ -2318,7 +2309,6 @@ lb_log_error() {
 }
 
 lb_log_warning() {
-
 	# basic command
 	lb_cmd=(lb_log -p -l "$lb_default_warning_label")
 
@@ -2333,7 +2323,6 @@ lb_log_warning() {
 }
 
 lb_log_info() {
-
 	# basic command
 	lb_cmd=(lb_log -p -l "$lb_default_info_label")
 
@@ -2348,7 +2337,6 @@ lb_log_info() {
 }
 
 lb_log_debug() {
-
 	# basic command
 	lb_cmd=(lb_log -p -l "$lb_default_debug_label")
 
