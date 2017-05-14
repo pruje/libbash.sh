@@ -1,50 +1,59 @@
 # Changelog
 
-## 1.0.0 (2017-05-11)
-- New options to libbash.sh load GUI and locales
+## 1.0.0 (2017-05-15)
+- New function: `lb_is_email()` to test if a string is a valid email
+- New display level support with functions: `lb_get_display_level()` and `lb_set_display_level()`
+  (since now, the display level was the same as the log level)
+- New variables: `$lb_current_user` (current user name), `$lb_path` (libbash.sh path),
+  `$lbg_path` (libbash.sh GUI path) and `$lb_directory` (libbash.sh directory)
+- New option in `lb_input_password()` and `lbg_input_password()` to check minimum size of a password
+- New options to load libbash GUI and locales
 - Automatic loading of locales for user language
-- New variable `$lb_current_user` to get current user name
-- Various improvements in source code and documentation
+- Renamed `lb_get_loglevel()` to `lb_get_log_level()` and `lb_set_loglevel()` to `lb_set_log_level()`
+  (+ added aliases to not break compatibility)
+- Renamed `lb_detect_os()` to `lb_current_os()` (+ added alias to not break compatibility)
+- Many improvements and optimizations in source code
+- Improvements in documentation
 
 ## 0.4.1 (2017-04-24)
-- New function: lb_trim()
+- New function: `lb_trim()`
 - Fix missing quotes that could cause bugs in paths with spaces
 
 ## 0.4.0 (2017-04-01)
-- New functions: lb_is_boolean(), lb_compare_versions() and lb_generate_password()
+- New functions: `lb_is_boolean()`, `lb_compare_versions()` and `lb_generate_password()`
 - Minor code improvements
 
 ## 0.3.3 (2017-03-22)
 - New `$lb_current_os` variable with current OS
-- lbg_set_gui() with no argument now sets the default GUI tool (useful when reseting)
-- Delete lb_log() write error messages
+- `lbg_set_gui()` with no argument now sets the default GUI tool (useful when reseting)
+- Delete `lb_log()` write error messages
 
 ## 0.3.2 (2017-03-21)
-- Fix bug on zenity notifications that hung scripts (removed the --listen option)
+- Fix bug on zenity notifications that hung scripts (removed the `--listen` option)
 
 ## 0.3.1 (2017-03-07)
-- Bugfixes and improvements on lb_result(), lb_short_result() and lb_exit()
-- New `--error-exitcode` option for lb_result() and lb_short_result() to set a custom exit code if error
-- **WARNING**: the former `-e` option alias used for `--save-exitcode` is renamed to `-s` in lb_result() and lb_short_result()
+- Bugfixes and improvements on `lb_result()`, `lb_short_result()` and `lb_exit()`
+- New `--error-exitcode` option for `lb_result()` and `lb_short_result()` to set a custom exit code if error
+- **WARNING**: the former `-e` option alias used for `--save-exitcode` is renamed to `-s` in `lb_result()` and `lb_short_result()`
 - Documentation: add [script examples and demo](examples)
 
 ## 0.3.0 (2017-02-11)
-- New function: lb_abspath()
-- New function: lb_is_comment()
+- New function: `lb_abspath()`
+- New function: `lb_is_comment()`
 - Console size detection and improvements for the dialog command
-- Add `--absolute-path` options to lbg_choose_file() and lbg_choose_directory()
-- Change behaviour for lb_result() on exit to return $lb_exitcode variable and not command result
-- Renamed option `--save-exit-code` to `--save-exitcode` for lb_result() and lb_short_result()
+- Add `--absolute-path` options to `lbg_choose_file()` and `lbg_choose_directory()`
+- Change behaviour for `lb_result()` on exit to return `$lb_exitcode` variable and not command result
+- Renamed option `--save-exit-code` to `--save-exitcode` for `lb_result()` and `lb_short_result()`
 - Set explicit returns to functions to avoid confusion and maybe errors
 
 ## 0.2.0 (2017-02-06)
-- New function: lb_is_number()
-- Add macOS support for lb_df_fstype()
-- Add macOS support for lb_df_uuid()
-- Better implementation of lb_short_result(): exit code argument is now an option
+- New function: `lb_is_number()`
+- Add macOS support for `lb_df_fstype()`
+- Add macOS support for `lb_df_uuid()`
+- Better implementation of `lb_short_result()`: exit code argument is now an option
 
 ## 0.1.2 (2017-02-04)
-- Fix bug in lb_exit(): bad variable name
+- Fix bug in `lb_exit()`: bad variable name
 
 ## 0.1.1 (2017-02-01)
 - Add a missing French translation
