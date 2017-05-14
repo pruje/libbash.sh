@@ -180,28 +180,24 @@ lbg_set_gui() {
 # Usage: lbg_display_info [OPTIONS] TEXT
 lbg_display_info() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lbg_dinf_title=$lb_current_script_name
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_dinf_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if no text to display
@@ -271,28 +267,24 @@ EOF
 # Usage: lbg_display_warning [OPTIONS] TEXT
 lbg_display_warning() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lbg_dwn_title=$lb_current_script_name
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_dwn_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if no text to display
@@ -351,28 +343,24 @@ EOF
 # Usage: lbg_display_error [OPTIONS] TEXT
 lbg_display_error() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lbg_derr_title=$lb_current_script_name
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_derr_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if no text to display
@@ -431,45 +419,37 @@ EOF
 # Usage: lbg_notify [OPTIONS] TEXT
 lbg_notify() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lbg_notify_title=$lb_current_script_name
 	local lbg_notify_timeout=""
 	local lbg_notify_use_notifysend=true
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_notify_title=$2
-				shift 2
+				shift
 				;;
 			--timeout)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
 				if ! lb_is_integer $2 ; then
 					return 1
 				fi
 				lbg_notify_timeout=$2
-				shift 2
+				shift
 				;;
 			--no-notify-send)
 				# do not use notify-send command if available
 				lbg_notify_use_notifysend=false
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if no text
@@ -557,31 +537,31 @@ lbg_yesno() {
 	local lbg_yn_cmd=()
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-y|--yes)
 				lbg_yn_defaultyes=true
-				shift
 				;;
 			--yes-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_yn_yeslbl=$2
-				shift 2
+				shift
 				;;
 			--no-label)
 				lbg_yn_nolbl=$2
-				shift 2
+				shift
 				;;
 			-t|--title)
 				lbg_yn_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if no text to display
@@ -708,47 +688,42 @@ lbg_choose_option() {
 	# reset result
 	lbg_choose_option=""
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options and local variables
 	local lbg_chop_default=0
 	# options: initialize with an empty first value (option ID starts to 1, not 0)
 	local lbg_chop_options=("")
-	local lbg_chop_i
 	local lbg_chop_title=$lb_current_script_name
 	local lbg_chop_label=$lb_default_chopt_label
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-d|--default)
-				if [ -z "$2" ] ; then
+				if ! lb_is_integer $2 ; then
 					return 1
 				fi
 				lbg_chop_default=$2
-				shift 2
+				shift
 				;;
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_chop_label=$2
-				shift 2
+				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_chop_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if missing at least 1 choice option
@@ -756,27 +731,15 @@ lbg_choose_option() {
 		return 1
 	fi
 
-	# prepare options; cannot support more than 254 options
-	while true ; do
-		if [ -n "$1" ] ; then
-			lbg_chop_options+=("$1")
-			shift
-		else
-			break
-		fi
+	# prepare options
+	while [ -n "$1" ] ; do
+		lbg_chop_options+=("$1")
+		shift
 	done
 
-	# verify default option
-	if [ $lbg_chop_default != 0 ] ; then
-		if ! lb_is_integer "$lbg_chop_default" ; then
-			echo >&2 "Error: default option $lbg_chop_default is not a number."
-			return 1
-		else
-			if [ $lbg_chop_default -lt 1 ] || [ $lbg_chop_default -ge ${#lbg_chop_options[@]} ] ; then
-				echo >&2 "Error: default option $lbg_chop_default does not exists."
-				return 1
-			fi
-		fi
+	# verify if default option is valid
+	if [ $lbg_chop_default -lt 0 ] || [ $lbg_chop_default -ge ${#lbg_chop_options[@]} ] ; then
+		return 1
 	fi
 
 	# prepare command
@@ -878,7 +841,7 @@ EOF)
 		*)
 			# console mode
 			lbg_chop_cmd=(lb_choose_option)
-			if [ $lbg_chop_default != 0 ] ; then
+			if [ $lbg_chop_default -gt 0 ] ; then
 				lbg_chop_cmd+=(-d $lbg_chop_default)
 			fi
 			lbg_chop_cmd+=(-l "$lbg_chop_label")
@@ -928,36 +891,32 @@ lbg_input_text() {
 	# reset result
 	lbg_input_text=""
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lbg_inp_default=""
 	local lbg_inp_title=$lb_current_script_name
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inp_default=$2
-				shift 2
+				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_inp_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if no text to display
@@ -1074,9 +1033,7 @@ lbg_input_password() {
 				break
 				;;
 		esac
-
-		# get next argument
-		shift
+		shift # load next argument
 	done
 
 	# display dialog
@@ -1184,23 +1141,23 @@ lbg_choose_directory() {
 	local lbg_chdir_absolute=false
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-a|--absolute-path)
 				lbg_chdir_absolute=true
-				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_chdir_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# if no path specified, use current
@@ -1303,34 +1260,33 @@ lbg_choose_file() {
 	local lbg_choosefile_absolute=false
 
 	# catch options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-s|--save)
 				lbg_choosefile_save=true
-				shift
 				;;
 			-f|--filter)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_choosefile_filters+=("$2")
-				shift 2
+				shift
 				;;
 			-a|--absolute-path)
 				lbg_choosefile_absolute=true
-				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lbg_choosefile_title=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# if no path specified, use current directory
@@ -1490,7 +1446,6 @@ EOF)
 # Display a critical dialog
 # See lbg_display_error for usage
 lbg_display_critical() {
-
 	# basic command
 	lbg_cmd=(lbg_display_error)
 
@@ -1507,7 +1462,6 @@ lbg_display_critical() {
 # Display a debug dialog
 # See lbg_display_info for usage
 lbg_display_debug() {
-
 	# basic command
 	lbg_cmd=(lbg_display_info)
 

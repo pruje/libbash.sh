@@ -259,36 +259,31 @@ lb_print() {
 	local lb_print_resetcolor=""
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-n)
 				lb_print_opts+="-n "
-				shift
 				;;
 			--bold)
 				lb_print_format+=(1)
-				shift
 				;;
 			--cyan)
 				lb_print_format+=(36)
-				shift
 				;;
 			--green)
 				lb_print_format+=(32)
-				shift
 				;;
 			--yellow)
 				lb_print_format+=(33)
-				shift
 				;;
 			--red)
 				lb_print_format+=(31)
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# append formatting options
@@ -348,6 +343,7 @@ lb_display() {
 	# other options
 	local lb_display_exitcode=0
 	local lb_display_display=true
+	local lb_display_msgprefix=""
 
 	# if a display level is set,
 	if [ -n "$lb_display_displevel" ] ; then
@@ -364,8 +360,6 @@ lb_display() {
 			fi
 		fi
 	fi
-
-	local lb_display_msgprefix=""
 
 	# add level prefix
 	if [ -n "$lb_display_displevel" ] ; then
@@ -449,36 +443,34 @@ lb_result() {
 	local lb_result_exit_on_error=false
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			--ok-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_result_ok=$2
-				shift 2
+				shift
 				;;
 			--failed-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_result_failed=$2
-				shift 2
+				shift
 				;;
 			-l|--log-level)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_result_opts="-l $2 "
-				shift 2
+				shift
 				;;
 			--log)
 				lb_result_opts="--log "
-				shift
 				;;
 			-s|--save-exitcode)
 				lb_result_save_exitcode=true
-				shift
 				;;
 			-e|--error-exitcode)
 				# check type and validity
@@ -486,30 +478,27 @@ lb_result() {
 					return 1
 				fi
 				lb_result_error_exitcode=$2
-				shift 2
+				shift
 				;;
 			-x|--exit-on-error)
 				lb_result_exit_on_error=true
-				shift
 				;;
 			-q|--quiet)
 				lb_result_quiet=true
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# specified exit code
 	if [ -n "$1" ] ; then
+		if ! lb_is_integer $1 ; then
+			return 1
+		fi
 		lb_result_res=$1
-	fi
-
-	# bad usage
-	if ! lb_is_integer $lb_result_res ; then
-		return 1
 	fi
 
 	# save result to exit code
@@ -562,22 +551,20 @@ lb_short_result() {
 	local lb_shres_exit_on_error=false
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-l|--log-level)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_shres_opts="-l $2 "
-				shift 2
+				shift
 				;;
 			--log)
 				lb_shres_opts="--log "
-				shift
 				;;
 			-s|--save-exitcode)
 				lb_shres_save_exitcode=true
-				shift
 				;;
 			-e|--error-exitcode)
 				# check type and validity
@@ -585,30 +572,27 @@ lb_short_result() {
 					return 1
 				fi
 				lb_shres_error_exitcode=$2
-				shift 2
+				shift
 				;;
 			-x|--exit-on-error)
 				lb_shres_exit_on_error=true
-				shift
 				;;
 			-q|--quiet)
 				lb_shres_quiet=true
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# specified exit code
 	if [ -n "$1" ] ; then
+		if ! lb_is_integer $1 ; then
+			return 1
+		fi
 		lb_shres_res=$1
-	fi
-
-	# bad usage
-	if ! lb_is_integer $lb_shres_res ; then
-		return 1
 	fi
 
 	# save result to exit code
@@ -673,30 +657,24 @@ lb_get_logfile() {
 # Usage: lb_set_logfile [OPTIONS] PATH
 lb_set_logfile() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lb_setlogfile_erase=false
 	local lb_setlogfile_append=false
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-a|--append)
 				lb_setlogfile_append=true
-				shift
 				;;
 			-x|--overwrite)
 				lb_setlogfile_erase=true
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# test arguments
@@ -994,6 +972,66 @@ lb_is_email() {
 }
 
 
+# Test if a text is a comment
+# Usage: lb_is_comment [OPTIONS] TEXT
+lb_is_comment() {
+
+	# default options
+	local lb_iscom_symbols=()
+	local lb_iscom_empty=true
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--symbol)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_iscom_symbols=("$2")
+				shift
+				;;
+			-n|--not-empty)
+				lb_iscom_empty=false
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next command
+	done
+
+	# set default comment symbol if none is set
+	if [ ${#lb_iscom_symbols[@]} == 0 ] ; then
+		lb_iscom_symbols+=("#")
+	fi
+
+	# delete spaces to find the first character
+	lb_iscom_line=$(echo $* | tr -d '[:space:]')
+
+	# empty line
+	if [ -z "$lb_iscom_line" ] ; then
+		if $lb_iscom_empty ; then
+			return 0
+		else
+			return 3
+		fi
+	else
+		# test if text starts with comment symbols
+		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
+			lb_iscom_symbol=${lb_iscom_symbols[$lb_iscom_i]}
+
+			if [ "${lb_iscom_line:0:${#lb_iscom_symbol}}" == "$lb_iscom_symbol" ] ; then
+				# is a comment: exit
+				return 0
+			fi
+		done
+	fi
+
+	# symbol not found: not a comment
+	return 2
+}
+
+
 # Deletes spaces before and after a text
 # Usage: lb_trim TEXT
 lb_trim() {
@@ -1093,6 +1131,7 @@ lb_compare_versions() {
 
 		declare -i lb_cpver_i=1
 
+		# compare version numbers separated by dots
 		while true ; do
 
 			if [[ "$lb_cpver_v1_main" == *"."* ]] ; then
@@ -1235,66 +1274,6 @@ lb_compare_versions() {
 	fi
 
 	# other cases are errors
-	return 2
-}
-
-
-# Test if a text is a comment
-# Usage: lb_is_comment [OPTIONS] TEXT
-lb_is_comment() {
-
-	# default options
-	local lb_iscom_symbols=()
-	local lb_iscom_empty=true
-
-	# get options
-	while true ; do
-		case $1 in
-			-s|--symbol)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
-				lb_iscom_symbols=("$2")
-				shift 2
-				;;
-			-n|--not-empty)
-				lb_iscom_empty=false
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-	done
-
-	# set default comment symbol if none is set
-	if [ ${#lb_iscom_symbols[@]} == 0 ] ; then
-		lb_iscom_symbols+=("#")
-	fi
-
-	# delete spaces to find the first character
-	lb_iscom_line=$(echo $* | tr -d '[:space:]')
-
-	# empty line
-	if [ -z "$lb_iscom_line" ] ; then
-		if $lb_iscom_empty ; then
-			return 0
-		else
-			return 3
-		fi
-	else
-		# test if text starts with comment symbols
-		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
-			lb_iscom_symbol=${lb_iscom_symbols[$lb_iscom_i]}
-
-			if [ "${lb_iscom_line:0:${#lb_iscom_symbol}}" == "$lb_iscom_symbol" ] ; then
-				# is a comment: exit
-				return 0
-			fi
-		done
-	fi
-
-	# symbol not found: not a comment
 	return 2
 }
 
@@ -1864,11 +1843,6 @@ lb_email() {
 # Usage: lb_yesno [OPTIONS] TEXT
 lb_yesno() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lb_yn_defaultyes=false
 	local lb_yn_cancel=false
@@ -1877,41 +1851,40 @@ lb_yesno() {
 	local lb_yn_cancellbl=$lb_default_cancel_shortlabel
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-y|--yes)
 				lb_yn_defaultyes=true
-				shift
 				;;
 			-c|--cancel)
 				lb_yn_cancel=true
-				shift
 				;;
 			--yes-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_yn_yeslbl=$2
-				shift 2
+				shift
 				;;
 			--no-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_yn_nolbl=$2
-				shift 2
+				shift
 				;;
 			--cancel-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_yn_cancellbl=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if question is missing
@@ -1974,11 +1947,6 @@ lb_choose_option() {
 	# reset result
 	lb_choose_option=""
 
-	# must have at least 1 option
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options and local variables
 	local lb_chop_default=0
 	# options: initialize with an empty first value (option ID starts to 1, not 0)
@@ -1987,33 +1955,34 @@ lb_choose_option() {
 	local lb_chop_cancel_label=$lb_default_cancel_shortlabel
 
 	# get command options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-d|--default)
-				if [ -z "$2" ] ; then
+				if ! lb_is_integer $2 ; then
 					return 1
 				fi
 				lb_chop_default=$2
-				shift 2
+				shift
 				;;
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_chop_label=$2
-				shift 2
+				shift
 				;;
 			-c|--cancel-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_chop_cancel_label=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if missing at least 1 choice option
@@ -2022,26 +1991,14 @@ lb_choose_option() {
 	fi
 
 	# prepare choice options
-	while true ; do
-		if [ -n "$1" ] ; then
-			lb_chop_options+=("$1")
-			shift
-		else
-			break
-		fi
+	while [ -n "$1" ] ; do
+		lb_chop_options+=("$1")
+		shift
 	done
 
 	# verify if default option is valid
-	if [ $lb_chop_default != 0 ] ; then
-		if ! lb_is_integer "$lb_chop_default" ; then
-			# usage error
-			return 1
-		else
-			# if ID is not in the choice range, return usage error
-			if [ $lb_chop_default -lt 1 ] || [ $lb_chop_default -ge ${#lb_chop_options[@]} ] ; then
-				return 1
-			fi
-		fi
+	if [ $lb_chop_default -lt 0 ] || [ $lb_chop_default -ge ${#lb_chop_options[@]} ] ; then
+		return 1
 	fi
 
 	# print question
@@ -2055,7 +2012,7 @@ lb_choose_option() {
 	echo
 
 	# print default option
-	if [ $lb_chop_default != 0 ] ; then
+	if [ $lb_chop_default -gt 0 ] ; then
 		echo -n "[$lb_chop_default]"
 	else
 		echo -n "[$lb_chop_cancel_label]"
@@ -2068,7 +2025,7 @@ lb_choose_option() {
 
 	# defaut behaviour if input is empty
 	if [ -z "$lb_choose_option" ] ; then
-		if [ $lb_chop_default != 0 ] ; then
+		if [ $lb_chop_default -gt 0 ] ; then
 			# default option
 			lb_choose_option=$lb_chop_default
 		else
@@ -2107,33 +2064,28 @@ lb_input_text() {
 	# reset result
 	lb_input_text=""
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
 	# default options
 	local lb_inp_default=""
 	local lb_inp_opts=""
 
-	# catch options
-	while true ; do
+	# get options
+	while [ -n "$1" ] ; do
 		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_inp_default=$2
-				shift 2
+				shift
 				;;
 			-n)
 				lb_inp_opts="-n "
-				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if text is not defined
@@ -2183,25 +2135,24 @@ lb_input_password() {
 	local lb_inpw_minsize=0
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_inpw_label=$2
-				shift 2
+				shift
 				;;
 			-c|--confirm)
 				lb_inpw_confirm=true
-				shift
 				;;
 			--confirm-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_inpw_confirm_label=$2
-				shift 2
+				shift
 				;;
 			-m|--min-size)
 				if ! lb_is_integer $2 ; then
@@ -2211,12 +2162,13 @@ lb_input_password() {
 					return 1
 				fi
 				lb_inpw_minsize=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# prompt user for password

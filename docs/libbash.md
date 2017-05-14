@@ -64,10 +64,10 @@ All functions are named with the `lb_` prefix.
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_is_boolean](#lb_is_boolean)
 	* [lb_is_email](#lb_is_email)
+	* [lb_is_comment](#lb_is_comment)
 	* [lb_trim](#lb_trim)
 	* [lb_array_contains](#lb_array_contains)
 	* [lb_compare_versions](#lb_compare_versions)
-	* [lb_is_comment](#lb_is_comment)
 * Filesystem
 	* [lb_df_fstype](#lb_df_fstype)
 	* [lb_df_space_left](#lb_df_space_left)
@@ -630,6 +630,40 @@ fi
 ```
 
 ---------------------------------------------------------------
+<a name="lb_is_comment"></a>
+### lb_is_comment
+Test if a text is a comment.
+
+In source codes, comments are preceded by a symbol like `#`, `//`, ...
+
+#### Usage
+```bash
+lb_is_comment [OPTIONS] TEXT
+```
+
+#### Options
+```
+-s, --symbol STRING  Comment symbol (can use multiple values, '#' by default)
+-n, --not-empty      Empty text are not considered as comments
+```
+
+#### Exit codes
+- 0: Text is a comment
+- 1: Usage error
+- 2: Text is not a comment
+- 3: Text is empty (if `--not-empty` option is set)
+
+#### Example
+```bash
+# read config file without comments
+while read line ; do
+    if ! is_comment $line ; then
+        echo "$line"
+    fi
+done < "config.sh"
+```
+
+---------------------------------------------------------------
 <a name="lb_trim"></a>
 ### lb_trim
 Deletes spaces before and after a text.
@@ -709,40 +743,6 @@ if lb_compare_versions $version1 -ge $version2 ; then
 else
     echo "Newer version: $version2"
 fi
-```
-
----------------------------------------------------------------
-<a name="lb_is_comment"></a>
-### lb_is_comment
-Test if a text is a comment.
-
-In source codes, comments are preceded by a symbol like `#`, `//`, ...
-
-#### Usage
-```bash
-lb_is_comment [OPTIONS] TEXT
-```
-
-#### Options
-```
--s, --symbol STRING  Comment symbol (can use multiple values, '#' by default)
--n, --not-empty      Empty text are not considered as comments
-```
-
-#### Exit codes
-- 0: Text is a comment
-- 1: Usage error
-- 2: Text is not a comment
-- 3: Text is empty (if `--not-empty` option is set)
-
-#### Example
-```bash
-# read config file without comments
-while read line ; do
-    if ! is_comment $line ; then
-        echo "$line"
-    fi
-done < "config.sh"
 ```
 
 ---------------------------------------------------------------
