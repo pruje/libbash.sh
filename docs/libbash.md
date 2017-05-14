@@ -63,6 +63,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_is_number](#lb_is_number)
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_is_boolean](#lb_is_boolean)
+	* [lb_is_email](#lb_is_email)
 	* [lb_trim](#lb_trim)
 	* [lb_array_contains](#lb_array_contains)
 	* [lb_compare_versions](#lb_compare_versions)
@@ -603,6 +604,28 @@ lb_is_boolean VALUE
 x=false
 if lb_is_boolean $x ; then
     echo "x is a boolean"
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_is_email"></a>
+### lb_is_email
+Test if a string is a valid email address.
+
+#### Usage
+```bash
+lb_is_email STRING
+```
+
+#### Exit codes
+- 0: Is an email address
+- 1: Is not an email address
+
+#### Example
+```bash
+x="me@domain.com"
+if lb_is_email $x ; then
+    echo "x is an email address"
 fi
 ```
 

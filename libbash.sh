@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.0.0-beta.1 (2017-05-11)                   #
+#  Version 1.0.0-beta.2 (2017-05-14)                   #
 #                                                      #
 ########################################################
 
@@ -17,7 +17,7 @@
 ####################
 
 # libbash main variables
-lb_version="1.0.0-beta.1"
+lb_version="1.0.0-beta.2"
 lb_path=$BASH_SOURCE
 lb_directory=$(dirname "$lb_path")
 
@@ -987,6 +987,13 @@ lb_is_boolean() {
 }
 
 
+# Test if a string is a valid email address
+# Usage: lb_is_email STRING
+lb_is_email() {
+	echo -n "$*" | grep -qE "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$"
+}
+
+
 # Deletes spaces before and after a text
 # Usage: lb_trim TEXT
 lb_trim() {
@@ -1726,51 +1733,52 @@ lb_email() {
 	local lb_email_command=""
 	local lb_email_header=""
 
-	# available commands
+	# email commands
 	local lb_email_commands=(/usr/sbin/sendmail)
 
 	# get options
-	while true ; do
+	while [ -n "$1" ] ; do
 		case $1 in
 			-s|--subject)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_subject=$2
-				shift 2
+				shift
 				;;
 			--sender)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_sender=$2
-				shift 2
+				shift
 				;;
 			-r|--reply-to)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_replyto=$2
-				shift 2
+				shift
 				;;
 			-c|--cc)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_cc=$2
-				shift 2
+				shift
 				;;
 			-b|--bcc)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
 				lb_email_bcc=$2
-				shift 2
+				shift
 				;;
 			*)
 				break
 				;;
 		esac
+		shift # load next argument
 	done
 
 	# usage error if missing text and at least one option
@@ -1778,7 +1786,7 @@ lb_email() {
 		return 1
 	fi
 
-	local lb_email_recepients=$1
+	local lb_email_recipients=$1
 	shift
 
 	# usage error if missing message
@@ -1809,7 +1817,7 @@ lb_email() {
 		lb_email_header+="From: $lb_email_sender\n"
 	fi
 
-	lb_email_header+="To: $lb_email_recepients\n"
+	lb_email_header+="To: $lb_email_recipients\n"
 
 	if [ -n "$lb_email_cc" ] ; then
 		lb_email_header+="Cc: $lb_email_cc\n"
