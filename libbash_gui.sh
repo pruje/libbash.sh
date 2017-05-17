@@ -217,7 +217,7 @@ lbg_display_info() {
 
 		osascript)
 			# run command
-			osascript 2> /dev/null << EOF
+			osascript &> /dev/null << EOF
 display dialog "$*" with title "$lbg_dinf_title" with icon note buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# if command error
@@ -304,7 +304,7 @@ lbg_display_warning() {
 
 		osascript)
 			# run command
-			osascript 2> /dev/null << EOF
+			osascript &> /dev/null << EOF
 display dialog "$*" with title "$lbg_dwn_title" with icon caution buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# command error
@@ -380,7 +380,7 @@ lbg_display_error() {
 
 		osascript)
 			# run command
-			osascript 2> /dev/null << EOF
+			osascript &> /dev/null << EOF
 display dialog "$*" with title "$lbg_derr_title" with icon stop buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# command error
@@ -499,7 +499,7 @@ lbg_notify() {
 			;;
 
 		osascript)
-			osascript 2> /dev/null << EOF
+			osascript &> /dev/null << EOF
 display notification "$*" with title "$lbg_notify_title"
 EOF
 			;;
