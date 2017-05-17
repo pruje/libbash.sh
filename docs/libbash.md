@@ -46,6 +46,8 @@ All functions are named with the `lb_` prefix.
 	* [lb_test_arguments](#lb_test_arguments)
 	* [lb_exit](#lb_exit)
 * Display
+	* [lb_get_display_level](#lb_get_display_level)
+	* [lb_set_display_level](#lb_set_display_level)
 	* [lb_print (or lb_echo)](#lb_print)
 	* [lb_error](#lb_error)
 	* [lb_display](#lb_display)
@@ -197,6 +199,63 @@ lb_exit
 
 ---------------------------------------------------------------
 ## Display
+---------------------------------------------------------------
+<a name="lb_get_display_level"></a>
+### lb_get_display_level
+Get the current display (verbose) level (or the id of a level).
+
+See [lb_set_log_level](#lb_set_log_level) for more details on default display/log levels.
+
+#### Usage
+```bash
+lb_get_display_level [OPTIONS] [LEVEL_NAME]
+```
+
+#### Options
+```
+--id  Get display level ID instead of its name
+```
+
+#### Exit codes
+- 0: OK
+- 1: Display level is not set
+- 2: Display level not found
+
+#### Example
+```bash
+current_display_level=$(lb_get_display_level)
+```
+
+---------------------------------------------------------------
+<a name="lb_set_display_level"></a>
+### lb_set_display_level
+Set the display (verbose) level for messages using [lb_display](#lb_display) function.
+
+#### Usage
+```bash
+lb_set_display_level LEVEL_NAME
+```
+
+#### Display levels
+Default display levels are the same as the log level. See [lb_set_log_level](#lb_set_log_level) for more details.
+
+The default display level is set to maximum (DEBUG by default), which means that it will print all messages.
+
+Please note that if you set a display level, every messages with a lower level will also be displayed.
+
+If you display a message with an unknown display level, it will be displayed.
+
+#### Exit codes
+- 0: Display level set
+- 1: Usage error
+- 2: Specified display level not found
+
+#### Example
+```bash
+# set normal verbose mode
+lb_set_display_level INFO
+```
+
 ---------------------------------------------------------------
 <a name="lb_print"></a>
 ### lb_print (or lb_echo)
@@ -460,7 +519,7 @@ lb_set_log_level LEVEL_NAME
 ```
 
 #### Log levels
-Default log levels are:
+Default log levels are (from lower to higher):
 - 0. CRITICAL
 - 1. ERROR
 - 2. WARNING
@@ -469,9 +528,9 @@ Default log levels are:
 
 The default log level is set to maximum (DEBUG by default), which means that it will print logs of every levels.
 
-Please note that if you set a log level, every messages with a lower level will also be displayed/logged.
+Please note that if you set a log level, every messages with a lower level will also be logged.
 
-If you display/log a message with an unknown log level, it will always be displayed/logged.
+If you log a message with an unknown log level, it will always be logged.
 
 #### Exit codes
 - 0: Log level set
