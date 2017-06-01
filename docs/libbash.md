@@ -716,7 +716,7 @@ lb_is_comment [OPTIONS] TEXT
 ```bash
 # read config file without comments
 while read line ; do
-    if ! is_comment $line ; then
+    if ! lb_is_comment $line ; then
         echo "$line"
     fi
 done < "config.sh"
