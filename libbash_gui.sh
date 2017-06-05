@@ -38,6 +38,10 @@ lbg_gui=""
 lbg_console_width=""
 lbg_console_height=""
 
+# VB script and cscript command for Windows
+lbg_vbscript="$lb_directory/inc/libbash_gui.vbs"
+lbg_cscript=(cscript /NoLogo "$lbg_vbscript")
+
 
 ##################################
 #  INTERNAL FUNCTIONS            #
@@ -150,7 +154,20 @@ lbg_set_gui() {
 					continue
 				fi
 				;;
+			osascript)
+				# test OS
+				if [ "$lb_current_os" != "macOS" ] ; then
+					lbg_setgui_res=4
+					continue
+				fi
+				;;
 			cscript)
+				# test OS
+				if [ "$lb_current_os" != "Windows" ] ; then
+					lbg_setgui_res=4
+					continue
+				fi
+
 				# test VB script
 				if ! [ -f "$lbg_vbscript" ] ; then
 					lbg_setgui_res=4
@@ -240,7 +257,8 @@ EOF
 			;;
 
 		cscript)
-			lbg_dinf_cmd=(cscript "$lbg_vbscript" lbg_display_info "$*" "$lbg_dinf_title")
+			lbg_dinf_cmd=("${lbg_cscript[@]}")
+			lbg_dinf_cmd+=(lbg_display_info "$*" "$lbg_dinf_title")
 			;;
 
 		dialog)
@@ -331,7 +349,8 @@ EOF
 			;;
 
 		cscript)
-			lbg_dwn_cmd=(cscript "$lbg_vbscript" lbg_display_warning "$*" "$lbg_dwn_title")
+			lbg_dwn_cmd=("${lbg_cscript[@]}")
+			lbg_dwn_cmd+=(lbg_display_warning "$*" "$lbg_dwn_title")
 			;;
 
 		dialog)
@@ -411,7 +430,8 @@ EOF
 			;;
 
 		cscript)
-			lbg_derr_cmd=(cscript "$lbg_vbscript" lbg_display_error "$*" "$lbg_derr_title")
+			lbg_derr_cmd=("${lbg_cscript[@]}")
+			lbg_derr_cmd+=(lbg_display_error "$*" "$lbg_derr_title")
 			;;
 
 		dialog)
@@ -549,6 +569,7 @@ EOF
 
 # Prompt user to confirm an action
 # Usage: lbg_yesno [OPTIONS] TEXT
+# SOME OPTIONS ARE NOT AVAILABLE ON WINDOWS
 lbg_yesno() {
 
 	# default options
@@ -637,6 +658,14 @@ end if
 EOF)
 			# return choice
 			return $lbg_yn_res
+			;;
+
+		cscript)
+			lbg_yn_cmd=("${lbg_cscript[@]}")
+			lbg_yn_cmd+=(lbg_yesno "$*" "$lbg_yn_title")
+			if $lbg_yn_defaultyes ; then
+				lbg_yn_cmd+=(true)
+			fi
 			;;
 
 		dialog)
@@ -1501,9 +1530,6 @@ lbg_display_debug() {
 ####################
 #  INITIALIZATION  #
 ####################
-
-# define path of the VB script for Windows support
-lbg_vbscript="$lb_directory/inc/libbash_gui.vbs"
 
 # set the default GUI tool
 lbg_set_gui

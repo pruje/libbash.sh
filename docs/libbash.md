@@ -39,7 +39,7 @@ You can use the following variables that are initialized when you include libbas
 
 ## Functions
 All functions are named with the `lb_` prefix.
-Functions with a `*` are not fully supported on Windows yet (may change in the future).
+Functions with a `*` are not fully supported on every OS yet (may change in the future).
 
 * Bash utilities
 	* [lb_command_exists](#lb_command_exists)

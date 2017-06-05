@@ -57,7 +57,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_display_debug](#lbg_display_debug)
 	* [lbg_notify](#lbg_notify)*
 * User interaction
-	* [lbg_yesno](#lbg_yesno)*
+	* [lbg_yesno](#lbg_yesno)
 	* [lbg_choose_option](#lbg_choose_option)*
 	* [lbg_input_text](#lbg_input_text)*
 	* [lbg_input_password](#lbg_input_password)*
@@ -295,8 +295,8 @@ lbg_yesno [OPTIONS] TEXT
 #### Options
 ```
 -y, --yes         Set Yes as default button (not available on kdialog and zenity)
---yes-label TEXT  Change Yes label (not available on zenity)
---no-label TEXT   Change No label (not available on zenity)
+--yes-label TEXT  Change Yes label (not available on zenity and Windows)
+--no-label TEXT   Change No label (not available on zenity and Windows)
 -t, --title TEXT  Set a title to the dialog
 ```
 
