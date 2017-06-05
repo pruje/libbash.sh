@@ -1640,11 +1640,17 @@ lb_is_writable() {
 lb_current_os() {
 
 	# get uname result
-	if [ "$(uname)" == "Darwin" ] ; then
-		echo "macOS"
-	else
-		echo "Linux"
-	fi
+	case $(uname) in
+		Darwin)
+			echo macOS
+			;;
+		CYGWIN*)
+			echo Windows
+			;;
+		*)
+			echo Linux
+			;;
+	esac
 }
 
 
