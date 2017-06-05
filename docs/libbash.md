@@ -837,6 +837,7 @@ Available results:
     - Linux: `btrfs`
 - NTFS:
     - Linux: `fuseblk`
+    - Windows: `ntfs`
 
 #### Exit codes
 - 0: OK
@@ -1047,14 +1048,21 @@ lb_current_os
 Available results:
 - Linux
 - macOS
+- Windows
 
 #### Example
 ```bash
-if [ "$(lb_current_os)" == "macOS" ] ; then
-    echo "You are on a macOS system."
-else
-    echo "You are on a Linux system."
-fi
+case $(lb_current_os) in
+    macOS)
+        echo "You are on a macOS system."
+        ;;
+    Windows)
+        echo "It seems you are on cygwin on Windows!"
+        ;;
+    *)
+        echo "You are on a Linux system."
+        ;;
+esac
 ```
 
 ---------------------------------------------------------------

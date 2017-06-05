@@ -21,7 +21,7 @@ libbash.sh comes also with a GUI part to:
 
 See documentation for more info.
 
-libbash.sh is compatible with Linux and macOS systems.
+libbash.sh is compatible with Linux and macOS systems and works partially on Windows with [cygwin](https://www.cygwin.com).
 
 ## Usage
 Add `libbash.sh` to your script:
