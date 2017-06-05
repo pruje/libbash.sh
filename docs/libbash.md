@@ -39,6 +39,7 @@ You can use the following variables that are initialized when you include libbas
 
 ## Functions
 All functions are named with the `lb_` prefix.
+Functions with a `*` are not fully supported on Windows yet (may change in the future).
 
 * Bash utilities
 	* [lb_command_exists](#lb_command_exists)
@@ -74,7 +75,7 @@ All functions are named with the `lb_` prefix.
 	* [lb_df_fstype](#lb_df_fstype)
 	* [lb_df_space_left](#lb_df_space_left)
 	* [lb_df_mountpoint](#lb_df_mountpoint)
-	* [lb_df_uuid](#lb_df_uuid)
+	* [lb_df_uuid](#lb_df_uuid)*
 * Files and directories
 	* [lb_homepath](#lb_homepath)
 	* [lb_dir_is_empty](#lb_dir_is_empty)
@@ -898,6 +899,8 @@ mountpoint=$(lb_df_mountpoint /)
 <a name="lb_df_uuid"></a>
 ### lb_df_uuid
 Get the disk UUID for a given path.
+
+**WARNING**: This function is not supported yet on Windows.
 
 #### Usage
 ```bash

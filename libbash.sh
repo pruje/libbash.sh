@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.0.0 (2017-05-17)                          #
+#  Version 1.1.0 (2017-06-05)                          #
 #                                                      #
 ########################################################
 
@@ -17,7 +17,7 @@
 ####################
 
 # libbash main variables
-lb_version="1.0.0"
+lb_version="1.1.0-beta.1"
 lb_path=$BASH_SOURCE
 lb_directory=$(dirname "$lb_path")
 
@@ -1390,6 +1390,7 @@ lb_df_mountpoint() {
 
 # Get disk UUID
 # Usage: lb_df_uuid PATH
+# DOES NOT WORK ON WINDOWS
 lb_df_uuid() {
 
 	# if path does not exists, error

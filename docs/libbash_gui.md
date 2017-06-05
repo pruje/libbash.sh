@@ -55,15 +55,15 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_display_error](#lbg_display_error)
 	* [lbg_display_critical](#lbg_display_critical)
 	* [lbg_display_debug](#lbg_display_debug)
-	* [lbg_notify](#lbg_notify)
+	* [lbg_notify](#lbg_notify)*
 * User interaction
-	* [lbg_yesno](#lbg_yesno)
-	* [lbg_choose_option](#lbg_choose_option)
-	* [lbg_input_text](#lbg_input_text)
-	* [lbg_input_password](#lbg_input_password)
+	* [lbg_yesno](#lbg_yesno)*
+	* [lbg_choose_option](#lbg_choose_option)*
+	* [lbg_input_text](#lbg_input_text)*
+	* [lbg_input_password](#lbg_input_password)*
 * Files and directories
-	* [lbg_choose_directory](#lbg_choose_directory)
-	* [lbg_choose_file](#lbg_choose_file)
+	* [lbg_choose_directory](#lbg_choose_directory)*
+	* [lbg_choose_file](#lbg_choose_file)*
 
 ---------------------------------------------------------------
 ## GUI tools
@@ -248,6 +248,8 @@ lbg_display_debug "This is a debug message."
 ### lbg_notify
 Displays a notification popup.
 
+**WARNING**: This function is not supported yet on Windows.
+
 #### Usage
 ```bash
 lbg_notify [OPTIONS] TEXT
@@ -317,6 +319,8 @@ Displays a dialog to ask a to user to choose an option.
 
 Chosen ID is set into the `$lbg_choose_option` variable.
 
+**WARNING**: This function is not supported yet on Windows.
+
 #### Usage
 ```bash
 lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
@@ -349,6 +353,8 @@ Displays a dialog to ask user to input a text.
 
 Input text is stored into the `$lbg_input_text` variable.
 
+**WARNING**: This function is not supported yet on Windows.
+
 #### Usage
 ```bash
 lbg_input_text [OPTIONS] TEXT
@@ -376,6 +382,8 @@ fi
 <a name="lbg_input_password"></a>
 ### lbg_input_password
 Displays a dialog to ask user to input a password.
+
+**WARNING**: This function is not supported yet on Windows.
 
 #### Usage
 ```bash
@@ -415,6 +423,8 @@ Displays a dialog to choose an existing directory.
 
 Path of the chosen directory is set into the `$lbg_choose_directory` variable.
 
+**WARNING**: This function is not supported yet on Windows.
+
 #### Usage
 ```bash
 lbg_choose_directory [OPTIONS] [PATH]
@@ -447,7 +457,9 @@ Displays a dialog to choose an existing file.
 
 Path of the chosen file is set into the `$lbg_choose_file` variable.
 
-**Note:** File filters are not yet supported on macOS
+**WARNING**: This function is not supported yet on Windows.
+
+**WARNING 2**: File filters are not supported yet on macOS.
 
 #### Usage
 ```bash

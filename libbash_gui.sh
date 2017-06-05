@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.0.0 (2017-05-17)                          #
+#  Version 1.1.0 (2017-06-05)                          #
 #                                                      #
 ########################################################
 
@@ -29,7 +29,7 @@ fi
 lbg_path=$BASH_SOURCE
 
 # set supported GUIs
-lbg_supported_gui=(kdialog zenity osascript dialog console)
+lbg_supported_gui=(kdialog zenity osascript cscript dialog console)
 
 # GUI tool
 lbg_gui=""
@@ -142,21 +142,31 @@ lbg_set_gui() {
 		fi
 
 		# dialog command
-		if [ "$lbg_sgt" == "dialog" ] ; then
-			# get console size
-			if ! lbg_get_console_size ; then
-				lbg_setgui_res=4
-				continue
-			fi
-		else
-			# test if X server started (not for macOS)
-			if [ "$lb_current_os" != "macOS" ] ; then
-				if [ -z "$DISPLAY" ] ; then
+		case $lbg_sgt in
+			dialog)
+				# get console size
+				if ! lbg_get_console_size ; then
 					lbg_setgui_res=4
 					continue
 				fi
-			fi
-		fi
+				;;
+			cscript)
+				# test VB script
+				if ! [ -f "$lbg_vbscript" ] ; then
+					lbg_setgui_res=4
+					continue
+				fi
+				;;
+			*)
+				# test if X server started (only for Linux)
+				if [ "$lb_current_os" == "Linux" ] ; then
+					if [ -z "$DISPLAY" ] ; then
+						lbg_setgui_res=4
+						continue
+					fi
+				fi
+				;;
+		esac
 
 		# all tests passed: tool can be set
 		lbg_setgui_res=0
@@ -227,6 +237,10 @@ EOF
 
 			# quit
 			return 0
+			;;
+
+		cscript)
+			lbg_dinf_cmd=(cscript "$lbg_vbscript" lbg_display_info "$*" "$lbg_dinf_title")
 			;;
 
 		dialog)
@@ -316,6 +330,10 @@ EOF
 			return 0
 			;;
 
+		cscript)
+			lbg_dwn_cmd=(cscript "$lbg_vbscript" lbg_display_warning "$*" "$lbg_dwn_title")
+			;;
+
 		dialog)
 			# same command as lbg_display_info, but we add warning prefix
 			lbg_dwn_cmd=(lbg_display_info "$lb_default_warning_label: $*")
@@ -390,6 +408,10 @@ EOF
 
 			# quit
 			return 0
+			;;
+
+		cscript)
+			lbg_derr_cmd=(cscript "$lbg_vbscript" lbg_display_error "$*" "$lbg_derr_title")
 			;;
 
 		dialog)
@@ -525,7 +547,7 @@ EOF
 #  USER INTERACTION  #
 ######################
 
-# Prompt user to confirm an action in graphical mode
+# Prompt user to confirm an action
 # Usage: lbg_yesno [OPTIONS] TEXT
 lbg_yesno() {
 
@@ -1479,6 +1501,9 @@ lbg_display_debug() {
 ####################
 #  INITIALIZATION  #
 ####################
+
+# define path of the VB script for Windows support
+lbg_vbscript="$lb_directory/inc/libbash_gui.vbs"
 
 # set the default GUI tool
 lbg_set_gui
