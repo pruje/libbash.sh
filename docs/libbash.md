@@ -996,6 +996,7 @@ Get the real path of a file or directory.
 - If the given path, it will return its absolute path.
 - If the given path is a symbolic link, it will return the absolute path of the link target.
 - If the given path has a parent directory that is a symbolic link, it will return the real absolute path.
+- If a Windows path is given, it will be converted to Cygwin path
 
 #### Usage
 ```bash

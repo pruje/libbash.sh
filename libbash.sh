@@ -1596,7 +1596,7 @@ lb_realpath() {
 				lb_realpath_windrive=$(echo "$1" | grep -o "^[a-zA-Z]:" | tr '[:upper:]' '[:lower:]')
 
 				# replace path to cygdrive
-				lb_realpath_path=$(echo "$1" | sed "s/^[a-zA-Z]:/\/cygdrive\/${lb_realpath_windrive:0:1}/; s/\\/\//g")
+				lb_realpath_path=$(echo "$1" | sed "s/^[a-zA-Z]:/\/cygdrive\/${lb_realpath_windrive:0:1}/; s/\\\/\//g")
 			fi
 		fi
 
