@@ -1274,6 +1274,14 @@ EOF)
 		return 2
 	fi
 
+	# return windows paths
+	if [ "$lb_current_os" == "Windows" ] ; then
+		lbg_choose_directory=$(lb_realpath "$lbg_choose_directory")
+		if [ $? != 0 ] ; then
+			return 3
+		fi
+	fi
+
 	# if not a directory, reset variable and return error
 	if ! [ -d "$lbg_choose_directory" ] ; then
 		lbg_choose_directory=""
@@ -1449,6 +1457,14 @@ EOF)
 	# if empty, cancelled
 	if [ -z "$lbg_choose_file" ] ; then
 		return 2
+	fi
+
+	# return windows paths
+	if [ "$lb_current_os" == "Windows" ] ; then
+		lbg_choose_file=$(lb_realpath "$lbg_choose_file")
+		if [ $? != 0 ] ; then
+			return 3
+		fi
 	fi
 
 	# if save mode,

@@ -248,7 +248,7 @@ lbg_display_debug "This is a debug message."
 ### lbg_notify
 Displays a notification popup.
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported yet on Windows (works in console mode).
 
 #### Usage
 ```bash
@@ -319,7 +319,7 @@ Displays a dialog to ask a to user to choose an option.
 
 Chosen ID is set into the `$lbg_choose_option` variable.
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported yet on Windows (works in console mode).
 
 #### Usage
 ```bash
@@ -353,7 +353,7 @@ Displays a dialog to ask user to input a text.
 
 Input text is stored into the `$lbg_input_text` variable.
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported yet on Windows (works in console mode).
 
 #### Usage
 ```bash
@@ -383,7 +383,7 @@ fi
 ### lbg_input_password
 Displays a dialog to ask user to input a password.
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported yet on Windows (works in console mode).
 
 #### Usage
 ```bash
@@ -423,7 +423,7 @@ Displays a dialog to choose an existing directory.
 
 Path of the chosen directory is set into the `$lbg_choose_directory` variable.
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported yet on Windows (works in console mode).
 
 #### Usage
 ```bash
@@ -457,7 +457,7 @@ Displays a dialog to choose an existing file.
 
 Path of the chosen file is set into the `$lbg_choose_file` variable.
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported yet on Windows (works in console mode).
 
 **WARNING 2**: File filters are not supported yet on macOS.
 
