@@ -1586,7 +1586,22 @@ lb_realpath() {
 		# macOS which does not support readlink -f option
 		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1"
 	else
-		readlink -f "$1"
+
+		lb_realpath_path=$1
+
+		# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
+		if [ "$lb_current_os" == "Windows" ] ; then
+			if $(echo "$1" | grep -q "^[a-zA-Z]:") ; then
+				# get drive letter
+				lb_realpath_windrive=$(echo "$1" | grep -o "^[a-zA-Z]:" | tr '[:upper:]' '[:lower:]')
+
+				# replace path to cygdrive
+				lb_realpath_path=$(echo "$1" | sed "s/^[a-zA-Z]:/\/cygdrive\/${lb_realpath_windrive:0:1}/; s/\\/\//g")
+			fi
+		fi
+
+		# find real path
+		readlink -f "$lb_realpath_path"
 	fi
 
 	# error
