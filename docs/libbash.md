@@ -84,6 +84,8 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_is_writable](#lb_is_writable)
 * System utilities
 	* [lb_current_os](#lb_current_os)
+	* [lb_user_exists](#lb_user_exists)
+	* [lb_in_group](#lb_in_group)
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)
 * User interaction
@@ -1066,6 +1068,53 @@ case $(lb_current_os) in
         echo "You are on a Linux system."
         ;;
 esac
+```
+
+---------------------------------------------------------------
+<a name="lb_user_exists"></a>
+### lb_user_exists
+Test if an user exists.
+
+#### Usage
+```bash
+lb_user_exists USER
+```
+
+#### Exit codes
+- 0: User exists
+- 1: Usage error
+- 2: User does not exists
+
+#### Example
+```bash
+if lb_user_exists darthvader ; then
+    echo "Darth Vader rules your computer!"
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_in_group"></a>
+### lb_in_group
+Test if an user is member of a group.
+
+#### Usage
+```bash
+lb_in_group GROUP [USER]
+```
+
+Note: if USER is not specified, current user is used
+
+#### Exit codes
+- 0: User is member of the group
+- 1: Usage error
+- 2: User is NOT member of the group
+- 3: User does not exists
+
+#### Example
+```bash
+if lb_in_group empire ; then
+    echo "You are part of the empire."
+fi
 ```
 
 ---------------------------------------------------------------

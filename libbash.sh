@@ -1655,6 +1655,51 @@ lb_current_os() {
 }
 
 
+# Test if a user exists
+# Usage: lb_user_exists USER
+lb_user_exists() {
+
+	# usage errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# check groups of the user
+	groups $1 &> /dev/null
+	if [ $? != 0 ] ; then
+		return 2
+	fi
+}
+
+
+# Test if an user is in a group
+# Usage: lb_in_group GROUP [USER]
+lb_in_group() {
+
+	# usage errors
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	# get current user if not defined
+	local lb_ingroup_user=$2
+
+	# get current user
+	if [ -z "$lb_ingroup_user" ] ; then
+		lb_ingroup_user=$(whoami)
+	fi
+
+	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
+	local lb_ingroup_groups=($(groups $lb_ingroup_user | cut -d: -f2))
+	if [ $? != 0 ] ; then
+		return 3
+	fi
+
+	# find if user is in group
+	lb_array_contains "$1" "${lb_ingroup_groups[@]}"
+}
+
+
 # Generate a random password
 # Usage: lb_generate_password [SIZE]
 lb_generate_password() {
