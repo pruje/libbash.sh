@@ -175,8 +175,8 @@ lbg_set_gui() {
 				fi
 				;;
 			*)
-				# test if X server started (only for Linux)
-				if [ "$lb_current_os" == "Linux" ] ; then
+				# test if X server started (only for Linux and Windows)
+				if [ "$lb_current_os" != "macOS" ] ; then
 					if [ -z "$DISPLAY" ] ; then
 						lbg_setgui_res=4
 						continue
@@ -1461,7 +1461,13 @@ EOF)
 
 	# return windows paths
 	if [ "$lb_current_os" == "Windows" ] ; then
-		lbg_choose_file=$(lb_realpath "$lbg_choose_file")
+
+		# beware the save mode where file does not exists!
+		if $lbg_choosefile_save ; then
+			lbg_choose_file="$(lb_realpath "$(dirname "$lbg_choose_file")")/$(basename "$lbg_choose_file")"
+		else
+			lbg_choose_file=$(lb_realpath "$lbg_choose_file")
+		fi
 		if [ $? != 0 ] ; then
 			return 3
 		fi
