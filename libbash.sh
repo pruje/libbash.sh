@@ -1746,8 +1746,8 @@ lb_in_group() {
 	fi
 
 	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
-	local lb_ingroup_groups=($(groups $lb_ingroup_user | cut -d: -f2))
-	if [ $? != 0 ] ; then
+	local lb_ingroup_groups=($(groups $lb_ingroup_user 2> /dev/null | cut -d: -f2))
+	if [ ${#lb_ingroup_groups[@]} == 0 ] ; then
 		return 3
 	fi
 
