@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 (2017-06-07)
+- Add support for Windows systems powered by [Cygwin](https://www.cygwin.com)!
+- New variable and options to run a command when `lb_exit()` is called (see documentation)
+- New functions: `lb_user_exists()` and `lb_in_group()`
+
 ## 1.0.0 (2017-05-17)
 - New function: `lb_is_email()` to test if a string is a valid email
 - New display level support with functions: `lb_get_display_level()` and `lb_set_display_level()`

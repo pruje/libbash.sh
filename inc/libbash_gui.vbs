@@ -1,13 +1,13 @@
 ' ########################################################
 ' #                                                      #
 ' #  libbash.sh GUI for Windows                          #
-' #  Functions to extend bash scripts to GUI tools       #
+' #  Functions for display GUI tools using VBScript      #
 ' #                                                      #
 ' #  MIT License                                         #
 ' #  Copyright (c) 2017 Jean Prunneaux                   #
 ' #  Website: https://github.com/pruje/libbash.sh        #
 ' #                                                      #
-' #  Version 1.1.0 (2017-06-05)                          #
+' #  Version 1.1.0 (2017-06-07)                          #
 ' #                                                      #
 ' ########################################################
 
