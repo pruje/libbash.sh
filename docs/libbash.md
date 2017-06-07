@@ -36,6 +36,7 @@ You can use the following variables that are initialized when you include libbas
 - `$lb_current_os`: your current Operating System (result of `lb_current_os` function)
 - `$lb_current_user`: your user name (same as `whoami`)
 - `$lb_exitcode`: script exit code (0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
+- `$lb_exit_cmd`: array that contains a command to execute when `lb_exit()` function is called (empty by default)
 
 ## Functions
 All functions are named with the `lb_` prefix.
@@ -181,22 +182,28 @@ fi
 ---------------------------------------------------------------
 <a name="lb_exit"></a>
 ### lb_exit
-Exit script with a specified exit code.
+Run a command (optional) and exit script with a specified exit code.
 
 #### Usage
 ```bash
-lb_exit [EXIT_CODE]
+lb_exit [OPTIONS] [EXIT_CODE]
 ```
 
 #### Options
 ```
+-f, --forward-exitcode  Forward exitcode from the exit command
+                        (defined in the $lb_exit_cmd variable)
+-q, --quiet             Quiet mode (do not print exit command output)
+
 EXIT_CODE  Specify an exit code (if not set, $lb_exitcode will be used)
 ```
 
 #### Example
 ```bash
-# exit script with code 1
-lb_exitcode=1
+# print a message and exit script with code 42
+lb_exit_cmd=(echo "So long and thanks for all the fish!")
+lb_exitcode=42
+
 lb_exit
 ```
 
@@ -821,26 +828,26 @@ lb_df_fstype PATH
 Note: PATH may be any folder/file (not only mount points) or a device path (e.g. /dev/sda1)
 
 #### Result
-Available results:
+Results for each filesystem type:
 - FAT16:
-    - Linux: `vfat`
+    - Linux/Windows: `vfat`
     - macOS: `msdos`
 - FAT32:
-    - Linux: `vfat`
+    - Linux/Windows: `vfat`
     - macOS: `msdos`
 - exFAT:
     - Linux: `fuseblk`
-    - macOS: `msdos`
+    - macOS/Windows: `exfat`
 - HFS+:
     - Linux: `hfsplus`
     - macOS: `hfs`
+- NTFS:
+    - Linux: `fuseblk`
+    - macOS/Windows: `ntfs`
 - ext2/ext3/ext4:
     - Linux: `ext2`/`ext3`/`ext4`
 - btrfs:
     - Linux: `btrfs`
-- NTFS:
-    - Linux: `fuseblk`
-    - Windows: `ntfs`
 
 #### Exit codes
 - 0: OK
