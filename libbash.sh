@@ -55,6 +55,9 @@ lb_display_level=""
 # print format
 lb_format_print=true
 
+# command to execute when exit
+lb_exit_cmd=()
+
 
 ####################
 #  BASH UTILITIES  #
@@ -147,17 +150,55 @@ lb_test_arguments() {
 
 
 # Exit script with defined exit code
-# Usage: lb_exit [EXIT_CODE]
+# Usage: lb_exit [OPTIONS] [EXIT_CODE]
 lb_exit() {
+
+	local lb_exit_fwdcode=false
+	local lb_exit_quiet=false
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-f|--forward-exitcode)
+				lb_exit_fwdcode=true
+				;;
+			-q|--quiet)
+				lb_exit_quiet=true
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
 
 	# if exit code is set,
 	if [ -n "$1" ] ; then
-		# if it is an integer, exit with it
+		# if it is an integer, set new exitcode
 		if lb_is_integer $1 ; then
-			exit $1
+			lb_exitcode=$1
 		else
-			# if not an integer, exit with 1
-			exit 1
+			# if not an integer, exit with 255
+			exit 255
+		fi
+	fi
+
+	# if an exit command is defined,
+	if [ ${#lb_exit_cmd[@]} -gt 0 ] ; then
+
+		# run command
+		if $lb_exit_quiet ; then
+			"${lb_exit_cmd[@]}" &> /dev/null
+		else
+			"${lb_exit_cmd[@]}"
+		fi
+
+		# get command result
+		local lb_exit_cmdres=$?
+
+		# forward exit code option
+		if $lb_exit_fwdcode ; then
+			exit $lb_exit_cmdres
 		fi
 	fi
 
