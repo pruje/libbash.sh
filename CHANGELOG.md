@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1 (2017-06-13)
+- Major bugfix in arguments loading that caused bugs for `getopts` command in user scripts
+
 ## 1.1.0 (2017-06-07)
 - Add support for Windows systems powered by [Cygwin](https://www.cygwin.com)!
 - New variable and options to run a command when `lb_exit()` is called (see documentation)
