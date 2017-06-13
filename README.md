@@ -52,6 +52,10 @@ Supported languages:
 - [libbash.sh](docs/libbash.md)
 - [libbash GUI](docs/libbash_gui.md)
 
+## Examples
+- A simple demo of libbash.sh: [examples](examples)
+- A complete project using libbash.sh: [time2backup](https://github.com/time2backup/time2backup)
+
 ## License
 libbash.sh is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for the full license text.
 

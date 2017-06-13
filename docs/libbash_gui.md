@@ -10,6 +10,7 @@ libbash.sh GUI currently supports the following GUI tools:
 - kdialog
 - zenity
 - osascript (Apple script for macOS)
+- cscript (VBscript for Windows)
 - dialog
 
 ## Usage
