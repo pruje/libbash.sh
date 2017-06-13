@@ -2581,6 +2581,9 @@ while [ -n "$1" ] ; do
 				shift
 			fi
 			;;
+		*)
+			break
+			;;
    esac
 
 	# get next option
