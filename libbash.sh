@@ -1590,7 +1590,6 @@ lb_abspath() {
 	# get directory and file names
 	local lb_abspath_dir=$(dirname "$*")
 	local lb_abspath_file=$(basename "$*")
-	local lb_abspath_path=""
 
 	# root directory is always ok
 	if [ "$lb_abspath_dir" == "/" ] ; then
@@ -1613,7 +1612,13 @@ lb_abspath() {
 
 		# case of the current directory (do not put /path/to/./)
 		if [ "$lb_abspath_file" != "." ] ; then
-			lb_abspath_path+="/$lb_abspath_file"
+
+			# do not put //file if parent directory is root
+			if [ "$lb_abspath_dir" != "/" ] ; then
+				lb_abspath_path+="/"
+			fi
+
+			lb_abspath_path+="$lb_abspath_file"
 		fi
 
 		echo "$lb_abspath_path"
