@@ -827,25 +827,20 @@ lb_df_fstype PATH
 ```
 Note: PATH may be any folder/file (not only mount points) or a device path (e.g. /dev/sda1)
 
-#### Result
+#### Results
 Results for each filesystem type:
-- FAT16:
+- FAT16/FAT32:
     - Linux/Windows: `vfat`
     - macOS: `msdos`
-- FAT32:
-    - Linux/Windows: `vfat`
-    - macOS: `msdos`
-- exFAT:
-    - Linux: `fuseblk`
-    - macOS/Windows: `exfat`
+- exFAT: `exfat`
+- NTFS: `ntfs`
 - HFS+:
     - Linux: `hfsplus`
     - macOS: `hfs`
-- NTFS:
-    - Linux: `fuseblk`
-    - macOS/Windows: `ntfs`
+    - Windows: **not supported**
 - ext2/ext3/ext4:
     - Linux: `ext2`/`ext3`/`ext4`
+    - macOS/Windows: **not supported**
 - btrfs:
     - Linux: `btrfs`
 
@@ -1057,7 +1052,7 @@ Detect current operating system family.
 lb_current_os
 ```
 
-#### Result
+#### Results
 Available results:
 - Linux
 - macOS
