@@ -1340,21 +1340,35 @@ lb_df_fstype() {
 		return 2
 	fi
 
-	# get filesystem type
-	if [ "$lb_current_os" == "macOS" ] ; then
-		# get mountpoint
-		lb_dffstype_mountpoint=$(lb_df_mountpoint "$lb_dffstype_path")
-		if [ $? != 0 ] ; then
-			return 3
-		fi
+	case $lb_current_os in
+		Linux)
+			# get device
+			lb_dffstype_device=$(df --output=source "$lb_dffstype_path" 2> /dev/null | tail -n 1)
+			if [ -z "$lb_dffstype_device" ] ; then
+				return 3
+			fi
 
-		# get filesystem type
-		diskutil info "$lb_dffstype_mountpoint" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
-	else
-		df --output=fstype "$lb_dffstype_path" 2> /dev/null | tail -n 1
-	fi
+			# get "real" fs type
+			lsblk --output=FSTYPE "$lb_dffstype_device" 2> /dev/null | tail -n 1
+			;;
 
-	# get df errors
+		macOS)
+			# get mountpoint
+			lb_dffstype_mountpoint=$(lb_df_mountpoint "$lb_dffstype_path")
+			if [ $? != 0 ] ; then
+				return 3
+			fi
+
+			# get filesystem type
+			diskutil info "$lb_dffstype_mountpoint" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
+			;;
+
+		*) # Windows and other
+			df --output=fstype "$lb_dffstype_path" 2> /dev/null | tail -n 1
+			;;
+	esac
+
+	# get other errors
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
