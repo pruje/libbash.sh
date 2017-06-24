@@ -1332,18 +1332,15 @@ lb_df_fstype() {
 		return 1
 	fi
 
-	# get path
-	local lb_dffstype_path=$*
-
 	# if path does not exists, error
-	if ! [ -e "$lb_dffstype_path" ] ; then
+	if ! [ -e "$*" ] ; then
 		return 2
 	fi
 
 	case $lb_current_os in
 		Linux)
 			# get device
-			lb_dffstype_device=$(df --output=source "$lb_dffstype_path" 2> /dev/null | tail -n 1)
+			lb_dffstype_device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
 			if [ -z "$lb_dffstype_device" ] ; then
 				return 3
 			fi
@@ -1354,7 +1351,7 @@ lb_df_fstype() {
 
 		macOS)
 			# get mountpoint
-			lb_dffstype_mountpoint=$(lb_df_mountpoint "$lb_dffstype_path")
+			lb_dffstype_mountpoint=$(lb_df_mountpoint "$*")
 			if [ $? != 0 ] ; then
 				return 3
 			fi
@@ -1364,7 +1361,7 @@ lb_df_fstype() {
 			;;
 
 		*) # Windows and other
-			df --output=fstype "$lb_dffstype_path" 2> /dev/null | tail -n 1
+			df --output=fstype "$*" 2> /dev/null | tail -n 1
 			;;
 	esac
 
@@ -1386,19 +1383,16 @@ lb_df_space_left() {
 		return 1
 	fi
 
-	# get path
-	local lb_dfspaceleft_path=$*
-
 	# if path does not exists, error
-	if ! [ -e "$lb_dfspaceleft_path" ] ; then
+	if ! [ -e "$*" ] ; then
 		return 2
 	fi
 
 	# get space available
 	if [ "$lb_current_os" == "macOS" ] ; then
-		df -b "$lb_dfspaceleft_path" 2> /dev/null | tail -n 1 | awk '{print $4}'
+		df -b "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
 	else
-		df -B1 --output=avail "$lb_dfspaceleft_path" 2> /dev/null | tail -n 1
+		df -B1 --output=avail "$*" 2> /dev/null | tail -n 1
 	fi
 
 	# get df errors
@@ -1419,19 +1413,16 @@ lb_df_mountpoint() {
 		return 1
 	fi
 
-	# get path
-	local lb_dfmountpoint_path=$*
-
 	# if path does not exists, error
-	if ! [ -e "$lb_dfmountpoint_path" ] ; then
+	if ! [ -e "$*" ] ; then
 		return 2
 	fi
 
 	# get mountpoint
 	if [ "$lb_current_os" == "macOS" ] ; then
-		df "$lb_dfmountpoint_path" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
+		df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
 	else
-		df --output=target "$lb_dfmountpoint_path" 2> /dev/null | tail -n 1
+		df --output=target "$*" 2> /dev/null | tail -n 1
 	fi
 
 	# get df errors
@@ -1445,7 +1436,7 @@ lb_df_mountpoint() {
 
 # Get disk UUID
 # Usage: lb_df_uuid PATH
-# DOES NOT WORK ON WINDOWS
+# NOT SUPPORTED ON WINDOWS
 lb_df_uuid() {
 
 	# if path does not exists, error
@@ -1453,69 +1444,45 @@ lb_df_uuid() {
 		return 1
 	fi
 
-	# get path
-	local lb_dfuuid_path=$*
-
 	# if path does not exists, error
-	if ! [ -e "$lb_dfuuid_path" ] ; then
+	if ! [ -e "$*" ] ; then
 		return 2
 	fi
 
-	# macOS systems
-	if [ "$lb_current_os" == "macOS" ] ; then
-		# get mountpoint
-		lb_dfuuid_mountpoint=$(lb_df_mountpoint "$lb_dfuuid_path")
-		if [ $? != 0 ] ; then
-			return 3
-		fi
-
-		# get filesystem type
-		diskutil info "$lb_dfuuid_mountpoint" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
-
-		# get diskutil errors
-		if [ ${PIPESTATUS[0]} != 0 ] ; then
-			return 3
-		fi
-
-		# exit ok
-		return 0
-	else
-		# Linux systems
-
-		# UUID directory
-		lb_dfuuid_list="/dev/disk/by-uuid"
-
-		# check UUID directory
-		if [ -d "$lb_dfuuid_list" ] ; then
-			# check if there are UUIDs
-			ls "$lb_dfuuid_list"/* &> /dev/null
+	case $lb_current_os in
+		macOS)
+			# get mountpoint
+			lb_dfuuid_mountpoint=$(lb_df_mountpoint "$*")
 			if [ $? != 0 ] ; then
-				return 4
+				return 3
 			fi
-		else
-			# if UUID folder not found, cancel
+
+			# get filesystem type
+			diskutil info "$lb_dfuuid_mountpoint" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
+			;;
+
+		Linux)
+			# get device
+			lb_dfuuid_dev=$(df --output=source "$*" 2> /dev/null | tail -n 1)
+			if [ -z "$lb_dfuuid_dev" ] ; then
+				return 3
+			fi
+
+			# get disk UUID
+			lsblk --output=UUID "$lb_dfuuid_dev" 2> /dev/null | tail -n 1
+			;;
+
+		*) # other OS not supported
 			return 4
-		fi
+			;;
+	esac
 
-		# get device
-		lb_dfuuid_dev=$(df --output=source "$lb_dfuuid_path" 2> /dev/null | tail -n 1)
-		if [ -z "$lb_dfuuid_dev" ] ; then
-			return 3
-		fi
-
-		# search in UUID list
-		for lb_dfuuid_link in "$lb_dfuuid_list"/* ; do
-			# search if file is linked to the same device
-			if [ "$(lb_realpath "$lb_dfuuid_link")" == "$lb_dfuuid_dev" ] ; then
-				# if found, return UUID and exit
-				echo "$(basename "$lb_dfuuid_link")"
-				return 0
-			fi
-		done
+	# get unknown errors
+	if [ ${PIPESTATUS[0]} != 0 ] ; then
+		return 3
 	fi
 
-	# UUID not found
-	return 4
+	return 0
 }
 
 

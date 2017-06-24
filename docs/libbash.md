@@ -890,9 +890,9 @@ Note: PATH may be any folder/file (not only mount points) or a device path (e.g.
 
 #### Exit codes
 - 0: OK
-- 1: usage error
+- 1: Usage error
 - 2: Given PATH does not exists
-- 3: unknown error
+- 3: Unknown error
 
 #### Example
 ```bash
@@ -917,7 +917,7 @@ Note: PATH may be any folder/file (not only mount points) or a device path (e.g.
 - 1: Usage error
 - 2: Given PATH does not exists
 - 3: Unknown error
-- 4: Disk UUID not found
+- 4: Not supported
 
 #### Example
 ```bash
