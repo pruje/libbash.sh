@@ -867,6 +867,32 @@ EOF)
 			done
 			;;
 
+		cscript)
+			# add options to the label, with a line return between each option
+			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
+				lbg_chop_label+="
+   $lbg_chop_i. ${lbg_chop_options[$lbg_chop_i]}"
+			done
+
+			# prepare command (inputbox)
+			lbg_chop_cmd=("${lbg_cscript[@]}")
+			lbg_chop_cmd+=(lbg_input_text "$lbg_chop_label" "$lbg_chop_title")
+			if [ $lbg_chop_default != 0 ] ; then
+				lbg_chop_cmd+=("$lbg_chop_default")
+			fi
+
+			# run VBscript
+			lbg_choose_option=$("${lbg_chop_cmd[@]}")
+
+			# cancelled
+			if [ $? != 0 ] ; then
+				return 2
+			fi
+
+			# specific case: remove \r ending character
+			lbg_choose_option=${lbg_choose_option:0:${#lbg_choose_option}-1}
+			;;
+
 		dialog)
 			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" $(lbg_dialog_size 100 30) 1000)
 
