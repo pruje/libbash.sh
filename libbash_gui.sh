@@ -991,6 +991,26 @@ set answer to the text returned of (display dialog "$*" with title "$lbg_inp_tit
 EOF)
 			;;
 
+		cscript)
+			# prepare command
+			lbg_inp_cmd=("${lbg_cscript[@]}")
+			lbg_inp_cmd+=(lbg_input_text "$*" "$lbg_inp_title")
+			if [ -n "$lbg_inp_default" ] ; then
+				lbg_inp_cmd+=("$lbg_inp_default")
+			fi
+
+			# run VBscript
+			lbg_input_text=$("${lbg_inp_cmd[@]}")
+
+			# cancelled
+			if [ $? != 0 ] ; then
+				return 2
+			fi
+
+			# specific case: remove \r ending character
+			lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
+			;;
+
 		dialog)
 			# run command (complex case)
 			exec 3>&1

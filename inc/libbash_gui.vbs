@@ -33,6 +33,7 @@ Function test_arguments(args, min)
 
 	test_arguments = false
 
+	' verify if there are enough arguments
 	If UBound(args) >= min Then
 		test_arguments = true
 	End If
@@ -47,6 +48,7 @@ End Function
 ' Display an info message
 ' Usage: lbg_display_info TEXT [TITLE]
 Function lbg_display_info(args)
+
 	' catch usage errors
 	If Not test_arguments(args, 1) Then
 		exitcode = 1
@@ -55,12 +57,14 @@ Function lbg_display_info(args)
 
 	' display dialog
 	MsgBox args(0), vbInformation, args(1)
+
 End Function
 
 
 ' Display a warning message
 ' Usage: lbg_display_warning TEXT [TITLE]
 Function lbg_display_warning(args)
+
 	' catch usage errors
 	If Not test_arguments(args, 1) Then
 		exitcode = 1
@@ -69,12 +73,14 @@ Function lbg_display_warning(args)
 
 	' display dialog
 	MsgBox args(0), vbExclamation, args(1)
+
 End Function
 
 
 ' Display an error message
 ' Usage: lbg_display_error TEXT [TITLE]
 Function lbg_display_error(args)
+
 	' catch usage errors
 	If Not test_arguments(args, 1) Then
 		exitcode = 1
@@ -83,6 +89,7 @@ Function lbg_display_error(args)
 
 	' display dialog
 	MsgBox args(0), vbCritical, args(1)
+
 End Function
 
 
@@ -119,6 +126,39 @@ Function lbg_yesno(args)
 	If lbg_yesno_result <> vbYes Then
 		exitcode = 2
 	End If
+
+End Function
+
+
+' Ask user to enter a text
+' Usage: lbg_input_text TEXT [TITLE] [DEFAULT]
+Function lbg_input_text(args)
+
+	' define local variables
+	Dim lbg_input_result, lbg_input_default
+
+	' catch usage errors
+	If Not test_arguments(args, 1) Then
+		exitcode = 1
+		Exit Function
+	End If
+
+	' get default option
+	If UBound(args) >= 3 Then
+		lbg_input_default = args(2)
+	End If
+
+	lbg_input_result = InputBox(args(0), args(1), lbg_input_default)
+
+	' cancelled
+	If IsEmpty(lbg_input_result) Then
+		exitcode = 2
+		Exit Function
+	End If
+
+	' print text
+	WScript.Echo lbg_input_result
+
 End Function
 
 
