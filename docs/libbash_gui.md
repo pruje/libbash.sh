@@ -59,8 +59,8 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_notify](#lbg_notify)*
 * User interaction
 	* [lbg_yesno](#lbg_yesno)
-	* [lbg_choose_option](#lbg_choose_option)*
-	* [lbg_input_text](#lbg_input_text)*
+	* [lbg_choose_option](#lbg_choose_option)
+	* [lbg_input_text](#lbg_input_text)
 	* [lbg_input_password](#lbg_input_password)*
 * Files and directories
 	* [lbg_choose_directory](#lbg_choose_directory)*
@@ -249,7 +249,7 @@ lbg_display_debug "This is a debug message."
 ### lbg_notify
 Displays a notification popup.
 
-**WARNING**: This function is not supported yet on Windows (works in console mode).
+**WARNING**: System notifications does not work on Windows (messages are displayed in console).
 
 #### Usage
 ```bash
@@ -320,8 +320,6 @@ Displays a dialog to ask a to user to choose an option.
 
 Chosen ID is set into the `$lbg_choose_option` variable.
 
-**WARNING**: This function is not supported yet on Windows (works in console mode).
-
 #### Usage
 ```bash
 lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
@@ -354,8 +352,6 @@ Displays a dialog to ask user to input a text.
 
 Input text is stored into the `$lbg_input_text` variable.
 
-**WARNING**: This function is not supported yet on Windows (works in console mode).
-
 #### Usage
 ```bash
 lbg_input_text [OPTIONS] TEXT
@@ -384,7 +380,7 @@ fi
 ### lbg_input_password
 Displays a dialog to ask user to input a password.
 
-**WARNING**: This function is not supported yet on Windows (works in console mode).
+**WARNING**: Password dialog is not displayed on Windows (works in console mode).
 
 #### Usage
 ```bash
