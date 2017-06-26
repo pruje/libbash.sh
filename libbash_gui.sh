@@ -889,7 +889,7 @@ EOF)
 				return 2
 			fi
 
-			# specific case: remove \r ending character
+			# remove \r ending character
 			lbg_choose_option=${lbg_choose_option:0:${#lbg_choose_option}-1}
 			;;
 
@@ -1033,7 +1033,7 @@ EOF)
 				return 2
 			fi
 
-			# specific case: remove \r ending character
+			# remove \r ending character
 			lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
 			;;
 
@@ -1234,7 +1234,6 @@ lbg_choose_directory() {
 
 	# default options
 	local lbg_chdir_title=$lb_current_script_name
-	local lbg_chdir_path=""
 	local lbg_chdir_absolute=false
 
 	# get options
@@ -1272,23 +1271,47 @@ lbg_choose_directory() {
 	# run command
 	case $lbg_gui in
 		kdialog)
-			lbg_choose_directory=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path" 2> /dev/null)
+			lbg_chdir_choice=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path" 2> /dev/null)
 			;;
 
 		zenity)
-			lbg_choose_directory=$(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path" 2> /dev/null)
+			lbg_chdir_choice=$(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path" 2> /dev/null)
 			;;
 
 		osascript)
-			lbg_choose_directory=$(osascript 2> /dev/null <<EOF
+			lbg_chdir_choice=$(osascript 2> /dev/null <<EOF
 set answer to POSIX path of (choose folder with prompt "$lbg_chdir_title" default location "$lbg_chdir_path")
 EOF)
+			;;
+
+		cscript)
+			# prepare command
+			lbg_chdir_path=$(cygpath -w "$lbg_chdir_path")
+			lbg_chdir_cmd=("${lbg_cscript[@]}")
+			lbg_chdir_cmd+=(lbg_choose_directory)
+
+			if [ "$lbg_chdir_title" == "$lb_current_script_name" ] ; then
+				lbg_chdir_cmd+=("$lb_default_chdir_label")
+			else
+				lbg_chdir_cmd+=("$lbg_chdir_title")
+			fi
+
+			# run VBscript
+			lbg_chdir_choice=$("${lbg_chdir_cmd[@]}")
+
+			# cancelled
+			if [ $? != 0 ] ; then
+				return 2
+			fi
+
+			# remove \r ending character
+			lbg_chdir_choice=${lbg_chdir_choice:0:${#lbg_chdir_choice}-1}
 			;;
 
 		dialog)
 			# run command (complex case)
 			exec 3>&1
-			lbg_choose_directory=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
+			lbg_chdir_choice=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1310,36 +1333,36 @@ EOF)
 			"${lbg_chdir_cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_choose_directory=$lb_input_text
+				lbg_chdir_choice=$lb_input_text
 			fi
 			;;
 	esac
 
 	# if empty, cancelled
-	if [ -z "$lbg_choose_directory" ] ; then
+	if [ -z "$lbg_chdir_choice" ] ; then
 		return 2
 	fi
 
 	# return windows paths
 	if [ "$lb_current_os" == "Windows" ] ; then
-		lbg_choose_directory=$(lb_realpath "$lbg_choose_directory")
+		lbg_chdir_choice=$(lb_realpath "$lbg_chdir_choice")
 		if [ $? != 0 ] ; then
 			return 3
 		fi
 	fi
 
-	# if not a directory, reset variable and return error
-	if ! [ -d "$lbg_choose_directory" ] ; then
-		lbg_choose_directory=""
+	# if not a directory, return error
+	if ! [ -d "$lbg_chdir_choice" ] ; then
 		return 3
 	fi
 
+	# save path
+	lbg_choose_directory=$lbg_chdir_choice
+
 	# return absolute path if option set
 	if $lbg_chdir_absolute ; then
-		lbg_chdir_abspath=$(lb_abspath "$lbg_choose_directory")
-		if [ $? == 0 ] ; then
-			lbg_choose_directory=$lbg_chdir_abspath
-		else
+		lbg_choose_directory=$(lb_abspath "$lbg_choose_directory")
+		if [ $? != 0 ] ; then
 			# in case of error, user can get returned path
 			return 4
 		fi

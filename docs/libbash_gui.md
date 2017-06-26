@@ -249,7 +249,7 @@ lbg_display_debug "This is a debug message."
 ### lbg_notify
 Displays a notification popup.
 
-**WARNING**: System notifications does not work on Windows (messages are displayed in console).
+**WARNING**: System notifications are not displayed on Windows yet (messages are displayed in console).
 
 #### Usage
 ```bash
@@ -380,7 +380,7 @@ fi
 ### lbg_input_password
 Displays a dialog to ask user to input a password.
 
-**WARNING**: Password dialog is not displayed on Windows (works in console mode).
+**WARNING**: No password dialog is displayed on Windows (prompt in console).
 
 #### Usage
 ```bash
@@ -420,7 +420,7 @@ Displays a dialog to choose an existing directory.
 
 Path of the chosen directory is set into the `$lbg_choose_directory` variable.
 
-**WARNING**: This function is not supported yet on Windows (works in console mode).
+**WARNING**: On Windows, default path in dialogs is not working yet (works in console mode).
 
 #### Usage
 ```bash
