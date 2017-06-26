@@ -743,8 +743,7 @@ lb_trim TEXT
 ```
 
 #### Exit codes
-- 0: OK
-- 1: Usage error
+Exit code of the `echo` command.
 
 #### Example
 ```bash

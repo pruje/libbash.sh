@@ -272,7 +272,7 @@ lb_get_display_level() {
 # Usage: lb_set_display_level LEVEL_NAME
 lb_set_display_level() {
 
-	# usage error
+	# usage error: must be non empty
 	if [ -z "$1" ] ; then
 		return 1
 	fi
@@ -390,11 +390,12 @@ lb_display() {
 	if [ -n "$lb_display_displevel" ] ; then
 		# test current display level
 		if [ -n "$lb_display_level" ] ; then
+			# get display level ID
 			lb_display_idlvl=$(lb_get_display_level --id "$lb_display_displevel")
 
 			# Note: if level is unknown, message will be displayed
 			if [ $? == 0 ] ; then
-				# if display level is higher than default, do not display
+				# if display level is higher than default, will not display (but can log)
 				if [ $lb_display_idlvl -gt $lb_display_level ] ; then
 					lb_display_display=false
 				fi
@@ -411,7 +412,8 @@ lb_display() {
 
 	# print into logfile
 	if $lb_display_log ; then
-		lb_display_logcmd=(lb_log $lb_display_opts)
+		# prepare command to log
+		local lb_display_logcmd=(lb_log $lb_display_opts)
 
 		if [ -n "$lb_display_displevel" ] ; then
 			lb_display_logcmd+=(--level "$lb_display_displevel")
@@ -435,26 +437,24 @@ lb_display() {
 	if $lb_display_prefix ; then
 		case $lb_display_displevel in
 			$lb_default_critical_label)
-				lb_display_msgprefix=$(lb_print --red "$lb_display_displevel")
+				lb_display_msgprefix="[$(lb_print --red "$lb_display_displevel")]  "
 				;;
 			$lb_default_error_label)
-				lb_display_msgprefix=$(lb_print --red "$lb_display_displevel")
+				lb_display_msgprefix="[$(lb_print --red "$lb_display_displevel")]  "
 				;;
 			$lb_default_warning_label)
-				lb_display_msgprefix=$(lb_print --yellow "$lb_display_displevel")
+				lb_display_msgprefix="[$(lb_print --yellow "$lb_display_displevel")]  "
 				;;
 			$lb_default_info_label)
-				lb_display_msgprefix=$(lb_print --green "$lb_display_displevel")
+				lb_display_msgprefix="[$(lb_print --green "$lb_display_displevel")]  "
 				;;
 			$lb_default_debug_label)
-				lb_display_msgprefix=$(lb_print --cyan "$lb_display_displevel")
+				lb_display_msgprefix="[$(lb_print --cyan "$lb_display_displevel")]  "
 				;;
 			*)
-				lb_display_msgprefix=$lb_display_displevel
+				lb_display_msgprefix="[$lb_display_displevel]  "
 				;;
 		esac
-
-		lb_display_msgprefix="[$lb_display_msgprefix]  "
 	fi
 
 	# print text
@@ -723,27 +723,24 @@ lb_set_logfile() {
 		return 1
 	fi
 
-	# get file path
-	local lb_setlogfile_path=$*
-
 	# cancel if path exists but is not a regular file
-	if [ -e "$lb_setlogfile_path" ] ; then
-		if ! [ -f "$lb_setlogfile_path" ] ; then
+	if [ -e "$*" ] ; then
+		if ! [ -f "$*" ] ; then
 			return 4
 		fi
 	fi
 
 	# cancel if file is not writable
-	if ! lb_is_writable "$lb_setlogfile_path" ; then
+	if ! lb_is_writable "$*" ; then
 		return 2
 	fi
 
 	# if file exists
-	if [ -f "$lb_setlogfile_path" ] ; then
+	if [ -f "$*" ] ; then
 		# overwrite file
 		if $lb_setlogfile_erase ; then
 			# empty file
-			> "$lb_setlogfile_path"
+			> "$*"
 		else
 			# cancel if can not be append
 			if ! $lb_setlogfile_append ; then
@@ -753,7 +750,7 @@ lb_set_logfile() {
 	fi
 
 	# set log file path
-	lb_logfile=$lb_setlogfile_path
+	lb_logfile=$*
 
 	# if not set, set higher log level
 	if [ -z "$lb_log_level" ] ; then
@@ -958,7 +955,7 @@ lb_log() {
 lb_is_number() {
 
 	# if empty, is not a number (not an usage error)
-	if [ $# == 0 ] ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -978,7 +975,7 @@ lb_is_integer() {
 	# if empty, is not an integer (not an usage error)
 	# DO NOT USE lb_test_arguments here or it will do an infinite loop
 	# because lb_test_arguments uses this function
-	if [ $# == 0 ] ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -994,7 +991,6 @@ lb_is_integer() {
 # Test if a value is a boolean
 # Usage: lb_is_boolean VALUE
 lb_is_boolean() {
-
 	case $1 in
 		true|false)
 			return 0
@@ -1041,11 +1037,6 @@ lb_is_comment() {
 		shift # load next command
 	done
 
-	# set default comment symbol if none is set
-	if [ ${#lb_iscom_symbols[@]} == 0 ] ; then
-		lb_iscom_symbols+=("#")
-	fi
-
 	# delete spaces to find the first character
 	lb_iscom_line=$(echo $* | tr -d '[:space:]')
 
@@ -1057,6 +1048,12 @@ lb_is_comment() {
 			return 3
 		fi
 	else
+
+		# set default comment symbol if none is set
+		if [ ${#lb_iscom_symbols[@]} == 0 ] ; then
+			lb_iscom_symbols+=("#")
+		fi
+
 		# test if text starts with comment symbols
 		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
 			lb_iscom_symbol=${lb_iscom_symbols[$lb_iscom_i]}
@@ -1077,9 +1074,9 @@ lb_is_comment() {
 # Usage: lb_trim TEXT
 lb_trim() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
+	# empty text: do nothing
+	if [ -z "$*" ] ; then
+		return 0
 	fi
 
 	local lb_trim_text=$*
@@ -1497,11 +1494,6 @@ lb_homepath() {
 	# get ~user value
 	eval lb_homedir=~$1
 
-	# if not found, error
-	if [ $? != 0 ] ; then
-		return 1
-	fi
-
 	# if directory does not exists, error
 	if ! [ -d "$lb_homedir" ] ; then
 		return 1
@@ -1516,21 +1508,13 @@ lb_homepath() {
 # Usage: lb_dir_is_empty PATH
 lb_dir_is_empty() {
 
-	# usage error
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
-	# get directory path
-	local lb_dir_is_empty_path=$*
-
 	# test if directory exists
-	if ! [ -d "$lb_dir_is_empty_path" ] ; then
+	if ! [ -d "$*" ] ; then
 		return 1
 	fi
 
 	# test if directory is empty
-	lb_dir_is_empty_res=$(ls -A "$lb_dir_is_empty_path" 2> /dev/null)
+	lb_dir_is_empty_res=$(ls -A "$*" 2> /dev/null)
 	if [ $? != 0 ] ; then
 		# ls error means an access rights error
 		return 2
@@ -1636,24 +1620,22 @@ lb_is_writable() {
 		return 1
 	fi
 
-	local lb_is_writable_path=$*
-
 	# if file/folder exists
-	if [ -e "$lb_is_writable_path" ] ; then
+	if [ -e "$*" ] ; then
 		# cancel if not writable
-		if ! [ -w "$lb_is_writable_path" ] ; then
+		if ! [ -w "$*" ] ; then
 			return 2
 		fi
 	else
 		# if file/folder does not exists
 
 		# cancel if parent directory does not exists
-		if ! [ -d "$(dirname "$lb_is_writable_path")" ] ; then
+		if ! [ -d "$(dirname "$*")" ] ; then
 			return 4
 		fi
 
 		# cancel if parent directory is not writable
-		if ! [ -w "$(dirname "$lb_is_writable_path")" ] ; then
+		if ! [ -w "$(dirname "$*")" ] ; then
 			return 3
 		fi
 	fi
@@ -1691,7 +1673,7 @@ lb_current_os() {
 lb_user_exists() {
 
 	# usage errors
-	if [ $# == 0 ] ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -1708,7 +1690,7 @@ lb_user_exists() {
 lb_in_group() {
 
 	# usage errors
-	if [ $# == 0 ] ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -1741,13 +1723,13 @@ lb_generate_password() {
 	# get size option
 	if [ -n "$1" ] ; then
 		# check if is integer
-		if lb_is_integer $1 ; then
-			# test size
-			if [ $lb_genpwd_size -ge 1 ] && [ $lb_genpwd_size -le 32 ] ; then
-				lb_genpwd_size=$1
-			else
-				return 1
-			fi
+		if ! lb_is_integer $1 ; then
+			return 1
+		fi
+
+		# size must be between 1 and 32
+		if [ $lb_genpwd_size -ge 1 ] && [ $lb_genpwd_size -le 32 ] ; then
+			lb_genpwd_size=$1
 		else
 			return 1
 		fi
@@ -1857,9 +1839,6 @@ lb_email() {
 		return 1
 	fi
 
-	# set email body
-	local lb_email_message=$*
-
 	# search compatible command to send email
 	for lb_email_c in ${lb_email_commands[@]} ; do
 		if lb_command_exists "$lb_email_c" ; then
@@ -1902,7 +1881,7 @@ lb_email() {
 	# send email with program
 	case $lb_email_command in
 		/usr/sbin/sendmail)
-			echo -e "$lb_email_header\n$lb_email_message" | /usr/sbin/sendmail -t
+			echo -e "$lb_email_header\n$*" | /usr/sbin/sendmail -t
 			# if unknown error
 			if [ $? != 0 ] ; then
 				return 3
@@ -2096,18 +2075,16 @@ lb_choose_option() {
 
 	# print default option
 	if [ $lb_chop_default -gt 0 ] ; then
-		echo -n "[$lb_chop_default]"
+		echo -n "[$lb_chop_default]: "
 	else
-		echo -n "[$lb_chop_cancel_label]"
+		echo -n "[$lb_chop_cancel_label]: "
 	fi
 
-	echo -n ": "
-
 	# read user input
-	read lb_choose_option
+	read lb_chop_choice
 
 	# defaut behaviour if input is empty
-	if [ -z "$lb_choose_option" ] ; then
+	if [ -z "$lb_chop_choice" ] ; then
 		if [ $lb_chop_default -gt 0 ] ; then
 			# default option
 			lb_choose_option=$lb_chop_default
@@ -2117,22 +2094,22 @@ lb_choose_option() {
 		fi
 	else
 		# check cancel option
-		if [ "$lb_choose_option" == "$lb_chop_cancel_label" ] ; then
-			lb_choose_option=""
+		if [ "$lb_chop_choice" == "$lb_chop_cancel_label" ] ; then
 			return 2
 		fi
 
 		# check if user choice is integer
-		if ! lb_is_integer "$lb_choose_option" ; then
-			lb_choose_option=""
+		if ! lb_is_integer "$lb_chop_choice" ; then
 			return 3
 		fi
 
 		# check if user choice is valid
-		if [ $lb_choose_option -lt 1 ] || [ $lb_choose_option -ge ${#lb_chop_options[@]} ] ; then
-			lb_choose_option=""
+		if [ $lb_chop_choice -lt 1 ] || [ $lb_chop_choice -ge ${#lb_chop_options[@]} ] ; then
 			return 3
 		fi
+
+		# save choice
+		lb_choose_option=$lb_chop_choice
 	fi
 
 	return 0
@@ -2560,9 +2537,7 @@ while [ -n "$1" ] ; do
 			break
 			;;
    esac
-
-	# get next option
-   shift
+   shift # get next option
 done
 
 # load libbash GUI
