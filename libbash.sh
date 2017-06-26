@@ -1592,9 +1592,11 @@ lb_realpath() {
 		# macOS does not support readlink -f option
 		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1"
 	else
+		# Linux & Windows
 
-		# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
 		if [ "$lb_current_os" == "Windows" ] ; then
+			# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
+			# then we will find real path
 			lb_realpath_path=$(cygpath "$1")
 		else
 			lb_realpath_path=$1
@@ -2163,8 +2165,8 @@ lb_input_text() {
 	# add separator
 	echo $lb_inp_opts " "
 
-	# read user input
-	read lb_input_text
+	# read user input without ignoring backslashes
+	read -r lb_input_text
 
 	# if empty
 	if [ -z "$lb_input_text" ] ; then
