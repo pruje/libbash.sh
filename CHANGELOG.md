@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.2 (2017-06-28)
+- Fixed a bug in `lb_compare_versions()` that caused bad results when comparing 0.x versions
+
 ## 1.1.1 (2017-06-13)
 - Major bugfix in arguments loading that caused bugs for `getopts` command in user scripts
 

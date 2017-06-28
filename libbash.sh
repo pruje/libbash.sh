@@ -1172,35 +1172,33 @@ lb_compare_versions() {
 		# compare version numbers separated by dots
 		while true ; do
 
-			if [[ "$lb_cpver_v1_main" == *"."* ]] ; then
+			# get major number
+			if [ $lb_cpver_i == 1 ] ; then
 				lb_cpver_v1_num=$(echo "$lb_cpver_v1_main" | cut -d. -f$lb_cpver_i)
-			else
-				if [ $lb_cpver_i == 1 ] ; then
-					lb_cpver_v1_num=$lb_cpver_v1_main
-				else
-					# v3 => v3.0
-					# v2.1 => v2.1.0
-					lb_cpver_v1_num=0
-				fi
-			fi
-
-			if [[ "$lb_cpver_v2_main" == *"."* ]] ; then
 				lb_cpver_v2_num=$(echo "$lb_cpver_v2_main" | cut -d. -f$lb_cpver_i)
 			else
-				if [ $lb_cpver_i == 1 ] ; then
-					lb_cpver_v2_num=$lb_cpver_v2_main
-				else
-					# v3 => v3.0
-					# v2.1 => v2.1.0
-					lb_cpver_v2_num=0
-				fi
+				# get minor numbers
+				lb_cpver_v1_num=$(echo "$lb_cpver_v1_main" | cut -d. -s -f$lb_cpver_i)
+				lb_cpver_v2_num=$(echo "$lb_cpver_v2_main" | cut -d. -s -f$lb_cpver_i)
+			fi
+
+			# transform simple numbers to dotted numbers
+			# e.g. v3 => v3.0, v2.1 => v2.1.0
+			if [ -z "$lb_cpver_v1_num" ] ; then
+				lb_cpver_v1_num=0
+			fi
+			if [ -z "$lb_cpver_v2_num" ] ; then
+				lb_cpver_v2_num=0
 			fi
 
 			if [ "$lb_cpver_v1_num" == "$lb_cpver_v2_num" ] ; then
 
-				# end of comparison
-				if [ $lb_cpver_v1_num == 0 ] && [ $lb_cpver_v2_num == 0 ] ; then
-					break
+				# if minor numbers (x.x.x.0), avoid infinite loop
+				if [ $lb_cpver_i -gt 3 ] ; then
+					# end of comparison
+					if [ $lb_cpver_v1_num == 0 ] && [ $lb_cpver_v2_num == 0 ] ; then
+						break
+					fi
 				fi
 
 				# compare next numbers
@@ -1211,7 +1209,11 @@ lb_compare_versions() {
 			if lb_is_integer $lb_cpver_v1_num && lb_is_integer $lb_cpver_v2_num ; then
 				# compare versions and quit
 				[ "$lb_cpver_v1_num" $lb_cpver_operator "$lb_cpver_v2_num" ]
-				return $?
+				if [ $? == 0 ] ; then
+					return 0
+				else
+					return 2
+				fi
 			else
 				# if not integer, error
 				return 1
