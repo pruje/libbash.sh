@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.2.1 (2017-06-28)                          #
+#  Version 1.2.2 (2017-06-29)                          #
 #                                                      #
 ########################################################
 
@@ -909,10 +909,12 @@ EOF)
 			;;
 
 		cscript)
+			# avoid \n in label
+			lbg_chop_label=$(echo -e "$lbg_chop_label")
+
 			# add options to the label, with a line return between each option
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_label+="
-   $lbg_chop_i. ${lbg_chop_options[$lbg_chop_i]}"
+				lbg_chop_label+=$(echo -e "\n   $lbg_chop_i. ${lbg_chop_options[$lbg_chop_i]}")
 			done
 
 			# prepare command (inputbox)
@@ -1105,9 +1107,8 @@ EOF)
 			;;
 	esac
 
-	# if empty, reset variable and set cancelled
+	# if empty, return cancelled
 	if [ -z "$lbg_input_text" ] ; then
-		lbg_input_text=""
 		return 2
 	fi
 
@@ -1218,9 +1219,8 @@ EOF)
 				;;
 		esac
 
-		# if empty, cancelled
+		# if empty, return cancelled
 		if [ -z "$lbg_input_password" ] ; then
-			lbg_input_password=""
 			return 2
 		fi
 
@@ -1606,8 +1606,6 @@ EOF)
 		fi
 	fi
 
-	lbg_choose_file=$lbg_choosefile_choice
-
 	# return absolute path if option set
 	if $lbg_choosefile_absolute ; then
 		lbg_choose_file=$(lb_abspath "$lbg_choosefile_choice")
@@ -1615,6 +1613,9 @@ EOF)
 			# in case of error, user can get returned path
 			return 4
 		fi
+	else
+		# return choice
+		lbg_choose_file=$lbg_choosefile_choice
 	fi
 
 	return 0
