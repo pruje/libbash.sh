@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1 (2017-06-28)
+- Fixed a very specific case for cscript on Windows that cannot run vbscripts from an absolute path
+
 ## 1.2.0 (2017-06-28)
 - Added Windows GUI support for `lbg_input_text()`, `lbg_choose_option()` and `lbg_choose_directory()`
 - Improve results of `lb_df_fstype()` and `lb_df_uuid()` using `lsblk` command on Linux (see documentation)
