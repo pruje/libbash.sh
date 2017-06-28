@@ -259,7 +259,7 @@ EOF
 
 		cscript)
 			lbg_dinf_cmd=("${lbg_cscript[@]}")
-			lbg_dinf_cmd+=(lbg_display_info "$*" "$lbg_dinf_title")
+			lbg_dinf_cmd+=(lbg_display_info "$(echo -e "$*")" "$lbg_dinf_title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			$(cd "$lbg_vbscript_directory" && "${lbg_dinf_cmd[@]}")
@@ -361,7 +361,7 @@ EOF
 
 		cscript)
 			lbg_dwn_cmd=("${lbg_cscript[@]}")
-			lbg_dwn_cmd+=(lbg_display_warning "$*" "$lbg_dwn_title")
+			lbg_dwn_cmd+=(lbg_display_warning "$(echo -e "$*")" "$lbg_dwn_title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			$(cd "$lbg_vbscript_directory" && "${lbg_dwn_cmd[@]}")
@@ -452,7 +452,7 @@ EOF
 
 		cscript)
 			lbg_derr_cmd=("${lbg_cscript[@]}")
-			lbg_derr_cmd+=(lbg_display_error "$*" "$lbg_derr_title")
+			lbg_derr_cmd+=(lbg_display_error "$(echo -e "$*")" "$lbg_derr_title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			$(cd "$lbg_vbscript_directory" && "${lbg_derr_cmd[@]}")
@@ -693,7 +693,7 @@ EOF)
 
 		cscript)
 			lbg_yn_cmd=("${lbg_cscript[@]}")
-			lbg_yn_cmd+=(lbg_yesno "$*" "$lbg_yn_title")
+			lbg_yn_cmd+=(lbg_yesno "$(echo -e "$*")" "$lbg_yn_title")
 			if $lbg_yn_defaultyes ; then
 				lbg_yn_cmd+=(true)
 			fi
@@ -1061,7 +1061,7 @@ EOF)
 		cscript)
 			# prepare command
 			lbg_inp_cmd=("${lbg_cscript[@]}")
-			lbg_inp_cmd+=(lbg_input_text "$*" "$lbg_inp_title")
+			lbg_inp_cmd+=(lbg_input_text "$(echo -e "$*")" "$lbg_inp_title")
 			if [ -n "$lbg_inp_default" ] ; then
 				lbg_inp_cmd+=("$lbg_inp_default")
 			fi
