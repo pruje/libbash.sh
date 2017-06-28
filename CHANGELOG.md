@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 (2017-06-28)
+- Added Windows GUI support for `lbg_input_text()`, `lbg_choose_option()` and `lbg_choose_directory()`
+- Improve results of `lb_df_fstype()` and `lb_df_uuid()` using `lsblk` command on Linux (see documentation)
+- `lbg_input_text()` now supports backslashes entries without putting doubles
+- Various improvements in source code and documentation
+
 ## 1.1.2 (2017-06-28)
 - Fixed a bug in `lb_compare_versions()` that caused bad results when comparing 0.x versions
 
