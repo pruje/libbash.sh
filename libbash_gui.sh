@@ -39,7 +39,8 @@ lbg_console_width=""
 lbg_console_height=""
 
 # VB script and cscript command for Windows
-lbg_vbscript="$lb_directory/inc/libbash_gui.vbs"
+lbg_vbscript_directory="$lb_directory/inc"
+lbg_vbscript="libbash_gui.vbs"
 lbg_cscript=(cscript /NoLogo "$lbg_vbscript")
 
 
@@ -169,7 +170,7 @@ lbg_set_gui() {
 				fi
 
 				# test VB script
-				if ! [ -f "$lbg_vbscript" ] ; then
+				if ! [ -f "$lbg_vbscript_directory/$lbg_vbscript" ] ; then
 					lbg_setgui_res=4
 					continue
 				fi
@@ -259,6 +260,16 @@ EOF
 		cscript)
 			lbg_dinf_cmd=("${lbg_cscript[@]}")
 			lbg_dinf_cmd+=(lbg_display_info "$*" "$lbg_dinf_title")
+
+			# run VBscript into a context (cscript does not work with absolute paths)
+			$(cd "$lbg_vbscript_directory" && "${lbg_dinf_cmd[@]}")
+
+			# command failed
+			if [ $? != 0 ] ; then
+				return 2
+			fi
+
+			return 0
 			;;
 
 		dialog)
@@ -351,6 +362,16 @@ EOF
 		cscript)
 			lbg_dwn_cmd=("${lbg_cscript[@]}")
 			lbg_dwn_cmd+=(lbg_display_warning "$*" "$lbg_dwn_title")
+
+			# run VBscript into a context (cscript does not work with absolute paths)
+			$(cd "$lbg_vbscript_directory" && "${lbg_dwn_cmd[@]}")
+
+			# command failed
+			if [ $? != 0 ] ; then
+				return 2
+			fi
+
+			return 0
 			;;
 
 		dialog)
@@ -432,6 +453,16 @@ EOF
 		cscript)
 			lbg_derr_cmd=("${lbg_cscript[@]}")
 			lbg_derr_cmd+=(lbg_display_error "$*" "$lbg_derr_title")
+
+			# run VBscript into a context (cscript does not work with absolute paths)
+			$(cd "$lbg_vbscript_directory" && "${lbg_derr_cmd[@]}")
+
+			# command failed
+			if [ $? != 0 ] ; then
+				return 2
+			fi
+
+			return 0
 			;;
 
 		dialog)
@@ -666,6 +697,16 @@ EOF)
 			if $lbg_yn_defaultyes ; then
 				lbg_yn_cmd+=(true)
 			fi
+
+			# run VBscript into a context (cscript does not work with absolute paths)
+			$(cd "$lbg_vbscript_directory" && "${lbg_yn_cmd[@]}")
+
+			# command failed or response is no
+			if [ $? != 0 ] ; then
+				return 2
+			fi
+
+			return 0
 			;;
 
 		dialog)
@@ -881,8 +922,8 @@ EOF)
 				lbg_chop_cmd+=("$lbg_chop_default")
 			fi
 
-			# run VBscript
-			lbg_choose_option=$("${lbg_chop_cmd[@]}")
+			# run VBscript into a context (cscript does not work with absolute paths)
+			lbg_choose_option=$(cd "$lbg_vbscript_directory" && "${lbg_chop_cmd[@]}")
 
 			# cancelled
 			if [ $? != 0 ] ; then
@@ -1025,8 +1066,8 @@ EOF)
 				lbg_inp_cmd+=("$lbg_inp_default")
 			fi
 
-			# run VBscript
-			lbg_input_text=$("${lbg_inp_cmd[@]}")
+			# run VBscript into a context (cscript does not work with absolute paths)
+			lbg_input_text=$(cd "$lbg_vbscript_directory" && "${lbg_inp_cmd[@]}")
 
 			# cancelled
 			if [ $? != 0 ] ; then
@@ -1298,8 +1339,8 @@ EOF)
 				lbg_chdir_cmd+=("$lbg_chdir_title")
 			fi
 
-			# run VBscript
-			lbg_chdir_choice=$("${lbg_chdir_cmd[@]}")
+			# run VBscript into a context (cscript does not work with absolute paths)
+			lbg_chdir_choice=$(cd "$lbg_vbscript_directory" && "${lbg_chdir_cmd[@]}")
 
 			# cancelled
 			if [ $? != 0 ] ; then
