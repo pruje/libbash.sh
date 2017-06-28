@@ -1286,13 +1286,15 @@ EOF)
 
 		cscript)
 			# prepare command
-			lbg_chdir_path=$(cygpath -w "$lbg_chdir_path")
 			lbg_chdir_cmd=("${lbg_cscript[@]}")
 			lbg_chdir_cmd+=(lbg_choose_directory)
 
+			# if title is not defined,
 			if [ "$lbg_chdir_title" == "$lb_current_script_name" ] ; then
+				# print default label
 				lbg_chdir_cmd+=("$lb_default_chdir_label")
 			else
+				# print title as label
 				lbg_chdir_cmd+=("$lbg_chdir_title")
 			fi
 
@@ -1372,7 +1374,7 @@ EOF)
 }
 
 
-# Dialog to choose a file
+# Ask user to choose a file
 # Usage: lbg_choose_file [OPTIONS] [PATH]
 lbg_choose_file=""
 lbg_choose_file() {
@@ -1455,7 +1457,7 @@ lbg_choose_file() {
 			fi
 
 			# go into the directory then open kdialog
-			lbg_choose_file=$(cd "$lbg_choosefile_path" &> /dev/null; kdialog --title "$lbg_choosefile_title" $lbg_choosefile_mode "$lbg_choosefile_pathfile" "${lbg_choosefile_filters[@]}" 2> /dev/null)
+			lbg_choosefile_choice=$(cd "$lbg_choosefile_path" &> /dev/null; kdialog --title "$lbg_choosefile_title" $lbg_choosefile_mode "$lbg_choosefile_pathfile" "${lbg_choosefile_filters[@]}" 2> /dev/null)
 			;;
 
 		zenity)
@@ -1469,7 +1471,7 @@ lbg_choose_file() {
 				lbg_choosefile_opts="--save"
 			fi
 
-			lbg_choose_file=$(zenity --title "$lbg_choosefile_title" --file-selection $lbg_choosefile_opts --filename "$lbg_choosefile_path" "$lbg_choosefile_opts" 2> /dev/null)
+			lbg_choosefile_choice=$(zenity --title "$lbg_choosefile_title" --file-selection $lbg_choosefile_opts --filename "$lbg_choosefile_path" "$lbg_choosefile_opts" 2> /dev/null)
 			;;
 
 		osascript)
@@ -1488,7 +1490,7 @@ lbg_choose_file() {
 				lbg_choosefile_opts="default name \"$lbg_choosefile_file\""
 			fi
 
-			lbg_choose_file=$(osascript 2> /dev/null <<EOF
+			lbg_choosefile_choice=$(osascript 2> /dev/null <<EOF
 set answer to POSIX path of (choose file $lbg_choosefile_mode with prompt "$lbg_choosefile_title" $lbg_choosefile_opts default location "$lbg_choosefile_path")
 EOF)
 			;;
@@ -1496,7 +1498,7 @@ EOF)
 		dialog)
 			# execute dialog (complex case)
 			exec 3>&1
-			lbg_choose_file=$(dialog --title "$lbg_choosefile_title" --clear --fselect "$lbg_choosefile_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
+			lbg_choosefile_choice=$(dialog --title "$lbg_choosefile_title" --clear --fselect "$lbg_choosefile_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1518,13 +1520,13 @@ EOF)
 			"${lbg_choosefile_cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_choose_file=$lb_input_text
+				lbg_choosefile_choice=$lb_input_text
 			fi
 			;;
 	esac
 
 	# if empty, cancelled
-	if [ -z "$lbg_choose_file" ] ; then
+	if [ -z "$lbg_choosefile_choice" ] ; then
 		return 2
 	fi
 
@@ -1533,9 +1535,9 @@ EOF)
 
 		# beware the save mode where file does not exists!
 		if $lbg_choosefile_save ; then
-			lbg_choose_file="$(lb_realpath "$(dirname "$lbg_choose_file")")/$(basename "$lbg_choose_file")"
+			lbg_choosefile_choice="$(lb_realpath "$(dirname "$lbg_choosefile_choice")")/$(basename "$lbg_choosefile_choice")"
 		else
-			lbg_choose_file=$(lb_realpath "$lbg_choose_file")
+			lbg_choosefile_choice=$(lb_realpath "$lbg_choosefile_choice")
 		fi
 		if [ $? != 0 ] ; then
 			return 3
@@ -1545,33 +1547,30 @@ EOF)
 	# if save mode,
 	if $lbg_choosefile_save ; then
 		# if directory parent does not exists, reset variable and return error
-		if ! [ -d "$(dirname "$lbg_choose_file")" ] ; then
-			lbg_choose_file=""
+		if ! [ -d "$(dirname "$lbg_choosefile_choice")" ] ; then
 			return 3
 		fi
 
 		# if exists but is not a file, return error
-		if [ -e "$lbg_choose_file" ] ; then
-			if ! [ -f "$lbg_choose_file" ] ; then
-				lbg_choose_file=""
+		if [ -e "$lbg_choosefile_choice" ] ; then
+			if ! [ -f "$lbg_choosefile_choice" ] ; then
 				return 3
 			fi
 		fi
 	else
 		# open mode
 		# if file does not exists, reset variable and return error
-		if ! [ -f "$lbg_choose_file" ] ; then
-			lbg_choose_file=""
+		if ! [ -f "$lbg_choosefile_choice" ] ; then
 			return 3
 		fi
 	fi
 
+	lbg_choose_file=$lbg_choosefile_choice
+
 	# return absolute path if option set
 	if $lbg_choosefile_absolute ; then
-		lbg_choosefile_abspath=$(lb_abspath "$lbg_choose_file")
-		if [ $? == 0 ] ; then
-			lbg_choose_file=$lbg_choosefile_abspath
-		else
+		lbg_choose_file=$(lb_abspath "$lbg_choosefile_choice")
+		if [ $? != 0 ] ; then
 			# in case of error, user can get returned path
 			return 4
 		fi

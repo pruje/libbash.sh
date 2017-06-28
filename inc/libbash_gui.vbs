@@ -163,22 +163,21 @@ End Function
 
 
 ' Ask user to choose an existing directory
-' Usage: lbg_choose_directory [TITLE]
+' Usage: lbg_choose_directory LABEL
 Function lbg_choose_directory(args)
 
 	' define local variables
-	Dim lbg_chdir_shell, lbg_chdir_choice, lbg_chdir_title
+	Dim lbg_chdir_shell, lbg_chdir_choice
 
-	lbg_chdir_title = "Select a folder"
-
-	' get title option
-	If UBound(args) >= 1 Then
-		lbg_chdir_title = args(0)
+	' catch usage errors
+	If Not test_arguments(args, 1) Then
+		exitcode = 1
+		Exit Function
 	End If
 
 	' Create a dialog object
 	Set lbg_chdir_shell  = CreateObject("Shell.Application")
-	Set lbg_chdir_choice = lbg_chdir_shell.BrowseForFolder(0, lbg_chdir_title, &H0071)
+	Set lbg_chdir_choice = lbg_chdir_shell.BrowseForFolder(0, args(0), &H0071)
 
 	' Return the path of the selected folder
 	If (lbg_chdir_choice is nothing) Then

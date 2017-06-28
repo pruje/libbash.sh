@@ -420,7 +420,7 @@ Displays a dialog to choose an existing directory.
 
 Path of the chosen directory is set into the `$lbg_choose_directory` variable.
 
-**WARNING**: On Windows, default path in dialogs is not working yet (works in console mode).
+**WARNING**: On Windows, starting path is not working with cscript (works in console mode).
 
 #### Usage
 ```bash
@@ -432,6 +432,7 @@ lbg_choose_directory [OPTIONS] [PATH]
 -a, --absolute-path  Return absolute path of the directory
 -t, --title TEXT     Set a title to the dialog
 PATH                 Starting path (current directory by default)
+                     OPTION NOT SUPPORTED ON Windows cscript dialogs
 ```
 
 #### Exit codes
@@ -454,7 +455,7 @@ Displays a dialog to choose an existing file.
 
 Path of the chosen file is set into the `$lbg_choose_file` variable.
 
-**WARNING**: This function is not supported yet on Windows (works in console mode).
+**WARNING**: This function is not supported on Windows with cscript (works in console mode).
 
 **WARNING 2**: File filters are not supported yet on macOS.
 
