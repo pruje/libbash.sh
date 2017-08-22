@@ -1270,7 +1270,7 @@ lb_input_text [OPTIONS] QUESTION_TEXT
 #### Example
 ```bash
 if lb_input_text "Please enter your name:" ; then
-    user_name="$lb_input_text"
+    user_name=$lb_input_text
 fi
 ```
 
@@ -1305,7 +1305,7 @@ QUESTION_TEXT         Set a label for the question
 ```bash
 # ask user password twice
 if lb_input_password --confirm ; then
-	user_password="$lb_input_password"
+	user_password=$lb_input_password
 fi
 ```
 

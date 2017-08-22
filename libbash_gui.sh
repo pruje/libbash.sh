@@ -1117,7 +1117,7 @@ EOF)
 
 
 # Ask user to enter a password
-# Usage: lbg_input_password [OPTIONS]
+# Usage: lbg_input_password [OPTIONS] [TEXT]
 lbg_input_password=""
 lbg_input_password() {
 
@@ -1134,7 +1134,7 @@ lbg_input_password() {
 	# get options
 	while [ -n "$1" ] ; do
 		case $1 in
-			-l|--label)
+			-l|--label) # old option kept for compatibility
 				if [ -z "$2" ] ; then
 					return 1
 				fi
@@ -1174,6 +1174,11 @@ lbg_input_password() {
 		esac
 		shift # load next argument
 	done
+
+	# text label
+	if [ -n "$*" ] ; then
+		lbg_inpw_label=$*
+	fi
 
 	# display dialog
 	for lbg_inpw_i in 1 2 ; do

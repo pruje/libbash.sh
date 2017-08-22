@@ -370,8 +370,8 @@ lbg_input_text [OPTIONS] TEXT
 
 #### Example
 ```bash
-if lbg_input_text --default "$(whoami)" "Please enter your username:" ; then
-    user_name="$lbg_input_text"
+if lbg_input_text --default $(whoami) "Please enter your username:" ; then
+    user_name=$lbg_input_text
 fi
 ```
 
@@ -384,17 +384,17 @@ Displays a dialog to ask user to input a password.
 
 #### Usage
 ```bash
-lbg_input_password [OPTIONS]
+lbg_input_password [OPTIONS] [QUESTION_TEXT]
 ```
 Password is stored into the `$lbg_input_password` variable.
 
 #### Options
 ```
--l, --label TEXT      Set a label for the question (not available on zenity)
 -c, --confirm         Display a confirm password dialog
 --confirm-label TEXT  Set the confirmation label (not available on zenity)
 -m, --min-size N      Force password to have at least N characters
 -t, --title TEXT      Set a title for the dialog
+QUESTION_TEXT         Set a label for the question (not available on zenity)
 ```
 
 #### Exit codes
@@ -407,7 +407,7 @@ Password is stored into the `$lbg_input_password` variable.
 #### Example
 ```bash
 if lbg_input_password ; then
-    user_password="$lbg_input_password"
+    user_password=$lbg_input_password
 fi
 ```
 
