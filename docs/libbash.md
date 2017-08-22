@@ -1215,9 +1215,9 @@ fi
 ---------------------------------------------------------------
 <a name="lb_choose_option"></a>
 ### lb_choose_option
-Ask user to choose an option.
+Ask user to choose one or multiple options.
 
-The chosen ID is set into the `$lb_choose_option` variable.
+The chosen IDs are set into the `$lb_choose_option` (array) variable.
 
 #### Usage
 ```bash
@@ -1226,9 +1226,10 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Options
 ```
--d, --default ID         Option to use by default (IDs starts to 1)
--l, --label TEXT         Set a label question (default: "Choose an option:")
--c, --cancel-label TEXT  Set a cancel label (default: c)
+-d, --default ID[,ID...]  Option(s) to use by default (IDs starts to 1)
+-m, --multiple            Allow user to choose between multiple options
+-l, --label TEXT          Set a label question (default: "Choose an option:")
+-c, --cancel-label TEXT   Set a cancel label (default: c)
 ```
 
 #### Exit codes
@@ -1239,8 +1240,11 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Example
 ```bash
-if lb_choose_option --label "Choose a country:" --default 1 "France" "USA" "Other" ; then
-    chosen_country=$lb_choose_option
+if lb_choose_option --label "Choose a planet:" --default 1 "Earth" "Jupiter" ; then
+    chosen_planet=$lb_choose_option
+fi
+if lb_choose_option --label "Choose valid countries:" --default 1,2 "France" "USA" "Neverland" ; then
+    chosen_countries=(${lb_choose_option[@]})
 fi
 ```
 

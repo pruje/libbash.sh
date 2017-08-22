@@ -1571,7 +1571,7 @@ lb_abspath() {
 				lb_abspath_path+="/"
 			fi
 
-			lb_abspath_path+="$lb_abspath_file"
+			lb_abspath_path+=$lb_abspath_file
 		fi
 
 		echo "$lb_abspath_path"
