@@ -2106,13 +2106,26 @@ lb_choose_option() {
 			return 2
 		fi
 	else
-		# check cancel option
-		if [ "$lb_chop_choice" == "$lb_chop_cancel_label" ] ; then
-			return 2
+		# if user made a choice
+
+		# export choices to an array
+		if $lb_chop_multiple ; then
+			lb_chop_choices=($(echo $lb_chop_choice | sed 's/,/ /g'))
+		else
+			# if multiple results without --multiple option, return error
+			if ! lb_is_integer "$lb_chop_choice" ; then
+				return 3
+			fi
+			lb_chop_choices=$lb_chop_choice
 		fi
 
-		# check if user choice is integer
-		for lb_chop_c in $(echo $lb_chop_choice | sed 's/,/ /g') ; do
+		# parsing choices
+		for lb_chop_c in ${lb_chop_choices[@]} ; do
+			# check cancel option
+			if [ "$lb_chop_c" == "$lb_chop_cancel_label" ] ; then
+				return 2
+			fi
+
 			# check type
 			if ! lb_is_integer "$lb_chop_c" ; then
 				return 3
