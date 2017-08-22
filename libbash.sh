@@ -2197,7 +2197,7 @@ lb_input_text() {
 
 
 # Ask user to enter a password
-# Usage: lb_input_password [OPTIONS]
+# Usage: lb_input_password [OPTIONS] [TEXT]
 lb_input_password=""
 lb_input_password() {
 
@@ -2213,7 +2213,7 @@ lb_input_password() {
 	# get options
 	while [ -n "$1" ] ; do
 		case $1 in
-			-l|--label)
+			-l|--label) # old option kept for compatibility
 				if [ -z "$2" ] ; then
 					return 1
 				fi
@@ -2246,6 +2246,11 @@ lb_input_password() {
 		esac
 		shift # load next argument
 	done
+
+	# text label
+	if [ -n "$*" ] ; then
+		lb_inpw_label=$*
+	fi
 
 	# prompt user for password
 	read -s -p "$lb_inpw_label " lb_input_password

@@ -1283,15 +1283,15 @@ Input password is set into the `$lb_input_password` variable.
 
 #### Usage
 ```bash
-lb_input_password [OPTIONS]
+lb_input_password [OPTIONS] [QUESTION_TEXT]
 ```
 
 #### Options
 ```
--l, --label TEXT      Set a label for the question
 -c, --confirm         Ask user to confirm password
 --confirm-label TEXT  Set a label for the confirm question
 -m, --min-size N      Force password to have at least N characters
+QUESTION_TEXT         Set a label for the question
 ```
 
 #### Exit codes
