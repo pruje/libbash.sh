@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.2.2 (2017-06-29)                          #
+#  Version 1.3.0-beta.1 (2017-08-22)                   #
 #                                                      #
 ########################################################
 
@@ -17,7 +17,7 @@
 ####################
 
 # libbash main variables
-lb_version="1.2.2"
+lb_version="1.3.0-beta.1"
 lb_path=$BASH_SOURCE
 lb_directory=$(dirname "$lb_path")
 
@@ -2007,27 +2007,29 @@ lb_yesno() {
 
 # Prompt user to choose an option
 # Usage: lb_choose_option [OPTIONS] CHOICE [CHOICE...]
-lb_choose_option=""
+lb_choose_option=()
 lb_choose_option() {
 
 	# reset result
-	lb_choose_option=""
+	lb_choose_option=()
 
 	# default options and local variables
-	local lb_chop_default=0
-	# options: initialize with an empty first value (option ID starts to 1, not 0)
-	local lb_chop_options=("")
+	local lb_chop_default=()
+	local lb_chop_multiple=false
 	local lb_chop_label=$lb_default_chopt_label
 	local lb_chop_cancel_label=$lb_default_cancel_shortlabel
+	# options: initialize with an empty first value (option ID starts to 1, not 0)
+	local lb_chop_options=("")
 
 	# get command options
 	while [ -n "$1" ] ; do
 		case $1 in
 			-d|--default)
-				if ! lb_is_integer $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_chop_default=$2
+				# transform option1,option2,... to array
+				lb_chop_default=($(echo $2 | sed 's/,/ /g'))
 				shift
 				;;
 			-l|--label)
@@ -2036,6 +2038,9 @@ lb_choose_option() {
 				fi
 				lb_chop_label=$2
 				shift
+				;;
+			-m|--multiple)
+				lb_chop_multiple=true
 				;;
 			-c|--cancel-label)
 				if [ -z "$2" ] ; then
@@ -2052,7 +2057,7 @@ lb_choose_option() {
 	done
 
 	# usage error if missing at least 1 choice option
-	if lb_test_arguments -eq 0 $* ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -2062,9 +2067,13 @@ lb_choose_option() {
 		shift
 	done
 
-	# verify if default option is valid
-	if [ $lb_chop_default -lt 0 ] || [ $lb_chop_default -ge ${#lb_chop_options[@]} ] ; then
-		return 1
+	# verify if default option(s) is valid
+	if [ ${#lb_chop_default[@]} -gt 0 ] ; then
+		for $lb_chop_d in ${lb_chop_default[@]} ; do
+			if [ $lb_chop_d -lt 1 ] || [ $lb_chop_d -ge ${#lb_chop_options[@]} ] ; then
+				return 1
+			fi
+		done
 	fi
 
 	# print question
@@ -2078,8 +2087,8 @@ lb_choose_option() {
 	echo
 
 	# print default option
-	if [ $lb_chop_default -gt 0 ] ; then
-		echo -n "[$lb_chop_default]: "
+	if [ ${#lb_chop_default[@]} -gt 0 ] ; then
+		echo -n "[$(echo ${lb_chop_default[@]} | sed 's/ /,/g')]: "
 	else
 		echo -n "[$lb_chop_cancel_label]: "
 	fi
@@ -2089,9 +2098,9 @@ lb_choose_option() {
 
 	# defaut behaviour if input is empty
 	if [ -z "$lb_chop_choice" ] ; then
-		if [ $lb_chop_default -gt 0 ] ; then
+		if [ ${#lb_chop_default[@]} -gt 0 ] ; then
 			# default option
-			lb_choose_option=$lb_chop_default
+			lb_choose_option=(${lb_chop_default[@]})
 		else
 			# cancel code
 			return 2
@@ -2103,17 +2112,20 @@ lb_choose_option() {
 		fi
 
 		# check if user choice is integer
-		if ! lb_is_integer "$lb_chop_choice" ; then
-			return 3
-		fi
+		for lb_chop_c in $(echo $lb_chop_choice | sed 's/,/ /g') ; do
+			# check type
+			if ! lb_is_integer "$lb_chop_c" ; then
+				return 3
+			fi
 
-		# check if user choice is valid
-		if [ $lb_chop_choice -lt 1 ] || [ $lb_chop_choice -ge ${#lb_chop_options[@]} ] ; then
-			return 3
-		fi
+			# check if user choice is valid
+			if [ $lb_chop_c -lt 1 ] || [ $lb_chop_c -ge ${#lb_chop_options[@]} ] ; then
+				return 3
+			fi
 
-		# save choice
-		lb_choose_option=$lb_chop_choice
+			# save choice
+			lb_choose_option+=($lb_chop_c)
+		done
 	fi
 
 	return 0
