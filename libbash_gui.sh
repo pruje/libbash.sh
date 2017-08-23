@@ -1725,7 +1725,20 @@ lbg_open_directory() {
 
 	# open directories one by one
 	for ((lbg_opdir_i=0; lbg_opdir_i<${#lbg_opdir_paths[@]}; lbg_opdir_i++)) ; do
-		"$lbg_opdir_explorer" "${lbg_opdir_paths[$lbg_opdir_i]}"
+		lbg_opdir_path=${lbg_opdir_paths[$lbg_opdir_i]}
+
+		if [ "lb_current_os" == Windows ] ; then
+			# particular case where explorer will not work if path finishes with '/'
+			if [ "${lbg_opdir_path:${#lbg_opdir_path}-1}" == "/" ] ; then
+				lbg_opdir_path=${lbg_opdir_path:0:${#lbg_opdir_path}-1}
+			fi
+
+			# convert to Windows paths
+			lbg_opdir_path=$(cygpath -w "$lbg_opdir_path")
+		fi
+
+		# open file explorer
+		"$lbg_opdir_explorer" "$lbg_opdir_path"
 		if [ $? != 0 ] ; then
 			lbg_opdir_result=3
 		fi

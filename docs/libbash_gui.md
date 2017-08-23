@@ -65,6 +65,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 * Files and directories
 	* [lbg_choose_directory](#lbg_choose_directory)*
 	* [lbg_choose_file](#lbg_choose_file)*
+	* [lbg_open_directory](#lbg_open_directory)
 
 ---------------------------------------------------------------
 ## GUI tools
@@ -489,6 +490,35 @@ PATH                 Starting path or default file path (open current directory 
 if lbg_choose_file --filter "*.txt" ; then
     text_file="$lbg_choose_file"
 fi
+```
+
+---------------------------------------------------------------
+<a name="lbg_open_directory"></a>
+### lbg_open_directory
+Open directories in a graphical file browser.
+
+#### Usage
+```bash
+lbg_choose_directory [OPTIONS] [PATH...]
+```
+
+#### Options
+```
+-e, --explorer CMD  Open directory with a custom application
+PATH                Directory path (current directory by default)
+```
+
+#### Exit codes
+- 0: OK
+- 1: Usage error
+- 2: Explorer command does not exists
+- 3: Unknown error (happens often on Windows)
+- 4: One or more of the specified paths are not existing directories
+
+#### Example
+```bash
+# open home directory
+lbg_open_directory ~
 ```
 
 ---------------------------------------------------------------
