@@ -1690,11 +1690,11 @@ lbg_open_directory() {
 	# get specified path(s)
 	while [ -n "$1" ] ; do
 		# if not a directory, ignore it
-		if ! [ -d "$1" ] ; then
+		if [ -d "$1" ] ; then
+			lbg_opdir_paths+=("$1")
+		else
 			lbg_opdir_result=4
-			continue
 		fi
-		lbg_opdir_paths+=("$1")
 		shift
 	done
 

@@ -2138,7 +2138,7 @@ lb_choose_option() {
 
 	# verify if default option(s) is valid
 	if [ ${#lb_chop_default[@]} -gt 0 ] ; then
-		for $lb_chop_d in ${lb_chop_default[@]} ; do
+		for lb_chop_d in ${lb_chop_default[@]} ; do
 			if [ $lb_chop_d -lt 1 ] || [ $lb_chop_d -ge ${#lb_chop_options[@]} ] ; then
 				return 1
 			fi
@@ -2182,7 +2182,8 @@ lb_choose_option() {
 			lb_chop_choices=($(echo $lb_chop_choice | sed 's/,/ /g'))
 		else
 			# if multiple results without --multiple option, return error
-			if ! lb_is_integer "$lb_chop_choice" ; then
+			echo $lb_chop_choice | grep -q ','
+			if [ $? == 0 ] ; then
 				return 3
 			fi
 			lb_chop_choices=$lb_chop_choice
