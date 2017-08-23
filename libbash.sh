@@ -11,6 +11,76 @@
 #                                                      #
 ########################################################
 
+# Index
+#
+#   * Main variables
+#   * Bash utilities
+#       lb_command_exists
+#       lb_function_exists
+#       lb_test_arguments
+#       lb_exit
+#   * Display
+#       lb_get_display_level
+#       lb_set_display_level
+#       lb_print
+#       lb_display
+#       lb_result
+#       lb_short_result
+#   * Logs
+#       lb_get_logfile
+#       lb_set_logfile
+#       lb_get_log_level
+#       lb_set_log_level
+#       lb_log
+#   * Operations on variables
+#       lb_is_number
+#       lb_is_integer
+#       lb_is_boolean
+#       lb_is_email
+#       lb_is_comment
+#       lb_trim
+#       lb_array_contains
+#       lb_compare_versions
+#   * Filesystem
+#       lb_df_fstype
+#       lb_df_space_left
+#       lb_df_mountpoint
+#       lb_df_uuid
+#   * Files and directories
+#       lb_homepath
+#       lb_dir_is_empty
+#       lb_abspath
+#       lb_realpath
+#       lb_is_writable
+#   * System utilities
+#       lb_current_os
+#       lb_user_exists
+#       lb_in_group
+#       lb_generate_password
+#       lb_email
+#   * User interacion
+#       lb_yesno
+#       lb_choose_option
+#       lb_input_text
+#       lb_input_password
+#   * Aliases and compatibility
+#       lb_echo
+#       lb_error
+#       lb_get_loglevel
+#       lb_set_loglevel
+#       lb_display_critical
+#       lb_display_error
+#       lb_display_warning
+#       lb_display_info
+#       lb_display_debug
+#       lb_log_critical
+#       lb_log_error
+#       lb_log_warning
+#       lb_log_info
+#       lb_log_debug
+#       lb_detect_os
+#   * Initialization
+
 
 ####################
 #  MAIN VARIABLES  #
@@ -1646,7 +1716,6 @@ lb_is_writable() {
 
 	return 0
 }
-
 
 
 ######################

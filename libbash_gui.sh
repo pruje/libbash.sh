@@ -21,6 +21,34 @@ if [ -z "$lb_version" ] ; then
 fi
 
 
+# Index
+#
+#   * Main variables
+#   * Internal functions
+#       lbg_get_console_size
+#       lbg_dialog_size
+#   * GUI tools
+#       lbg_get_gui
+#       lbg_set_gui
+#   * Messages and notifications
+#       lbg_display_info
+#       lbg_display_warning
+#       lbg_display_error
+#       lbg_notify
+#   * User interaction
+#       lbg_yesno
+#       lbg_choose_option
+#       lbg_input_text
+#       lbg_input_password
+#   * Files and directories
+#       lbg_choose_directory
+#       lbg_choose_file
+#   * Aliases and compatibility
+#       lbg_display_critical
+#       lbg_display_debug
+#   * Initialization
+
+
 ####################
 #  MAIN VARIABLES  #
 ####################

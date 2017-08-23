@@ -11,6 +11,19 @@
 ' #                                                      #
 ' ########################################################
 
+' Index
+'
+'   * Init
+'   * Internal functions
+'       test_arguments
+'   * Functions
+'       lbg_display_info
+'       lbg_display_warning
+'       lbg_display_error
+'       lbg_yesno
+'       lbg_input_text
+'       lbg_choose_directory
+
 
 ' ##########
 ' #  INIT  #
