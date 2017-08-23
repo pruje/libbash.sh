@@ -43,6 +43,7 @@ fi
 #   * Files and directories
 #       lbg_choose_directory
 #       lbg_choose_file
+#       lbg_open_directory
 #   * Aliases and compatibility
 #       lbg_display_critical
 #       lbg_display_debug
@@ -1652,6 +1653,85 @@ EOF)
 	fi
 
 	return 0
+}
+
+
+# Open a directory in the folder explorer
+# Usage: lbg_open_directory [OPTIONS] [PATH...]
+lbg_open_directory() {
+
+	# default options
+	local lbg_opdir_explorer=""
+	local lbg_opdir_paths=()
+	local lbg_opdir_result=0
+
+	# catch options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-e|--explorer)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lbg_opdir_explorer="$2"
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
+
+	# if no path specified, use current directory
+	if [ -z "$*" ] ; then
+		lbg_opdir_paths=("$lb_current_path")
+	fi
+
+	# get specified path(s)
+	while [ -n "$1" ] ; do
+		# if not a directory, ignore it
+		if ! [ -d "$1" ] ; then
+			lbg_opdir_result=4
+			continue
+		fi
+		lbg_opdir_paths+=("$1")
+		shift
+	done
+
+	# if no existing directory, usage error
+	if [ ${#lbg_opdir_paths[@]} == 0 ] ; then
+		return 1
+	fi
+
+	# set OS explorer if not specified
+	if [ -z "$lbg_opdir_explorer" ] ; then
+		case $lb_current_os in
+			Linux)
+				lbg_opdir_explorer=xdg-open
+				;;
+			macOS)
+				lbg_opdir_explorer=open
+				;;
+			Windows)
+				lbg_opdir_explorer=explorer
+				;;
+		esac
+	fi
+
+	# test explorer command
+	if ! lb_command_exists "$lbg_opdir_explorer" ; then
+		return 2
+	fi
+
+	# open directories one by one
+	for ((lbg_opdir_i=0; lbg_opdir_i<${#lbg_opdir_paths[@]}; lbg_opdir_i++)) ; do
+		"$lbg_opdir_explorer" "${lbg_opdir_paths[$lbg_opdir_i]}"
+		if [ $? != 0 ] ; then
+			lbg_opdir_result=3
+		fi
+	done
+
+	return $lbg_opdir_result
 }
 
 
