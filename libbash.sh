@@ -2193,21 +2193,26 @@ lb_choose_option() {
 		for lb_chop_c in ${lb_chop_choices[@]} ; do
 			# check cancel option
 			if [ "$lb_chop_c" == "$lb_chop_cancel_label" ] ; then
+				lb_choose_option=()
 				return 2
 			fi
 
 			# check type
 			if ! lb_is_integer "$lb_chop_c" ; then
+				lb_choose_option=()
 				return 3
 			fi
 
 			# check if user choice is valid
 			if [ $lb_chop_c -lt 1 ] || [ $lb_chop_c -ge ${#lb_chop_options[@]} ] ; then
+				lb_choose_option=()
 				return 3
 			fi
 
-			# save choice
-			lb_choose_option+=($lb_chop_c)
+			# save choice if not already done
+			if ! lb_array_contains $lb_chop_c "${lb_choose_option[@]}" ; then
+				lb_choose_option+=($lb_chop_c)
+			fi
 		done
 	fi
 
@@ -2331,12 +2336,14 @@ lb_input_password() {
 	done
 
 	# text label
-	if [ -n "$*" ] ; then
+	if [ $# -gt 0 ] ; then
 		lb_inpw_label=$*
 	fi
 
+	# print question
+	echo -n -e "$lb_inpw_label "
 	# prompt user for password
-	read -s -p "$lb_inpw_label " lb_input_password
+	read -s -r lb_input_password
 	# line return
 	echo
 
@@ -2361,8 +2368,10 @@ lb_input_password() {
 	# if confirmation, save current password
 	lb_inpw_password_confirm=$lb_input_password
 
+	# print confirmation
+	echo -n -e "$lb_inpw_confirm_label "
 	# prompt password confirmation
-	read -s -p "$lb_inpw_confirm_label " lb_inpw_password_confirm
+	read -s -r lb_inpw_password_confirm
 	# line return
 	echo
 
