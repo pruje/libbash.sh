@@ -58,6 +58,7 @@
 #       lb_in_group
 #       lb_generate_password
 #       lb_email
+#       lb_import_config
 #   * User interacion
 #       lb_yesno
 #       lb_choose_option
@@ -1967,6 +1968,53 @@ lb_email() {
 	esac
 
 	return 0
+}
+
+
+# Import a config file into bash variables
+# Usage: lb_import_config PATH [PATH...]
+lb_import_config() {
+
+	# usage error
+	if [ $# == 0 ] ; then
+		return 1
+	fi
+
+	local lb_impcf_result=0
+
+	# for each file
+	while [ -n "$1" ] ; do
+		if [ -f "$1" ] ; then
+			return 1
+		fi
+
+		# read file line by line
+		while read -r lb_impcf_line ; do
+			# test if line is not a comment
+			if lb_is_comment $lb_impcf_line ; then
+				continue
+			fi
+
+			# check syntax of the line
+			echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z_]+\s*=\s*\S*.*"
+			if [ $? != 0 ] ; then
+				continue
+			fi
+
+			# get parameter
+			lb_impcf_param=$(echo $lb_impcf_line | cut -d= -f1 | tr -d [:space:])
+
+			# run command to attribute value to variable
+			eval "$lb_impcf_param=$(echo "$lb_impcf_line" | sed 's/^.*=\s*//g;')"
+			if [ $? != 0 ] ; then
+				lb_impcf_result=2
+			fi
+		done < "$1"
+
+		shift # use next file
+	done
+
+	return $lb_impcf_result
 }
 
 
