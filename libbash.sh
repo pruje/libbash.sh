@@ -2010,7 +2010,7 @@ lb_import_config() {
 			lb_impcf_param=$(echo $lb_impcf_line | cut -d= -f1 | tr -d [:space:])
 
 			# run command to attribute value to variable
-			eval "$lb_impcf_param=$(echo "$lb_impcf_line" | sed 's/^.*=[[:space:]]*//g')"
+			eval "$lb_impcf_param=$(echo "$lb_impcf_line" | sed 's/^.*=[[:space:]]*//g; s/\$/\\\$/g; s/\`/\\\`/g')" &> /dev/null
 			if [ $? != 0 ] ; then
 				lb_impcf_result=2
 			fi
