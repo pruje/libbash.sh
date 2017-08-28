@@ -1984,12 +1984,17 @@ lb_import_config() {
 
 	# for each file
 	while [ -n "$1" ] ; do
-		if [ -f "$1" ] ; then
+		if ! [ -f "$1" ] ; then
 			return 1
 		fi
 
 		# read file line by line
 		while read -r lb_impcf_line ; do
+			# if line empty, ignore it
+			if [ ${#lb_impcf_line} == 0 ] ; then
+				continue
+			fi
+
 			# test if line is not a comment
 			if lb_is_comment $lb_impcf_line ; then
 				continue
@@ -2005,7 +2010,7 @@ lb_import_config() {
 			lb_impcf_param=$(echo $lb_impcf_line | cut -d= -f1 | tr -d [:space:])
 
 			# run command to attribute value to variable
-			eval "$lb_impcf_param=$(echo "$lb_impcf_line" | sed 's/^.*=\s*//g;')"
+			eval "$lb_impcf_param=$(echo "$lb_impcf_line" | sed 's/^.*=[[:space:]]*//g')"
 			if [ $? != 0 ] ; then
 				lb_impcf_result=2
 			fi
