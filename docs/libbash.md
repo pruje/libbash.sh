@@ -1184,6 +1184,12 @@ lb_email --subject "Test" me@example.com "Hello, this is a message!"
 ### lb_import_config
 Import a config file into bash variables.
 
+Config files must be text files with the following features:
+- Parameters are defined like: `param=value` or `param = value`
+- Values with spaces should have quotes like: `param = 'my value'` or `param = "my value"`
+- Lines beginning with the `#` character are considered as comments and will not be imported
+- Lines that contains $ and \` characters are not imported to avoid shell injection. You can import them anyway with the `--unsecure` option (see below).
+
 #### Usage
 ```bash
 lb_import_config [OPTIONS] PATH [PATH...]
