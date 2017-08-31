@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 (2017-08-31)
+- New function: `lb_import_config()` to read a file and import values into variables
+- New function: `lbg_open_directory()` to open a GUI file browser
+- New `--multiple` option in `lb_choose_option()` to let user choose multiple options
+- Changed arguments for `lb_input_password()` and `lbg_input_password()` (this does not break backward compatibility)
+- Minor code improvements
+
 ## 1.2.2 (2017-06-29)
 - Removed \n printed on Windows dialogs
 
