@@ -1972,15 +1972,34 @@ lb_email() {
 
 
 # Import a config file into bash variables
-# Usage: lb_import_config PATH [PATH...]
+# Usage: lb_import_config [OPTIONS] PATH [PATH...]
 lb_import_config() {
+
+	# local variables and default options
+	local lb_impcf_result=0
+	local lb_impcf_errors=false
+	local lb_impcf_secure=true
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-e|--errors)
+				lb_impcf_errors=true
+				;;
+			-u|--unsecure)
+				lb_impcf_secure=false
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
 
 	# usage error
 	if [ $# == 0 ] ; then
 		return 1
 	fi
-
-	local lb_impcf_result=0
 
 	# for each file
 	while [ -n "$1" ] ; do
@@ -2001,16 +2020,31 @@ lb_import_config() {
 			fi
 
 			# check syntax of the line
-			echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z_]+\s*=\s*\S*.*"
+			echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z0-9_]+\s*=\s*\S*.*"
 			if [ $? != 0 ] ; then
+				if $lb_impcf_errors ; then
+					lb_impcf_result=3
+				fi
 				continue
 			fi
 
-			# get parameter
-			lb_impcf_param=$(echo $lb_impcf_line | cut -d= -f1 | tr -d [:space:])
+			# get parameter and value
+			lb_impcf_param=$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[:space:]')
+			lb_impcf_value=$(echo "$lb_impcf_line" | sed 's/^.*=[[:space:]]*//g')
+
+			# secure config values with prevent bash injection
+			if $lb_impcf_secure ; then
+				echo "$lb_impcf_value" | grep -qE '\$|`'
+				if [ $? == 0 ] ; then
+					if $lb_impcf_errors ; then
+						lb_impcf_result=4
+					fi
+					continue
+				fi
+			fi
 
 			# run command to attribute value to variable
-			eval "$lb_impcf_param=$(echo "$lb_impcf_line" | sed 's/^.*=[[:space:]]*//g; s/\$/\\\$/g; s/\`/\\\`/g')" &> /dev/null
+			eval "$lb_impcf_param=$lb_impcf_value" &> /dev/null
 			if [ $? != 0 ] ; then
 				lb_impcf_result=2
 			fi
