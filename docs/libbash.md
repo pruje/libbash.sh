@@ -89,6 +89,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_in_group](#lb_in_group)
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)
+	* [lb_import_config](#lb_import_config)
 * User interaction
 	* [lb_yesno](#lb_yesno)
 	* [lb_choose_option](#lb_choose_option)
@@ -1176,6 +1177,35 @@ lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 #### Example
 ```bash
 lb_email --subject "Test" me@example.com "Hello, this is a message!"
+```
+
+---------------------------------------------------------------
+<a name="lb_import_config"></a>
+### lb_import_config
+Import a config file into bash variables.
+
+#### Usage
+```bash
+lb_import_config [OPTIONS] PATH [PATH...]
+```
+
+#### Options
+```
+-e, --all-errors  Return all errors in exit codes
+-u, --unsecure    Do not prevent shell injection (could be dangerous)
+```
+
+#### Exit codes
+- 0: Configuration imported
+- 1: Usage error
+- 2: One or more parameters were not imported
+- 3: One or more line has a bad syntax (if `--all-errors` option is enabled)
+- 4: One or more line contains shell commands or variables (if `--all-errors` option is enabled)
+
+#### Example
+```bash
+lb_import_config my_config.conf
+echo $myoption1
 ```
 
 ---------------------------------------------------------------

@@ -1983,7 +1983,7 @@ lb_import_config() {
 	# get options
 	while [ -n "$1" ] ; do
 		case $1 in
-			-e|--errors)
+			-e|--all-errors)
 				lb_impcf_errors=true
 				;;
 			-u|--unsecure)
