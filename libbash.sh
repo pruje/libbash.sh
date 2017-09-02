@@ -2003,8 +2003,14 @@ lb_import_config() {
 
 	# for each file
 	while [ -n "$1" ] ; do
+		# test if file exists
 		if ! [ -f "$1" ] ; then
 			return 1
+		fi
+
+		# test if file is readable
+		if ! [ -r "$1" ] ; then
+			return 5
 		fi
 
 		# read file line by line

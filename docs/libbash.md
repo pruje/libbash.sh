@@ -1207,6 +1207,7 @@ lb_import_config [OPTIONS] PATH [PATH...]
 - 2: One or more parameters were not imported
 - 3: One or more line has a bad syntax (if `--all-errors` option is enabled)
 - 4: One or more line contains shell commands or variables (if `--all-errors` option is enabled)
+- 5: File exists but is not readable
 
 #### Example
 ```bash
