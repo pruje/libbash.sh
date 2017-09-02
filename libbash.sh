@@ -1459,10 +1459,10 @@ lb_df_space_left() {
 	fi
 
 	# get space available
-	if [ "$lb_current_os" == "macOS" ] ; then
-		df -b "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
+	if [ "$lb_current_os" == macOS ] ; then
+		df -k "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
 	else
-		df -B1 --output=avail "$*" 2> /dev/null | tail -n 1
+		df -k --output=avail "$*" 2> /dev/null | tail -n 1
 	fi
 
 	# get df errors

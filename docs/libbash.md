@@ -858,7 +858,7 @@ root_fstype=$(lb_df_fstype /)
 ---------------------------------------------------------------
 <a name="lb_df_space_left"></a>
 ### lb_df_space_left
-Get space left on partition in bytes.
+Get space left on partition in kilobytes (1KB = 1024 bytes).
 
 #### Usage
 ```bash
