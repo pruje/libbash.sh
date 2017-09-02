@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.3.0 (2017-08-31)                          #
+#  Version 1.3.1 (2017-09-02)                          #
 #                                                      #
 ########################################################
 
@@ -88,7 +88,7 @@
 ####################
 
 # libbash main variables
-lb_version="1.3.0"
+lb_version=1.3.1
 lb_path=$BASH_SOURCE
 lb_directory=$(dirname "$lb_path")
 

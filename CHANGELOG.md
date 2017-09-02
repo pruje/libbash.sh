@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (2017-09-02)
+- Changed results of `lb_df_space_left()` in KB instead of bytes to avoid differences between Linux and macOS
+- Add test and error code for files not readable in `lb_import_config()`
+
 ## 1.3.0 (2017-08-31)
 - New function: `lb_import_config()` to read a file and import values into variables
 - New function: `lbg_open_directory()` to open a GUI file browser

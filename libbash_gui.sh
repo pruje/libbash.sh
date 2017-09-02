@@ -7,19 +7,9 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.3.0 (2017-08-31)                          #
+#  Version 1.3.1 (2017-09-02)                          #
 #                                                      #
 ########################################################
-
-
-# test if libbash.sh is loaded
-if [ -z "$lb_version" ] ; then
-	echo >&2 "Error: libbash core not loaded!"
-	echo >&2 "Please load it in your script before loading this library with command:"
-	echo >&2 "   source \"/path/to/libbash.sh\""
-	return 1
-fi
-
 
 # Index
 #
@@ -48,6 +38,15 @@ fi
 #       lbg_display_critical
 #       lbg_display_debug
 #   * Initialization
+
+
+# test if libbash.sh is loaded
+if [ -z "$lb_version" ] ; then
+	echo >&2 "Error: libbash core not loaded!"
+	echo >&2 "Please load it in your script before loading this library with command:"
+	echo >&2 "   source \"/path/to/libbash.sh\""
+	return 1
+fi
 
 
 ####################
