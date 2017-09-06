@@ -148,8 +148,6 @@ lb_command_exists() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -163,18 +161,16 @@ lb_function_exists() {
 	fi
 
 	# get type of argument
-	lb_function_exists_res=$(type -t "$1")
+	lb_function_exists_type=$(type -t "$1")
 	if [ $? != 0 ] ; then
 		# if failed to get type, it does not exists
 		return 2
 	fi
 
 	# test if is not a function
-	if [ "$lb_function_exists_res" != "function" ] ; then
+	if [ "$lb_function_exists_type" != function ] ; then
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -215,8 +211,6 @@ lb_test_arguments() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -790,7 +784,7 @@ lb_set_logfile() {
 	done
 
 	# test arguments
-	if lb_test_arguments -eq 0 $* ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -829,8 +823,6 @@ lb_set_logfile() {
 			lb_log_level=$((${#lb_log_levels[@]} - 1))
 		fi
 	fi
-
-	return 0
 }
 
 
@@ -981,6 +973,8 @@ lb_log() {
 
 	# initialize log text
 	local lb_log_text=""
+	# tee options
+	local lb_log_teeopts=""
 
 	# add date prefix
 	if $lb_log_date ; then
@@ -997,9 +991,6 @@ lb_log() {
 	# prepare text
 	lb_log_text+=$*
 
-	# tee options
-	lb_log_teeopts=""
-
 	# if not erase, append to file with tee -a
 	if ! $lb_log_erase ; then
 		lb_log_teeopts="-a "
@@ -1012,8 +1003,6 @@ lb_log() {
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -1034,8 +1023,6 @@ lb_is_number() {
 	if ! [[ $1 =~ ^-?[0-9]+([.][0-9]+)?$ ]] ; then
 		return 1
 	fi
-
-	return 0
 }
 
 
@@ -1054,8 +1041,6 @@ lb_is_integer() {
 	if ! [[ $1 =~ ^-?[0-9]+$ ]] ; then
 		return 1
 	fi
-
-	return 0
 }
 
 
@@ -1095,7 +1080,7 @@ lb_is_comment() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_iscom_symbols=("$2")
+				lb_iscom_symbols+=("$2")
 				shift
 				;;
 			-n|--not-empty)
@@ -1109,10 +1094,10 @@ lb_is_comment() {
 	done
 
 	# delete spaces to find the first character
-	lb_iscom_line=$(echo $* | tr -d '[:space:]')
+	lb_iscom_line=$(echo $1 | tr -d '[[:space:]]')
 
 	# empty line
-	if [ -z "$lb_iscom_line" ] ; then
+	if [ ${#lb_iscom_line} == 0 ] ; then
 		if $lb_iscom_empty ; then
 			return 0
 		else
@@ -1146,7 +1131,7 @@ lb_is_comment() {
 lb_trim() {
 
 	# empty text: do nothing
-	if [ -z "$*" ] ; then
+	if [ $# == 0 ] ; then
 		return 0
 	fi
 
@@ -1439,8 +1424,6 @@ lb_df_fstype() {
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -1469,8 +1452,6 @@ lb_df_space_left() {
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -1499,8 +1480,6 @@ lb_df_mountpoint() {
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -1551,8 +1530,6 @@ lb_df_uuid() {
 	if [ ${PIPESTATUS[0]} != 0 ] ; then
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -1597,8 +1574,6 @@ lb_dir_is_empty() {
 	if [ "$lb_dir_is_empty_res" ] ; then
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -1647,8 +1622,6 @@ lb_abspath() {
 
 		echo "$lb_abspath_path"
 	fi
-
-	return 0
 }
 
 
@@ -1714,8 +1687,6 @@ lb_is_writable() {
 			return 3
 		fi
 	fi
-
-	return 0
 }
 
 
@@ -1966,8 +1937,6 @@ lb_email() {
 			return 2
 			;;
 	esac
-
-	return 0
 }
 
 
@@ -1976,7 +1945,6 @@ lb_email() {
 lb_import_config() {
 
 	# local variables and default options
-	local lb_impcf_result=0
 	local lb_impcf_errors=false
 	local lb_impcf_secure=true
 
@@ -1996,10 +1964,12 @@ lb_import_config() {
 		shift # load next argument
 	done
 
-	# usage error
+	# usage error if not file
 	if [ $# == 0 ] ; then
 		return 1
 	fi
+
+	local lb_impcf_result=0
 
 	# for each file
 	while [ -n "$1" ] ; do
@@ -2021,13 +1991,12 @@ lb_import_config() {
 			fi
 
 			# test if line is not a comment
-			if lb_is_comment $lb_impcf_line ; then
+			if echo $lb_impcf_line | grep -q '^\s*#' ; then
 				continue
 			fi
 
 			# check syntax of the line
-			echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z0-9_]+\s*=\s*\S*.*"
-			if [ $? != 0 ] ; then
+			if ! echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
 				if $lb_impcf_errors ; then
 					lb_impcf_result=3
 				fi
@@ -2035,13 +2004,11 @@ lb_import_config() {
 			fi
 
 			# get parameter and value
-			lb_impcf_param=$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[:space:]')
 			lb_impcf_value=$(echo "$lb_impcf_line" | sed 's/^.*=[[:space:]]*//g')
 
 			# secure config values with prevent bash injection
 			if $lb_impcf_secure ; then
-				echo "$lb_impcf_value" | grep -qE '\$|`'
-				if [ $? == 0 ] ; then
+				if echo $lb_impcf_value | grep -qE '\$|`' ; then
 					if $lb_impcf_errors ; then
 						lb_impcf_result=4
 					fi
@@ -2050,13 +2017,13 @@ lb_import_config() {
 			fi
 
 			# run command to attribute value to variable
-			eval "$lb_impcf_param=$lb_impcf_value" &> /dev/null
+			eval "$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[[:space:]]')=$lb_impcf_value" &> /dev/null
 			if [ $? != 0 ] ; then
 				lb_impcf_result=2
 			fi
 		done < "$1"
 
-		shift # use next file
+		shift # read next file
 	done
 
 	return $lb_impcf_result
@@ -2116,7 +2083,7 @@ lb_yesno() {
 	done
 
 	# usage error if question is missing
-	if lb_test_arguments -eq 0 $* ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -2162,8 +2129,6 @@ lb_yesno() {
 			return 2
 		fi
 	fi
-
-	return 0
 }
 
 
@@ -2308,8 +2273,6 @@ lb_choose_option() {
 			fi
 		done
 	fi
-
-	return 0
 }
 
 
@@ -2346,7 +2309,7 @@ lb_input_text() {
 	done
 
 	# usage error if text is not defined
-	if lb_test_arguments -eq 0 $* ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
@@ -2372,8 +2335,6 @@ lb_input_text() {
 			return 2
 		fi
 	fi
-
-	return 0
 }
 
 
@@ -2473,8 +2434,6 @@ lb_input_password() {
 		lb_input_password=""
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -2717,7 +2676,7 @@ lb_current_user=$(whoami)
 lb_exitcode=0
 
 # if macOS, do not print with colours
-if [ "$lb_current_os" == "macOS" ] ; then
+if [ "$lb_current_os" == macOS ] ; then
 	lb_format_print=false
 fi
 
