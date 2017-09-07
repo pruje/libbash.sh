@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.3.1 (2017-09-02)                          #
+#  Version 1.3.2 (2017-09-07)                          #
 #                                                      #
 ########################################################
 
@@ -92,8 +92,6 @@ lbg_get_console_size() {
 	if [ -z "$lbg_console_width" ] || [ -z "$lbg_console_height" ] ; then
 		return 1
 	fi
-
-	return 0
 }
 
 
@@ -157,7 +155,7 @@ lbg_set_gui() {
 	for lbg_sgt in ${lbg_setgui_tools[@]} ; do
 
 		# set console mode is always OK
-		if [ "$lbg_sgt" == "console" ] ; then
+		if [ "$lbg_sgt" == console ] ; then
 			lbg_setgui_res=0
 			break
 		fi
@@ -185,14 +183,14 @@ lbg_set_gui() {
 				;;
 			osascript)
 				# test OS
-				if [ "$lb_current_os" != "macOS" ] ; then
+				if [ "$lb_current_os" != macOS ] ; then
 					lbg_setgui_res=4
 					continue
 				fi
 				;;
 			cscript)
 				# test OS
-				if [ "$lb_current_os" != "Windows" ] ; then
+				if [ "$lb_current_os" != Windows ] ; then
 					lbg_setgui_res=4
 					continue
 				fi
@@ -205,7 +203,7 @@ lbg_set_gui() {
 				;;
 			*)
 				# test if X server started (only for Linux and Windows)
-				if [ "$lb_current_os" != "macOS" ] ; then
+				if [ "$lb_current_os" != macOS ] ; then
 					if [ -z "$DISPLAY" ] ; then
 						lbg_setgui_res=4
 						continue
@@ -329,8 +327,6 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -420,8 +416,6 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -511,8 +505,6 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -617,8 +609,6 @@ EOF
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -795,8 +785,6 @@ EOF)
 	if [ $? != 0 ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -1026,8 +1014,6 @@ EOF)
 		lbg_choose_option=""
 		return 3
 	fi
-
-	return 0
 }
 
 
@@ -1139,8 +1125,6 @@ EOF)
 	if [ -z "$lbg_input_text" ] ; then
 		return 2
 	fi
-
-	return 0
 }
 
 
@@ -1443,8 +1427,6 @@ EOF)
 			return 4
 		fi
 	fi
-
-	return 0
 }
 
 
@@ -1650,8 +1632,6 @@ EOF)
 		# return choice
 		lbg_choose_file=$lbg_choosefile_choice
 	fi
-
-	return 0
 }
 
 

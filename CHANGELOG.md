@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.2 (2017-09-07)
+- Various performance improvements
+
 ## 1.3.1 (2017-09-02)
 - Changed results of `lb_df_space_left()` in KB instead of bytes to avoid differences between Linux and macOS
 - Add test and error code for files not readable in `lb_import_config()`
