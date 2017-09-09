@@ -1985,16 +1985,6 @@ lb_import_config() {
 
 		# read file line by line
 		while read -r lb_impcf_line ; do
-			# if line empty, ignore it
-			if [ ${#lb_impcf_line} == 0 ] ; then
-				continue
-			fi
-
-			# test if line is not a comment
-			if echo $lb_impcf_line | grep -q '^\s*#' ; then
-				continue
-			fi
-
 			# check syntax of the line
 			if ! echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
 				if $lb_impcf_errors ; then
@@ -2004,7 +1994,7 @@ lb_import_config() {
 			fi
 
 			# get parameter and value
-			lb_impcf_value=$(echo "$lb_impcf_line" | sed 's/^.*=[[:space:]]*//g')
+			lb_impcf_value=$(echo "$lb_impcf_line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//')
 
 			# secure config values with prevent bash injection
 			if $lb_impcf_secure ; then
@@ -2021,7 +2011,7 @@ lb_import_config() {
 			if [ $? != 0 ] ; then
 				lb_impcf_result=2
 			fi
-		done < "$1"
+		done < <(cat "$1" | grep -Ev '^$' | grep -Ev '^\s*#')
 
 		shift # read next file
 	done
