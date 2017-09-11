@@ -1940,6 +1940,44 @@ lb_email() {
 }
 
 
+# Read a config file
+# Usage: lb_read_config PATH
+lb_read_config=()
+lb_read_config() {
+
+	# reset variable
+	lb_read_config=()
+
+	# usage error
+	if ! [ -f "$1" ] ; then
+		return 1
+	fi
+
+	# test if file is readable
+	if ! [ -r "$1" ] ; then
+		return 2
+	fi
+
+	# read config file line by line; backslashes are not escaped
+	while read -r lb_rdcf_line ; do
+
+		# testing if file has Windows format (\r at the end of line)
+		if [ "${lb_rdcf_line:${#lb_rdcf_line}-1}" == $'\r' ] ; then
+			# if line is empty (just this character), ignore it
+			if [ ${#lb_rdcf_line} == 1 ] ; then
+				continue
+			fi
+
+			# delete the last character \r
+			lb_rdcf_line=${lb_rdcf_line:0:${#lb_rdcf_line}-1}
+		fi
+
+		# add line to the lb_read_config variable
+		lb_read_config+=("$lb_rdcf_line")
+	done < <(cat "$1" | grep -Ev '^$' | grep -Ev '^\s*#')
+}
+
+
 # Import a config file into bash variables
 # Usage: lb_import_config [OPTIONS] PATH [PATH...]
 lb_import_config() {
@@ -1964,7 +2002,7 @@ lb_import_config() {
 		shift # load next argument
 	done
 
-	# usage error if not file
+	# usage error if no file
 	if [ $# == 0 ] ; then
 		return 1
 	fi
@@ -1991,6 +2029,17 @@ lb_import_config() {
 					lb_impcf_result=3
 				fi
 				continue
+			fi
+
+			# testing if file has Windows format (\r at the end of line)
+			if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
+				# if line is empty (just this character), ignore it
+				if [ ${#lb_impcf_line} == 1 ] ; then
+					continue
+				fi
+
+				# delete the last character \r
+				lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
 			fi
 
 			# get parameter and value
