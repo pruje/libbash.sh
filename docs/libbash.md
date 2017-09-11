@@ -1183,7 +1183,7 @@ lb_email --subject "Test" me@example.com "Hello, this is a message!"
 ---------------------------------------------------------------
 <a name="lb_read_config"></a>
 ### lb_read_config
-Read a config file.
+Read a config file and put lines into the `$read_config` array variable.
 
 Config files must be text files with the following features:
 - Lines beginning with the `#` character are considered as comments and will not be imported
