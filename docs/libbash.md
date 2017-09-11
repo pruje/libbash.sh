@@ -832,8 +832,8 @@ Results for each filesystem type:
 - FAT16/FAT32:
     - Linux/Windows: `vfat`
     - macOS: `msdos`
-- exFAT: `exfat`
-- NTFS: `ntfs`
+- exFAT: `exfat` (for Linux systems without lsblk command, will return `fuseblk`)
+- NTFS: `ntfs` (for Linux systems without lsblk command, will return `fuseblk`)
 - HFS+:
     - Linux: `hfsplus`
     - macOS: `hfs`

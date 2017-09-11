@@ -1394,14 +1394,19 @@ lb_df_fstype() {
 
 	case $lb_current_os in
 		Linux)
-			# get device
-			lb_dffstype_device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
-			if [ -z "$lb_dffstype_device" ] ; then
-				return 3
-			fi
+			if lb_command_exists lsblk ; then
+				# get device
+				lb_dffstype_device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
+				if [ -z "$lb_dffstype_device" ] ; then
+					return 3
+				fi
 
-			# get "real" fs type
-			lsblk --output=FSTYPE "$lb_dffstype_device" 2> /dev/null | tail -n 1
+				# get "real" fs type
+				lsblk --output=FSTYPE "$lb_dffstype_device" 2> /dev/null | tail -n 1
+			else
+				# no lsblk command: use df command
+				df --output=fstype "$*" 2> /dev/null | tail -n 1
+			fi
 			;;
 
 		macOS)
