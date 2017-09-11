@@ -89,6 +89,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_in_group](#lb_in_group)
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)
+	* [lb_read_config](#lb_read_config)
 	* [lb_import_config](#lb_import_config)
 * User interaction
 	* [lb_yesno](#lb_yesno)
@@ -1180,6 +1181,34 @@ lb_email --subject "Test" me@example.com "Hello, this is a message!"
 ```
 
 ---------------------------------------------------------------
+<a name="lb_read_config"></a>
+### lb_read_config
+Read a config file.
+
+Config files must be text files with the following features:
+- Lines beginning with the `#` character are considered as comments and will not be imported
+
+#### Usage
+```bash
+lb_read_config PATH
+```
+
+#### Exit codes
+- 0: File read
+- 1: Usage error or file(s) does not exists
+- 2: File exists but is not readable
+
+#### Example
+```bash
+lb_read_config my_config.conf
+
+# print each non-empty and non-comment lines
+for ((i = 0 ; i < ${#lb_read_config[@]} ; i++)) ; do
+	echo "${lb_read_config[$i]}"
+done
+```
+
+---------------------------------------------------------------
 <a name="lb_import_config"></a>
 ### lb_import_config
 Import a config file into bash variables.
@@ -1203,7 +1232,7 @@ lb_import_config [OPTIONS] PATH [PATH...]
 
 #### Exit codes
 - 0: Configuration imported
-- 1: Usage error
+- 1: Usage error or file(s) does not exists
 - 2: One or more parameters were not imported
 - 3: One or more line has a bad syntax (if `--all-errors` option is enabled)
 - 4: One or more line contains shell commands or variables (if `--all-errors` option is enabled)
