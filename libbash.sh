@@ -1968,18 +1968,13 @@ lb_read_config() {
 
 		# testing if file has Windows format (\r at the end of line)
 		if [ "${lb_rdcf_line:${#lb_rdcf_line}-1}" == $'\r' ] ; then
-			# if line is empty (just this character), ignore it
-			if [ ${#lb_rdcf_line} == 1 ] ; then
-				continue
-			fi
-
 			# delete the last character \r
 			lb_rdcf_line=${lb_rdcf_line:0:${#lb_rdcf_line}-1}
 		fi
 
 		# add line to the lb_read_config variable
 		lb_read_config+=("$lb_rdcf_line")
-	done < <(cat "$1" | grep -Ev '^$' | grep -Ev '^\s*#')
+	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*#')
 }
 
 
@@ -2028,23 +2023,19 @@ lb_import_config() {
 
 		# read file line by line
 		while read -r lb_impcf_line ; do
+
+			# testing if file has Windows format (\r at the end of line)
+			if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
+				# delete the last character \r
+				lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
+			fi
+
 			# check syntax of the line
 			if ! echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
 				if $lb_impcf_errors ; then
 					lb_impcf_result=3
 				fi
 				continue
-			fi
-
-			# testing if file has Windows format (\r at the end of line)
-			if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
-				# if line is empty (just this character), ignore it
-				if [ ${#lb_impcf_line} == 1 ] ; then
-					continue
-				fi
-
-				# delete the last character \r
-				lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
 			fi
 
 			# get parameter and value
@@ -2065,7 +2056,7 @@ lb_import_config() {
 			if [ $? != 0 ] ; then
 				lb_impcf_result=2
 			fi
-		done < <(cat "$1" | grep -Ev '^$' | grep -Ev '^\s*#')
+		done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*#')
 
 		shift # read next file
 	done
