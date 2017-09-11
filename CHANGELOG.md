@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 (2017-09-11)
+- New function: `lb_read_config()` to read a config file (like `lb_import_config()` without assigning to variables)
+- Fixed a bug in `lb_import_config()` for values containing the `=` character
+- Huge performance improvements in `lb_import_config()`
+- Add support in `lb_df_fstype()` for Linux systems without `lsblk` command
+
 ## 1.3.2 (2017-09-07)
 - Various performance improvements
 
