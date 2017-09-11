@@ -1183,10 +1183,12 @@ lb_email --subject "Test" me@example.com "Hello, this is a message!"
 ---------------------------------------------------------------
 <a name="lb_read_config"></a>
 ### lb_read_config
-Read a config file and put lines into the `$read_config` array variable.
+Read a config file and put lines into the `${lb_read_config[@]}` array variable.
 
 Config files must be text files with the following features:
-- Lines beginning with the `#` character are considered as comments and will not be imported
+- If the first non-space character is `#`, line is considered as a comment and will be ignored
+- Empty lines are ignored
+- Files with Windows endings (`\r\n`) are supported
 
 #### Usage
 ```bash
@@ -1211,13 +1213,15 @@ done
 ---------------------------------------------------------------
 <a name="lb_import_config"></a>
 ### lb_import_config
-Import a config file into bash variables.
+Import config file(s) and assign values to bash variables.
 
 Config files must be text files with the following features:
 - Parameters are defined like: `param=value` or `param = value`
 - Values with spaces should have quotes like: `param = 'my value'` or `param = "my value"`
-- Lines beginning with the `#` character are considered as comments and will not be imported
+- If the first non-space character is `#`, line is considered as a comment and will be ignored
+- Empty lines are ignored
 - Lines that contains $ and \` characters are not imported to avoid shell injection. You can import them anyway with the `--unsecure` option (see below).
+- Files with Windows endings (`\r\n`) are supported
 
 #### Usage
 ```bash
@@ -1240,8 +1244,20 @@ lb_import_config [OPTIONS] PATH [PATH...]
 
 #### Example
 ```bash
+### content of my_config.conf
+# my config file
+bye_message="Bye bye!"
+
+shutdown_cmd = (shutdown -h now)
+### end content of my_config.conf
+
 lb_import_config my_config.conf
-echo $myoption1
+
+# print bye message
+echo $bye_message
+
+# halt pc
+"${shutdown_cmd[@]}"
 ```
 
 ---------------------------------------------------------------
