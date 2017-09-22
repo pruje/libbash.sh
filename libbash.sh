@@ -2001,7 +2001,7 @@ lb_read_config() {
 
 		# add line to the lb_read_config variable
 		lb_read_config+=("$lb_rdcf_line")
-	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*#')
+	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
 }
 
 
@@ -2083,7 +2083,7 @@ lb_import_config() {
 			if [ $? != 0 ] ; then
 				lb_impcf_result=2
 			fi
-		done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*#')
+		done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
 
 		shift # read next file
 	done
