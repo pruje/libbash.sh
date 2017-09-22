@@ -87,6 +87,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_current_os](#lb_current_os)
 	* [lb_user_exists](#lb_user_exists)
 	* [lb_in_group](#lb_in_group)
+	* [lb_group_members](#lb_group_members)*
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)
 	* [lb_read_config](#lb_read_config)
@@ -1119,6 +1120,30 @@ Note: if USER is not specified, current user is used
 if lb_in_group empire ; then
     echo "You are part of the empire."
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_group_members"></a>
+### lb_group_members
+List users member of a group.
+
+**WARNING**: This function is supported only on Linux systems.
+
+#### Usage
+```bash
+lb_group_members GROUP
+```
+
+#### Exit codes
+- 0: Members are returned
+- 1: Usage error
+- 2: Group does not exists
+- 3: Not supported
+
+#### Example
+```bash
+# get system administrators
+administrators=(lb_group_members adm)
 ```
 
 ---------------------------------------------------------------

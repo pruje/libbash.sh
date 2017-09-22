@@ -7,7 +7,7 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.4.1 (2017-09-14)                          #
+#  Version 1.5.0 (2017-09-22)                          #
 #                                                      #
 ########################################################
 
@@ -56,6 +56,7 @@
 #       lb_current_os
 #       lb_user_exists
 #       lb_in_group
+#       lb_group_members
 #       lb_generate_password
 #       lb_email
 #       lb_import_config
@@ -88,7 +89,7 @@
 ####################
 
 # libbash main variables
-lb_version=1.4.1
+lb_version=1.5.0-beta.1
 lb_path=$BASH_SOURCE
 lb_directory=$(dirname "$lb_path")
 
@@ -118,12 +119,12 @@ lb_default_newfile_name="New file"
 # default log and display levels (CRITICAL ERROR WARNING INFO DEBUG)
 lb_log_levels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
-# initialize log file, log level and display level variables
+# initialize global variables
 lb_logfile=""
 lb_log_level=""
 lb_display_level=""
 
-# print format
+# print formatted strings in console
 lb_format_print=true
 
 # command to execute when exit
@@ -1760,6 +1761,32 @@ lb_in_group() {
 
 	# find if user is in group
 	lb_array_contains "$1" "${lb_ingroup_groups[@]}"
+}
+
+
+# Get users members of a group
+# Usage: lb_group_members GROUP
+lb_group_members() {
+
+	# usage errors
+	if [ -z "$1" ] ; then
+		return 1
+	fi
+
+	# not compatible with macOS and Windows
+	if [ "$lb_current_os" != Linux ] ; then
+		return 3
+	fi
+
+	# get line of group file
+	local lb_grpmem_line=$(grep -E "^$1:.*:" /etc/group 2> /dev/null)
+
+	# if error (group not found), exit
+	if [ -z "$lb_grpmem_line" ] ; then
+		return 2
+	fi
+
+	echo "$lb_grpmem_line" | sed "s/^$1:.*://; s/,/ /g"
 }
 
 
