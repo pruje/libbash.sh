@@ -2149,7 +2149,7 @@ lb_import_config() {
 			fi
 
 			# get parameter and value
-			lb_impcf_value=$(echo "$lb_impcf_line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//')
+			lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^\s*[a-zA-Z0-9_]*\s*=\s*//")
 
 			# secure config values with prevent bash injection
 			if $lb_impcf_secure ; then
@@ -2187,12 +2187,12 @@ lb_import_config() {
 #   4: Error in setting config
 lb_set_config() {
 
-	local lb_setconf_strict=false
+	local lb_setcf_strict=false
 
 	while [ -n "$1" ] ; do
 		case $1 in
 			-s|--strict)
-				lb_setconf_strict=true
+				lb_setcf_strict=true
 				;;
 			*)
 				break
@@ -2214,36 +2214,46 @@ lb_set_config() {
 		return 2
 	fi
 
-	local lb_setconf_file=$1
-	local lb_setconf_param=$2
+	local lb_setcf_file=$1
+	local lb_setcf_param=$2
 	shift 2
 
-	local lb_setconf_value=$(echo "$*" | sed 's/\//\\\//g')
+	# get value
+	local lb_setcf_value=$*
+
+	# Windows files: add \r at the end of line
+	if [ "$lb_current_os" == Windows ] ; then
+		lb_setcf_value+="\r"
+	fi
 
 	# search config line
-	local lb_setconf_line=($(grep -n "^[# ]*$lb_setconf_param[[:space:]]*=" "$lb_setconf_file" | cut -d: -f1))
+	local lb_setcf_line=($(grep -En "^\s*(#|;)*\s*$lb_setcf_param\s*=" "$lb_setcf_file" | cut -d: -f1))
 
-	# if found,
-	if [ ${#lb_setconf_line[@]} -gt 0 ] ; then
-		# search for real config line (not commented) if multiple lines
-		if [ ${#lb_setconf_line[@]} -gt 1 ] ; then
-			lb_setconf_line=($(grep -n "^[[:space:]]*$lb_setconf_param[[:space:]]*=" "$lb_setconf_file" | cut -d: -f1))
-		fi
+	# get number of results
+	local lb_setcf_results=${#lb_setcf_line[@]}
 
-		# modify line
-		sed -i~ "${lb_setconf_line}s/#*$lb_setconf_param\s*=.*/$lb_setconf_param = $lb_setconf_value/" "$lb_setconf_file"
+	# if line found, modify line (set the last one if multiple lines)
+	if [ $lb_setcf_results -gt 0 ] ; then
+
+		# prepare value for sed mode
+		lb_setcf_value=$(echo "$lb_setcf_value" | sed 's/\//\\\//g')
+
+		# modify config file
+		sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*\s*$lb_setcf_param\s*=.*/$lb_setcf_param = $lb_setcf_value/" "$lb_setcf_file"
+
 	else
-		# if not found,
+		# if parameter not found,
 
 		# if strict mode, quit
-		if $lb_setconf_strict ; then
+		if $lb_setcf_strict ; then
 			return 3
 		fi
 
 		# append to file
-		echo "$lb_setconf_param = $*" >> "$lb_setconf_file"
+		echo "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
 	fi
 
+	# return of the sed/echo command
 	if [ $? != 0 ] ; then
 		return 4
 	fi
