@@ -59,7 +59,9 @@
 #       lb_group_members
 #       lb_generate_password
 #       lb_email
+#       lb_read_config
 #       lb_import_config
+#       lb_set_config
 #   * User interacion
 #       lb_yesno
 #       lb_choose_option
@@ -2170,6 +2172,81 @@ lb_import_config() {
 	done
 
 	return $lb_impcf_result
+}
+
+
+# Set config value
+# Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
+# Options:
+#   -s, --strict  Strict mode: cannot insert parameter that does not exists
+# Exit codes:
+#   0: OK
+#   1: Usage error / Config file does not exists
+#   2: Config file is not writable
+#   3: Parameter does not exists (if strict mode)
+#   4: Error in setting config
+lb_set_config() {
+
+	local lb_setconf_strict=false
+
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--strict)
+				lb_setconf_strict=true
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next option
+	done
+
+	# usage error
+	if [ $# -lt 3 ] ; then
+		return 1
+	fi
+
+	# test config file
+	if ! [ -f "$1" ] ; then
+		return 1
+	fi
+	if ! [ -w "$1" ] ; then
+		return 2
+	fi
+
+	local lb_setconf_file=$1
+	local lb_setconf_param=$2
+	shift 2
+
+	local lb_setconf_value=$(echo "$*" | sed 's/\//\\\//g')
+
+	# search config line
+	local lb_setconf_line=($(grep -n "^[# ]*$lb_setconf_param[[:space:]]*=" "$lb_setconf_file" | cut -d: -f1))
+
+	# if found,
+	if [ ${#lb_setconf_line[@]} -gt 0 ] ; then
+		# search for real config line (not commented) if multiple lines
+		if [ ${#lb_setconf_line[@]} -gt 1 ] ; then
+			lb_setconf_line=($(grep -n "^[[:space:]]*$lb_setconf_param[[:space:]]*=" "$lb_setconf_file" | cut -d: -f1))
+		fi
+
+		# modify line
+		sed -i~ "${lb_setconf_line}s/#*$lb_setconf_param\s*=.*/$lb_setconf_param = $lb_setconf_value/" "$lb_setconf_file"
+	else
+		# if not found,
+
+		# if strict mode, quit
+		if $lb_setconf_strict ; then
+			return 3
+		fi
+
+		# append to file
+		echo "$lb_setconf_param = $*" >> "$lb_setconf_file"
+	fi
+
+	if [ $? != 0 ] ; then
+		return 4
+	fi
 }
 
 
