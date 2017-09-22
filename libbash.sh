@@ -2178,7 +2178,7 @@ lb_import_config() {
 # Set config value
 # Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
 # Options:
-#   -s, --strict  Strict mode: cannot insert parameter that does not exists
+#   --strict  Strict mode: cannot insert parameter that does not exists
 # Exit codes:
 #   0: OK
 #   1: Usage error / Config file does not exists
@@ -2187,11 +2187,21 @@ lb_import_config() {
 #   4: Error in setting config
 lb_set_config() {
 
+	# local variables and default options
 	local lb_setcf_strict=false
+	local lb_setcf_section=""
+	local lb_setcf_ready=true
 
 	while [ -n "$1" ] ; do
 		case $1 in
-			-s|--strict)
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_setcf_section=$2
+				shift
+				;;
+			--strict)
 				lb_setcf_strict=true
 				;;
 			*)
@@ -2226,6 +2236,9 @@ lb_set_config() {
 		lb_setcf_value+="\r"
 	fi
 
+	# prepare value for sed mode
+	local lb_setcf_sed_value=$(echo "$lb_setcf_value" | sed 's/\//\\\//g')
+
 	# search config line
 	local lb_setcf_line=($(grep -En "^\s*(#|;)*\s*$lb_setcf_param\s*=" "$lb_setcf_file" | cut -d: -f1))
 
@@ -2235,25 +2248,92 @@ lb_set_config() {
 	# if line found, modify line (set the last one if multiple lines)
 	if [ $lb_setcf_results -gt 0 ] ; then
 
-		# prepare value for sed mode
-		lb_setcf_value=$(echo "$lb_setcf_value" | sed 's/\//\\\//g')
+		# if filter by section,
+		if [ -n "$lb_setcf_section" ] ; then
 
-		# modify config file
-		sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*\s*$lb_setcf_param\s*=.*/$lb_setcf_param = $lb_setcf_value/" "$lb_setcf_file"
+			lb_setcf_section_ready=false
 
-	else
-		# if parameter not found,
+			local lb_setcf_section_found=false
 
-		# if strict mode, quit
-		if $lb_setcf_strict ; then
-			return 3
+			# parse every results
+			for lb_setcf_i in ${lb_setcf_line[@]} ; do
+				# if first line, cannot go up
+				if [ $lb_setcf_i == 1 ] ; then
+					continue
+				fi
+
+				for ((lb_setcf_j=$lb_setcf_i-1; lb_setcf_j>=1; lb_setcf_j--)) ; do
+					lb_setcf_current_section=$(sed "${lb_setcf_j}q;d" "$lb_setcf_file" | grep -Eo "^\[.*\]$")
+
+					if [ -n "$lb_setcf_current_section" ] ; then
+						if [ "$lb_setcf_current_section" == "[$lb_setcf_section]" ] ; then
+							lb_setcf_section_found=true
+						fi
+						break
+					fi
+				done
+
+				if $lb_setcf_section_found ; then
+					lb_setcf_section_ready=true
+					break
+				fi
+			done
 		fi
 
-		# append to file
-		echo "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
+		# if ready to edit
+		if $lb_setcf_section_ready ; then
+			# modify config file
+			sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*\s*$lb_setcf_param\s*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
+
+			if [ $? == 0 ] ; then
+				return 0
+			else
+				return 4
+			fi
+		fi
 	fi
 
-	# return of the sed/echo command
+	# if parameter not found (or not in the right section)
+
+	# if strict mode, quit
+	if $lb_setcf_strict ; then
+		return 3
+	fi
+
+	# if filter by section,
+	if [ -n "$lb_setcf_section" ] ; then
+
+		# search for the right section
+		lb_setcf_line=($(grep -En "^\[$lb_setcf_section\]$" "$lb_setcf_file" | cut -d: -f1))
+
+		# if section exists,
+		if [ -n "$lb_setcf_line" ] ; then
+			# append parameter to section
+			sed -i~ "$((${lb_setcf_line[0]}+1))i$lb_setcf_param = $lb_setcf_sed_value" "$lb_setcf_file"
+			if [ $? == 0 ] ; then
+				return 0
+			else
+				return 4
+			fi
+		else
+			# if section not found, append section to the end of file
+			lb_setcf_line="[$lb_setcf_section]"
+
+			# Windows files: add \r at the end of line
+			if [ "$lb_current_os" == Windows ] ; then
+				lb_setcf_line+="\r"
+			fi
+
+			echo "$lb_setcf_line" >> "$lb_setcf_file"
+			if [ $? != 0 ] ; then
+				return 4
+			fi
+		fi
+	fi
+
+	# append line to file
+	echo "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
+
 	if [ $? != 0 ] ; then
 		return 4
 	fi
