@@ -1973,12 +1973,35 @@ lb_email() {
 
 
 # Read a config file
-# Usage: lb_read_config PATH
+# Usage: lb_read_config [OPTIONS] PATH
 lb_read_config=()
 lb_read_config() {
 
 	# reset variable
 	lb_read_config=()
+
+	# default options
+	local lb_rdcf_sections=()
+	local lb_rdcf_filter=false
+	local lb_rdcf_good_section=false
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_rdcf_sections+=("[$2]")
+				lb_rdcf_filter=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
 
 	# usage error
 	if ! [ -f "$1" ] ; then
@@ -1999,8 +2022,33 @@ lb_read_config() {
 			lb_rdcf_line=${lb_rdcf_line:0:${#lb_rdcf_line}-1}
 		fi
 
+		# filter by sections
+		if $lb_rdcf_filter ; then
+
+			lb_rdcf_section=$(echo $lb_rdcf_line | grep -Eo "^\[.*\]$")
+
+			# if line is a section definition
+			if [ -n "$lb_rdcf_section" ] ; then
+				# if section is valid, mark it
+				if lb_array_contains $lb_rdcf_section ${lb_rdcf_sections[@]} ; then
+					lb_rdcf_good_section=true
+				else
+					# if section is not valid, mark it and continue to the next line
+					lb_rdcf_good_section=false
+					continue
+				fi
+			else
+				# if normal line,
+				# if we are not in a good section, continue to the next line
+				if ! $lb_rdcf_good_section ; then
+					continue
+				fi
+			fi
+		fi
+
 		# add line to the lb_read_config variable
 		lb_read_config+=("$lb_rdcf_line")
+
 	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
 }
 
@@ -2012,10 +2060,21 @@ lb_import_config() {
 	# local variables and default options
 	local lb_impcf_errors=false
 	local lb_impcf_secure=true
+	local lb_impcf_sections=()
+	local lb_impcf_filter=false
+	local lb_impcf_good_section=false
 
 	# get options
 	while [ -n "$1" ] ; do
 		case $1 in
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_impcf_sections+=("[$2]")
+				lb_impcf_filter=true
+				shift
+				;;
 			-e|--all-errors)
 				lb_impcf_errors=true
 				;;
@@ -2048,7 +2107,7 @@ lb_import_config() {
 			return 5
 		fi
 
-		# read file line by line
+		# read file line by line; backslashes are not escaped
 		while read -r lb_impcf_line ; do
 
 			# testing if file has Windows format (\r at the end of line)
@@ -2057,8 +2116,30 @@ lb_import_config() {
 				lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
 			fi
 
+			# filter by sections
+			if $lb_impcf_filter ; then
+
+				lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]$")
+
+				# if line is a section definition
+				if [ -n "$lb_impcf_section" ] ; then
+					# if section is valid, mark it
+					if lb_array_contains $lb_impcf_section ${lb_impcf_sections[@]} ; then
+						lb_impcf_good_section=true
+					else
+						lb_impcf_good_section=false
+					fi
+				else
+					# if normal line,
+					# if we are not in a good section, continue to the next line
+					if ! $lb_impcf_good_section ; then
+						continue
+					fi
+				fi
+			fi
+
 			# check syntax of the line
-			if ! echo $lb_impcf_line | grep -q -E "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
+			if ! echo $lb_impcf_line | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
 				if $lb_impcf_errors ; then
 					lb_impcf_result=3
 				fi
@@ -2070,7 +2151,7 @@ lb_import_config() {
 
 			# secure config values with prevent bash injection
 			if $lb_impcf_secure ; then
-				if echo $lb_impcf_value | grep -qE '\$|`' ; then
+				if echo $lb_impcf_value | grep -Eq '\$|`' ; then
 					if $lb_impcf_errors ; then
 						lb_impcf_result=4
 					fi
