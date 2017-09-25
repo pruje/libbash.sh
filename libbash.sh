@@ -2056,7 +2056,7 @@ lb_read_config() {
 
 
 # Import a config file into bash variables
-# Usage: lb_import_config [OPTIONS] PATH [PATH...]
+# Usage: lb_import_config [OPTIONS] PATH
 lb_import_config() {
 
 	# local variables and default options
@@ -2065,6 +2065,7 @@ lb_import_config() {
 	local lb_impcf_sections=()
 	local lb_impcf_filter=false
 	local lb_impcf_good_section=false
+	local lb_impcf_found_section=false
 
 	# get options
 	while [ -n "$1" ] ; do
@@ -2090,86 +2091,84 @@ lb_import_config() {
 		shift # load next argument
 	done
 
-	# usage error if no file
-	if [ $# == 0 ] ; then
+	# test if file exists
+	if ! [ -f "$1" ] ; then
 		return 1
+	fi
+
+	# test if file is readable
+	if ! [ -r "$1" ] ; then
+		return 5
 	fi
 
 	local lb_impcf_result=0
 
-	# for each file
-	while [ -n "$1" ] ; do
-		# test if file exists
-		if ! [ -f "$1" ] ; then
-			return 1
+	# read file line by line; backslashes are not escaped
+	while read -r lb_impcf_line ; do
+
+		# testing if file has Windows format (\r at the end of line)
+		if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
+			# delete the last character \r
+			lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
 		fi
 
-		# test if file is readable
-		if ! [ -r "$1" ] ; then
-			return 5
-		fi
+		# filter by sections
+		if $lb_impcf_filter ; then
 
-		# read file line by line; backslashes are not escaped
-		while read -r lb_impcf_line ; do
+			lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]$")
 
-			# testing if file has Windows format (\r at the end of line)
-			if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
-				# delete the last character \r
-				lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
-			fi
-
-			# filter by sections
-			if $lb_impcf_filter ; then
-
-				lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]$")
-
-				# if line is a section definition
-				if [ -n "$lb_impcf_section" ] ; then
-					# if section is valid, mark it
-					if lb_array_contains $lb_impcf_section ${lb_impcf_sections[@]} ; then
-						lb_impcf_good_section=true
-					else
-						lb_impcf_good_section=false
-					fi
+			# if line is a section definition
+			if [ -n "$lb_impcf_section" ] ; then
+				# if section is valid, mark it
+				if lb_array_contains $lb_impcf_section ${lb_impcf_sections[@]} ; then
+					lb_impcf_good_section=true
+					lb_impcf_found_section=true
 				else
-					# if normal line,
-					# if we are not in a good section, continue to the next line
-					if ! $lb_impcf_good_section ; then
-						continue
-					fi
+					lb_impcf_good_section=false
 				fi
-			fi
-
-			# check syntax of the line
-			if ! echo $lb_impcf_line | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
-				if $lb_impcf_errors ; then
-					lb_impcf_result=3
-				fi
-				continue
-			fi
-
-			# get parameter and value
-			lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^\s*[a-zA-Z0-9_]*\s*=\s*//")
-
-			# secure config values with prevent bash injection
-			if $lb_impcf_secure ; then
-				if echo $lb_impcf_value | grep -Eq '\$|`' ; then
-					if $lb_impcf_errors ; then
-						lb_impcf_result=4
-					fi
+			else
+				# if normal line,
+				# if we are not in a good section, continue to the next line
+				if ! $lb_impcf_good_section ; then
 					continue
 				fi
 			fi
+		fi
 
-			# run command to attribute value to variable
-			eval "$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[[:space:]]')=$lb_impcf_value" &> /dev/null
-			if [ $? != 0 ] ; then
-				lb_impcf_result=2
+		# check syntax of the line
+		if ! echo $lb_impcf_line | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
+			if $lb_impcf_errors ; then
+				lb_impcf_result=3
 			fi
-		done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
+			continue
+		fi
 
-		shift # read next file
-	done
+		# get parameter and value
+		lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^\s*[a-zA-Z0-9_]*\s*=\s*//")
+
+		# secure config values with prevent bash injection
+		if $lb_impcf_secure ; then
+			if echo $lb_impcf_value | grep -Eq '\$|`' ; then
+				if $lb_impcf_errors ; then
+					lb_impcf_result=4
+				fi
+				continue
+			fi
+		fi
+
+		# run command to attribute value to variable
+		eval "$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[[:space:]]')=$lb_impcf_value" &> /dev/null
+		if [ $? != 0 ] ; then
+			lb_impcf_result=2
+		fi
+	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
+
+	# if section was not found, return error
+	if $lb_impcf_filter ; then
+		if ! $lb_impcf_found_section ; then
+			return 2
+		fi
+	fi
 
 	return $lb_impcf_result
 }
@@ -2177,14 +2176,6 @@ lb_import_config() {
 
 # Set config value
 # Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
-# Options:
-#   --strict  Strict mode: cannot insert parameter that does not exists
-# Exit codes:
-#   0: OK
-#   1: Usage error / Config file does not exists
-#   2: Config file is not writable
-#   3: Parameter does not exists (if strict mode)
-#   4: Error in setting config
 lb_set_config() {
 
 	# local variables and default options
