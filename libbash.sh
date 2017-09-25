@@ -2267,6 +2267,8 @@ lb_set_config() {
 
 					if [ -n "$lb_setcf_current_section" ] ; then
 						if [ "$lb_setcf_current_section" == "[$lb_setcf_section]" ] ; then
+							lb_setcf_line=($lb_setcf_i)
+							lb_setcf_results=1
 							lb_setcf_section_found=true
 						fi
 						break
