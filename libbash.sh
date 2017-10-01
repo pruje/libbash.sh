@@ -2156,7 +2156,8 @@ lb_import_config() {
 		fi
 
 		# get parameter and value
-		lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^\s*[a-zA-Z0-9_]*\s*=\s*//")
+		# Note: use [[:space:]] for macOS compatibility
+		lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//")
 
 		# secure config values with prevent bash injection
 		if $lb_impcf_secure ; then
@@ -2288,7 +2289,8 @@ lb_set_config() {
 		# if ready to edit
 		if $lb_setcf_section_ready ; then
 			# modify config file
-			sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*\s*$lb_setcf_param\s*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
+			# Note: use [[:space:]] for macOS compatibility
+			sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*[[:space:]]*$lb_setcf_param[[:space:]]*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
 
 			if [ $? == 0 ] ; then
 				return 0
