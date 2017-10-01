@@ -1,8 +1,16 @@
 # Changelog
 
+## 1.5.0 (2017-10-01)
+- New function: `lb_group_members()` to get users members of a group (works only on Linux systems)
+- New function: `lb_set_config()` for setting values
+- Support for config INI files for `lb_read_config()` and `lb_import_config()`: ';' lines are comments, sections supported
+- New options for `lb_read_config()` and `lb_import_config()` to filter by config sections
+- Removed multiple files support for `lb_import_config()`
+- Improvements in documentation
+
 ## 1.4.1 (2017-09-14)
 - Improved speed of config reading in `lb_read_config()` and `lb_import_config()`
-- Improved documentation
+- Improvements in documentation
 
 ## 1.4.0 (2017-09-11)
 - New function: `lb_read_config()` to read a config file (like `lb_import_config()` without assigning to variables)
