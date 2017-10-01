@@ -1986,6 +1986,7 @@ lb_read_config() {
 	local lb_rdcf_sections=()
 	local lb_rdcf_filter=false
 	local lb_rdcf_good_section=false
+	local lb_rdcf_section_found=false
 
 	# get options
 	while [ -n "$1" ] ; do
@@ -2034,6 +2035,7 @@ lb_read_config() {
 				# if section is valid, mark it
 				if lb_array_contains $lb_rdcf_section ${lb_rdcf_sections[@]} ; then
 					lb_rdcf_good_section=true
+					lb_rdcf_section_found=true
 				else
 					# if section is not valid, mark it and continue to the next line
 					lb_rdcf_good_section=false
@@ -2052,6 +2054,13 @@ lb_read_config() {
 		lb_read_config+=("$lb_rdcf_line")
 
 	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
+
+	# if section was not found, error
+	if $lb_rdcf_filter ; then
+		if ! $lb_rdcf_section_found ; then
+			return 3
+		fi
+	fi
 }
 
 
@@ -2135,10 +2144,13 @@ lb_import_config() {
 			fi
 		fi
 
-		# check syntax of the line
+		# check syntax of the line (param = value)
 		if ! echo $lb_impcf_line | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
-			if $lb_impcf_errors ; then
-				lb_impcf_result=3
+			# if section definition, do nothing (not error)
+			if ! echo $lb_impcf_line | grep -Eq "^\[.*\]$" ; then
+				if $lb_impcf_errors ; then
+					lb_impcf_result=3
+				fi
 			fi
 			continue
 		fi
@@ -2203,7 +2215,7 @@ lb_set_config() {
 	done
 
 	# usage error
-	if [ $# -lt 3 ] ; then
+	if [ $# -lt 2 ] ; then
 		return 1
 	fi
 

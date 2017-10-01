@@ -92,6 +92,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_email](#lb_email)
 	* [lb_read_config](#lb_read_config)
 	* [lb_import_config](#lb_import_config)
+	* [lb_set_config](#lb_set_config)
 * User interaction
 	* [lb_yesno](#lb_yesno)
 	* [lb_choose_option](#lb_choose_option)
@@ -1208,28 +1209,29 @@ lb_email --subject "Test" me@example.com "Hello, this is a message!"
 ---------------------------------------------------------------
 <a name="lb_read_config"></a>
 ### lb_read_config
-Read a config file and put lines into the `${lb_read_config[@]}` array variable.
-
-Config files must be text files with the following features:
-- If the first non-space character is `#`, line is considered as a comment and will be ignored
-- Empty lines are ignored
-- Files with Windows endings (`\r\n`) are supported
+Read INI config file and put each line that is not a comment or empty into the `${lb_read_config[@]}` array variable.
 
 #### Usage
 ```bash
-lb_read_config PATH
+lb_read_config [OPTIONS] PATH
+```
+
+#### Options
+```
+-s, --section SECTION  Read parameters only in the specified section(s)
 ```
 
 #### Exit codes
 - 0: File read
 - 1: Usage error or file(s) does not exists
 - 2: File exists but is not readable
+- 3: Specified section was not found
 
 #### Example
 ```bash
 lb_read_config my_config.conf
 
-# print each non-empty and non-comment lines
+# print config lines
 for ((i = 0 ; i < ${#lb_read_config[@]} ; i++)) ; do
 	echo "${lb_read_config[$i]}"
 done
@@ -1238,31 +1240,28 @@ done
 ---------------------------------------------------------------
 <a name="lb_import_config"></a>
 ### lb_import_config
-Import config file(s) and assign values to bash variables.
+Import INI config file and assign values to bash variables.
 
-Config files must be text files with the following features:
-- Parameters are defined like: `param=value` or `param = value`
+To avoid errors while importing config files, please note that:
 - Values with spaces should have quotes like: `param = 'my value'` or `param = "my value"`
-- If the first non-space character is `#`, line is considered as a comment and will be ignored
-- Empty lines are ignored
 - Lines that contains $ and \` characters are not imported to avoid shell injection. You can import them anyway with the `--unsecure` option (see below).
-- Files with Windows endings (`\r\n`) are supported
 
 #### Usage
 ```bash
-lb_import_config [OPTIONS] PATH [PATH...]
+lb_import_config [OPTIONS] PATH
 ```
 
 #### Options
 ```
--e, --all-errors  Return all errors in exit codes
--u, --unsecure    Do not prevent shell injection (could be dangerous)
+-s, --section SECTION  Import parameters only in the specified section(s)
+-e, --all-errors       Return all errors in exit codes
+-u, --unsecure         Do not prevent shell injection (could be dangerous)
 ```
 
 #### Exit codes
 - 0: Configuration imported
 - 1: Usage error or file(s) does not exists
-- 2: One or more parameters were not imported
+- 2: One or more parameters were not imported, or specified section not found
 - 3: One or more line has a bad syntax (if `--all-errors` option is enabled)
 - 4: One or more line contains shell commands or variables (if `--all-errors` option is enabled)
 - 5: File exists but is not readable
@@ -1271,18 +1270,43 @@ lb_import_config [OPTIONS] PATH [PATH...]
 ```bash
 ### content of my_config.conf
 # my config file
-bye_message="Bye bye!"
+bye_message="\nBye bye!\n"
 
-shutdown_cmd = (shutdown -h now)
+message_cmd = (echo -e)
 ### end content of my_config.conf
 
 lb_import_config my_config.conf
 
 # print bye message
-echo $bye_message
+"${message_cmd[@]}" "$bye_message"
+```
 
-# halt pc
-"${shutdown_cmd[@]}"
+---------------------------------------------------------------
+<a name="lb_set_config"></a>
+### lb_set_config
+Set a parameter in a INI configuration file.
+
+#### Usage
+```bash
+lb_set_config [OPTIONS] FILE PARAM VALUE
+```
+
+#### Options
+```
+-s, --section SECTION  Set the parameter only in the specified section
+--strict               Strict mode: do not insert parameter if it does not exists
+```
+
+#### Exit codes
+- 0: Configuration file updated
+- 1: Usage error or file(s) does not exists
+- 2: Configuration file is not writable
+- 3: Parameter does not exists (if strict mode)
+- 4: Error in setting config
+
+#### Example
+```bash
+lb_set_config my_config.conf myoption "My value"
 ```
 
 ---------------------------------------------------------------
