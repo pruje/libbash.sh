@@ -89,7 +89,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_in_group](#lb_in_group)
 	* [lb_group_members](#lb_group_members)*
 	* [lb_generate_password](#lb_generate_password)
-	* [lb_email](#lb_email)
+	* [lb_email](#lb_email)*
 	* [lb_read_config](#lb_read_config)
 	* [lb_import_config](#lb_import_config)
 	* [lb_set_config](#lb_set_config)
@@ -1180,6 +1180,8 @@ Send an email.
 
 You must have sendmail installed and a proper SMTP server or relay configured.
 You can install the `ssmtp` program (on Linux) to easely send emails via an existing account (like GMail or else).
+
+**WARNING**: This function is not supported yet on Windows.
 
 #### Usage
 ```bash
