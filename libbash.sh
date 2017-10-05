@@ -2053,7 +2053,7 @@ lb_read_config() {
 		# add line to the lb_read_config variable
 		lb_read_config+=("$lb_rdcf_line")
 
-	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
+	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
 
 	# if section was not found, error
 	if $lb_rdcf_filter ; then
@@ -2174,7 +2174,7 @@ lb_import_config() {
 		if [ $? != 0 ] ; then
 			lb_impcf_result=2
 		fi
-	done < <(cat "$1" | grep -Ev '^\s*$' | grep -Ev '^\s*(#|;)')
+	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
 
 	# if section was not found, return error
 	if $lb_impcf_filter ; then
