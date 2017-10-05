@@ -40,6 +40,8 @@
 #       lb_is_comment
 #       lb_trim
 #       lb_array_contains
+#       lb_date2timestamp
+#       lb_timestamp2date
 #       lb_compare_versions
 #   * Filesystem
 #       lb_df_fstype
@@ -1176,6 +1178,94 @@ lb_array_contains() {
 
 	# if not found, return 2
 	return 2
+}
+
+
+# Convert date to timestamp
+# Usage: lb_date2timestamp [OPTIONS] DATE
+# Options:
+#   -u, --utc  Return timestamp in UTC
+# Return: timestamp
+lb_date2timestamp() {
+
+	local lb_d2t_format=""
+	local lb_d2t_opts=""
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-u|--utc)
+				lb_d2t_opts="-u"
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
+
+	if [ -z "$1" ] ; then
+		return 1
+	fi
+
+	# return timestamp
+	if [ "$lb_current_os" == macOS ] ; then
+		date $lb_d2t_opts -j -f '%Y-%m-%d %H:%M:%S' "$1" +%s 2> /dev/null
+	else
+		date $lb_d2t_opts -d "$1" +%s 2> /dev/null
+	fi
+
+	if [ $? != 0 ] ; then
+		return 2
+	fi
+}
+
+
+# Convert timestamp to an user readable date
+# Usage: lb_timestamp2date [OPTIONS] TIMESTAMP
+# Options:
+#   -f, --format FORMAT  Specify a date format
+#   -u, --utc            Return date in UTC
+# Return: formatted date
+lb_timestamp2date() {
+
+	local lb_t2d_format=""
+	local lb_t2d_opts=""
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-f|--format)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_t2d_format="+$2"
+				shift
+				;;
+			-u|--utc)
+				lb_t2d_opts="-u"
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
+
+	if ! lb_is_integer $1 ; then
+		return 1
+	fi
+
+	# return formatted date
+	if [ "$lb_current_os" == macOS ] ; then
+		date $lb_t2d_opts -j -f %s $1 "$lb_t2d_format" 2> /dev/null
+	else
+		date $lb_t2d_opts -d @$1 "$lb_t2d_format" 2> /dev/null
+	fi
+
+	if [ $? != 0 ] ; then
+		return 2
+	fi
 }
 
 
