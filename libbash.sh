@@ -92,10 +92,8 @@
 #  MAIN VARIABLES  #
 ####################
 
-# libbash main variables
+# libbash current version
 lb_version=1.5.0
-lb_path=$BASH_SOURCE
-lb_directory=$(dirname "$lb_path")
 
 # default labels
 lb_default_result_ok_label="... Done!"
@@ -1732,13 +1730,13 @@ lb_realpath() {
 		return 1
 	fi
 
-	if [ "$lb_current_os" == "macOS" ] ; then
+	if [ "$lb_current_os" == macOS ] ; then
 		# macOS does not support readlink -f option
 		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1"
 	else
 		# Linux & Windows
 
-		if [ "$lb_current_os" == "Windows" ] ; then
+		if [ "$lb_current_os" == Windows ] ; then
 			# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
 			# then we will find real path
 			lb_realpath_path=$(cygpath "$1")
@@ -2852,7 +2850,7 @@ lb_input_password() {
 # See lb_print for usage
 lb_echo() {
 	# basic command
-	lb_cmd=(lb_print)
+	local lb_cmd=(lb_print)
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2869,7 +2867,7 @@ lb_echo() {
 # See lb_print for usage
 lb_error() {
 	# basic command
-	lb_cmd=(lb_print)
+	local lb_cmd=(lb_print)
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2886,7 +2884,7 @@ lb_error() {
 # See lb_get_log_level for usage
 lb_get_loglevel() {
 	# basic command
-	lb_cmd=(lb_get_log_level)
+	local lb_cmd=(lb_get_log_level)
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2903,7 +2901,7 @@ lb_get_loglevel() {
 # See lb_set_log_level for usage
 lb_set_loglevel() {
 	# basic command
-	lb_cmd=(lb_set_log_level)
+	local lb_cmd=(lb_set_log_level)
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2920,7 +2918,7 @@ lb_set_loglevel() {
 # See lb_display for usage
 lb_display_critical() {
 	# basic command
-	lb_cmd=(lb_display -p -l "$lb_default_critical_label")
+	local lb_cmd=(lb_display -p -l "$lb_default_critical_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2934,7 +2932,7 @@ lb_display_critical() {
 
 lb_display_error() {
 	# basic command
-	lb_cmd=(lb_display -p -l "$lb_default_error_label")
+	local lb_cmd=(lb_display -p -l "$lb_default_error_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2948,7 +2946,7 @@ lb_display_error() {
 
 lb_display_warning() {
 	# basic command
-	lb_cmd=(lb_display -p -l "$lb_default_warning_label")
+	local lb_cmd=(lb_display -p -l "$lb_default_warning_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2962,7 +2960,7 @@ lb_display_warning() {
 
 lb_display_info() {
 	# basic command
-	lb_cmd=(lb_display -p -l "$lb_default_info_label")
+	local lb_cmd=(lb_display -p -l "$lb_default_info_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2976,7 +2974,7 @@ lb_display_info() {
 
 lb_display_debug() {
 	# basic command
-	lb_cmd=(lb_display -p -l "$lb_default_debug_label")
+	local lb_cmd=(lb_display -p -l "$lb_default_debug_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -2994,7 +2992,7 @@ lb_display_debug() {
 # See lb_log for options usage
 lb_log_critical() {
 	# basic command
-	lb_cmd=(lb_log -p -l "$lb_default_critical_label")
+	local lb_cmd=(lb_log -p -l "$lb_default_critical_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -3008,7 +3006,7 @@ lb_log_critical() {
 
 lb_log_error() {
 	# basic command
-	lb_cmd=(lb_log -p -l "$lb_default_error_label")
+	local lb_cmd=(lb_log -p -l "$lb_default_error_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -3022,7 +3020,7 @@ lb_log_error() {
 
 lb_log_warning() {
 	# basic command
-	lb_cmd=(lb_log -p -l "$lb_default_warning_label")
+	local lb_cmd=(lb_log -p -l "$lb_default_warning_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -3036,7 +3034,7 @@ lb_log_warning() {
 
 lb_log_info() {
 	# basic command
-	lb_cmd=(lb_log -p -l "$lb_default_info_label")
+	local lb_cmd=(lb_log -p -l "$lb_default_info_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -3050,7 +3048,7 @@ lb_log_info() {
 
 lb_log_debug() {
 	# basic command
-	lb_cmd=(lb_log -p -l "$lb_default_debug_label")
+	local lb_cmd=(lb_log -p -l "$lb_default_debug_label")
 
 	# parse arguments
 	while [ -n "$1" ] ; do
@@ -3073,19 +3071,40 @@ lb_detect_os() {
 #  INITIALIZATION  #
 ####################
 
-# context variables
-lb_current_script=$0
-lb_current_script_name=$(basename "$0")
-lb_current_script_directory=$(dirname "$0")
-lb_current_path=$(pwd)
-lb_current_os=$(lb_current_os)
-lb_current_user=$(whoami)
 lb_exitcode=0
 
-# if macOS, do not print with colours
+# context variables
+lb_current_path=$(pwd)
+lb_current_user=$(whoami)
+
+# get current OS
+lb_current_os=$(lb_current_os)
+if [ $? != 0 ] ; then
+	echo >&2 "libbash.sh: [ERROR] cannot get current OS"
+	return 2
+fi
+
+# if macOS, disable text formatting in console
 if [ "$lb_current_os" == macOS ] ; then
 	lb_format_print=false
 fi
+
+# libbash context
+lb_path=$(lb_realpath "$BASH_SOURCE")
+if [ $? != 0 ] ; then
+	echo >&2 "libbash.sh: [ERROR] cannot get libbash path"
+	return 2
+fi
+lb_directory=$(dirname "$lb_path")
+
+# current script context
+lb_current_script=$(lb_realpath "$BASH_SOURCE")
+if [ $? != 0 ] ; then
+	echo >&2 "libbash.sh: [ERROR] cannot get current script path"
+	return 2
+fi
+lb_current_script_name=$(basename "$lb_current_script")
+lb_current_script_directory=$(dirname "$lb_current_script")
 
 # do not load libbash GUI by default
 lb_load_gui=false
@@ -3117,7 +3136,7 @@ if $lb_load_gui ; then
 	source "$lb_directory/libbash_gui.sh"
 	# in case of bad load, return error
 	if [ $? != 0 ] ; then
-		echo >&2 "Error: cannot load libbash GUI. Please verify the path $lb_directory."
+		echo >&2 "libbash.sh: [ERROR] cannot load libbash GUI. Please verify the path $lb_directory."
 		return 2
 	fi
 fi
@@ -3127,7 +3146,7 @@ case $lb_lang in
 	fr)
 		source "$lb_directory/locales/$lb_lang.sh" &> /dev/null
 		if [ $? != 0 ] ; then
-			echo >&2 "Error: cannot load the following libbash translation: $lb_lang"
+			echo >&2 "libbash.sh: [ERROR] cannot load the following libbash translation: $lb_lang"
 		fi
 		;;
 esac
