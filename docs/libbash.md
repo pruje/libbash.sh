@@ -825,6 +825,8 @@ lb_timestamp2date [OPTIONS] TIMESTAMP
 -u, --utc            Timestamp and date are using UTC
 ```
 
+Date formats: see the `date` command help for available formats; do not put the `+` at the beginning.
+
 #### Exit codes
 - 0: Timestamp converted
 - 1: Usage error
@@ -832,7 +834,7 @@ lb_timestamp2date [OPTIONS] TIMESTAMP
 
 #### Example
 ```bash
-date=$(lb_timestamp2date 1514764799)
+date=$(lb_timestamp2date -f '%Y-%m-%d %H:%M:%S' 1514764799)
 ```
 
 ---------------------------------------------------------------
