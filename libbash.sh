@@ -1100,7 +1100,7 @@ lb_is_comment() {
 	lb_iscom_line=$(echo $1 | tr -d '[[:space:]]')
 
 	# empty line
-	if [ ${#lb_iscom_line} == 0 ] ; then
+	if [ -z "$lb_iscom_line" ] ; then
 		if $lb_iscom_empty ; then
 			return 0
 		else
@@ -1179,14 +1179,11 @@ lb_array_contains() {
 }
 
 
-# Convert date to timestamp
+# Convert a date to timestamp
 # Usage: lb_date2timestamp [OPTIONS] DATE
-# Options:
-#   -u, --utc  Return timestamp in UTC
-# Return: timestamp
 lb_date2timestamp() {
 
-	local lb_d2t_format=""
+	# default options
 	local lb_d2t_opts=""
 
 	# get options
@@ -1202,15 +1199,16 @@ lb_date2timestamp() {
 		shift # load next argument
 	done
 
-	if [ -z "$1" ] ; then
+	# usage error
+	if [ -z "$*" ] ; then
 		return 1
 	fi
 
 	# return timestamp
 	if [ "$lb_current_os" == macOS ] ; then
-		date $lb_d2t_opts -j -f '%Y-%m-%d %H:%M:%S' "$1" +%s 2> /dev/null
+		date $lb_d2t_opts -j -f '%Y-%m-%d %H:%M:%S' "$*" +%s 2> /dev/null
 	else
-		date $lb_d2t_opts -d "$1" +%s 2> /dev/null
+		date $lb_d2t_opts -d "$*" +%s 2> /dev/null
 	fi
 
 	if [ $? != 0 ] ; then
@@ -1221,12 +1219,9 @@ lb_date2timestamp() {
 
 # Convert timestamp to an user readable date
 # Usage: lb_timestamp2date [OPTIONS] TIMESTAMP
-# Options:
-#   -f, --format FORMAT  Specify a date format
-#   -u, --utc            Return date in UTC
-# Return: formatted date
 lb_timestamp2date() {
 
+	# default options
 	local lb_t2d_format=""
 	local lb_t2d_opts=""
 
@@ -1250,6 +1245,7 @@ lb_timestamp2date() {
 		shift # load next argument
 	done
 
+	# usage error
 	if ! lb_is_integer $1 ; then
 		return 1
 	fi
@@ -1566,7 +1562,7 @@ lb_df_mountpoint() {
 	fi
 
 	# get mountpoint
-	if [ "$lb_current_os" == "macOS" ] ; then
+	if [ "$lb_current_os" == macOS ] ; then
 		df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
 	else
 		df --output=target "$*" 2> /dev/null | tail -n 1
@@ -1909,7 +1905,7 @@ lb_generate_password() {
 	else
 		# print date timestamp + nanoseconds then generate md5 checksum
 		# then encode in base64
-		if [ "$lb_current_os" == "macOS" ] ; then
+		if [ "$lb_current_os" == macOS ] ; then
 			lb_genpwd_pwd=$(date +%s%N | shasum -a 256 | base64)
 		else
 			lb_genpwd_pwd=$(date +%s%N | sha256sum | base64)
@@ -1993,7 +1989,7 @@ lb_email() {
 	done
 
 	# usage error if missing text and at least one option
-	if lb_test_arguments -lt 2 $* ; then
+	if [ $# -lt 2 ] ; then
 		return 1
 	fi
 
@@ -2002,7 +1998,7 @@ lb_email() {
 
 	# usage error if missing message
 	# could be not detected by test above if recipents field has some spaces
-	if lb_test_arguments -eq 0 $* ; then
+	if [ -z "$*" ] ; then
 		return 1
 	fi
 
