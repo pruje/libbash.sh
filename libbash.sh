@@ -1252,9 +1252,17 @@ lb_timestamp2date() {
 
 	# return formatted date
 	if [ "$lb_current_os" == macOS ] ; then
-		date $lb_t2d_opts -j -f %s $1 "$lb_t2d_format" 2> /dev/null
+		if [ -z "$lb_t2d_format" ] ; then
+			date $lb_t2d_opts -j -f %s $1 2> /dev/null
+		else
+			date $lb_t2d_opts -j -f %s $1 "$lb_t2d_format" 2> /dev/null
+		fi
 	else
-		date $lb_t2d_opts -d @$1 "$lb_t2d_format" 2> /dev/null
+		if [ -z "$lb_t2d_format" ] ; then
+			date $lb_t2d_opts -d @$1 2> /dev/null
+		else
+			date $lb_t2d_opts -d @$1 "$lb_t2d_format" 2> /dev/null
+		fi
 	fi
 
 	if [ $? != 0 ] ; then
