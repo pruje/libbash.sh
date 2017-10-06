@@ -71,6 +71,8 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_is_comment](#lb_is_comment)
 	* [lb_trim](#lb_trim)
 	* [lb_array_contains](#lb_array_contains)
+	* [lb_date2timestamp](#lb_date2timestamp)
+	* [lb_timestamp2date](#lb_timestamp2date)
 	* [lb_compare_versions](#lb_compare_versions)
 * Filesystem
 	* [lb_df_fstype](#lb_df_fstype)
@@ -778,6 +780,59 @@ array=(one two three)
 if lb_array_contains "one" "${array[@]}" ; then
     echo "one is in array"
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_date2timestamp"></a>
+### lb_date2timestamp
+Convert a date into a timestamp.
+
+#### Usage
+```bash
+lb_date2timestamp [OPTIONS] DATE
+```
+
+**Note: Date must be formatted in `YYYY-MM-DD HH:MM:SS`**
+
+#### Options
+```
+-u, --utc  Date and timestamp are using UTC
+```
+
+#### Exit codes
+- 0: Date converted
+- 1: Usage error
+- 2: Conversion error; date may be invalid
+
+#### Example
+```bash
+timestamp=$(lb_date2timestamp '2017-12-31 23:59:59')
+```
+
+---------------------------------------------------------------
+<a name="lb_timestamp2date"></a>
+### lb_timestamp2date
+Convert a timestamp to a date.
+
+#### Usage
+```bash
+lb_timestamp2date [OPTIONS] TIMESTAMP
+```
+
+#### Options
+```
+-f, --format FORMAT  Specify a date format to return
+-u, --utc            Timestamp and date are using UTC
+```
+
+#### Exit codes
+- 0: Timestamp converted
+- 1: Usage error
+- 2: Conversion error; timestamp may be invalid
+
+#### Example
+```bash
+date=$(lb_timestamp2date 1514764799)
 ```
 
 ---------------------------------------------------------------
