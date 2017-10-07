@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 (2017-10-07)
+- New function: `lb_date2timestamp()` to convert a date to a timestamp
+- New function: `lb_timestamp2date()` to convert a timestamp to a date
+- New debian package available to deploy libbash files in `/usr/lib/libbash`
+- Minor improvements in code and documentation
+
 ## 1.5.0 (2017-10-01)
 - New function: `lb_group_members()` to get users members of a group (works only on Linux systems)
 - New function: `lb_set_config()` for setting values
