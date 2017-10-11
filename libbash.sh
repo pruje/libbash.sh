@@ -77,8 +77,11 @@
 #       lb_display_critical
 #       lb_display_error
 #       lb_display_warning
+#       lb_warning
 #       lb_display_info
+#       lb_info
 #       lb_display_debug
+#       lb_debug
 #       lb_log_critical
 #       lb_log_error
 #       lb_log_warning
@@ -2962,7 +2965,35 @@ lb_display_warning() {
 	"${lb_cmd[@]}"
 }
 
+lb_warning() {
+	# basic command
+	local lb_cmd=(lb_display -p -l "$lb_default_warning_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
+}
+
 lb_display_info() {
+	# basic command
+	local lb_cmd=(lb_display -p -l "$lb_default_info_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
+}
+
+lb_info() {
 	# basic command
 	local lb_cmd=(lb_display -p -l "$lb_default_info_label")
 
@@ -2990,6 +3021,19 @@ lb_display_debug() {
 	"${lb_cmd[@]}"
 }
 
+lb_debug() {
+	# basic command
+	local lb_cmd=(lb_display -p -l "$lb_default_debug_label")
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lb_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lb_cmd[@]}"
+}
 
 # Common log functions
 # Usage: lb_log_* [OPTIONS] TEXT
