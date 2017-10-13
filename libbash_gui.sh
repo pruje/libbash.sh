@@ -36,6 +36,7 @@
 #       lbg_open_directory
 #   * Aliases and compatibility
 #       lbg_display_critical
+#       lbg_critical
 #       lbg_display_debug
 #       lbg_debug
 #       lbg_info
@@ -1738,6 +1739,20 @@ lbg_open_directory() {
 # Display a critical dialog
 # See lbg_display_error for usage
 lbg_display_critical() {
+	# basic command
+	lbg_cmd=(lbg_display_error)
+
+	# parse arguments
+	while [ -n "$1" ] ; do
+		lbg_cmd+=("$1")
+		shift
+	done
+
+	# run command
+	"${lbg_cmd[@]}"
+}
+
+lbg_critical() {
 	# basic command
 	lbg_cmd=(lbg_display_error)
 

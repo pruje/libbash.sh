@@ -51,11 +51,11 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_get_gui](#lbg_get_gui)
 	* [lbg_set_gui](#lbg_set_gui)
 * Messages and notifications
-	* [lbg_display_info](#lbg_display_info)
-	* [lbg_display_warning](#lbg_display_warning)
-	* [lbg_display_error](#lbg_display_error)
-	* [lbg_display_critical](#lbg_display_critical)
-	* [lbg_display_debug](#lbg_display_debug)
+	* [lbg_display_info, lbg_info](#lbg_display_info)
+	* [lbg_display_warning, lbg_warning](#lbg_display_warning)
+	* [lbg_display_error, lbg_error](#lbg_display_error)
+	* [lbg_display_critical, lbg_critical](#lbg_display_critical)
+	* [lbg_display_debug, lbg_debug](#lbg_display_debug)
 	* [lbg_notify](#lbg_notify)*
 * User interaction
 	* [lbg_yesno](#lbg_yesno)
@@ -122,14 +122,17 @@ fi
 ## Messages and notifications
 ---------------------------------------------------------------
 <a name="lbg_display_info"></a>
-### lbg_display_info
+### lbg_display_info, lbg_info
 Display an info message dialog.
 
 #### Usage
 ```bash
 lbg_display_info [OPTIONS] TEXT
 ```
-
+or
+```bash
+lbg_info [OPTIONS] TEXT
+```
 #### Options
 ```
 -t, --title TEXT  Set a title to the dialog
@@ -142,18 +145,22 @@ lbg_display_info [OPTIONS] TEXT
 
 #### Example
 ```bash
-lbg_display_info "This is an info message."
+lbg_info "This is an info message."
 ```
 
 ---------------------------------------------------------------
 <a name="lbg_display_warning"></a>
-### lbg_display_warning
+### lbg_display_warning, lbg_warning
 Displays a warning message dialog.
 
 #### Usage
 ```bash
 lbg_display_warning [OPTIONS] TEXT
 ```
+or
+```bash
+lbg_warning [OPTIONS] TEXT
+```
 
 #### Options
 ```
@@ -167,17 +174,21 @@ lbg_display_warning [OPTIONS] TEXT
 
 #### Example
 ```bash
-lbg_display_warning "This is a warning message."
+lbg_warning "This is a warning message."
 ```
 
 ---------------------------------------------------------------
 <a name="lbg_display_error"></a>
-### lbg_display_error
+### lbg_display_error, lbg_error
 Displays an error message dialog.
 
 #### Usage
 ```bash
 lbg_display_error [OPTIONS] TEXT
+```
+or
+```bash
+lbg_error [OPTIONS] TEXT
 ```
 
 #### Options
@@ -197,13 +208,17 @@ lbg_display_error "This is an error message."
 
 ---------------------------------------------------------------
 <a name="lbg_display_critical"></a>
-### lbg_display_critical
+### lbg_display_critical, lbg_critical
 Displays a critical error mesage dialog.
 
 #### Usage
 ```bash
 lbg_display_critical [OPTIONS] TEXT
 ```
+or
+```bash
+lbg_critical [OPTIONS] TEXT
+```
 
 #### Options
 ```
@@ -217,18 +232,22 @@ lbg_display_critical [OPTIONS] TEXT
 
 #### Example
 ```bash
-lbg_display_critical "This is a critical error message."
+lbg_critical "This is a critical error message."
 ```
 
 ---------------------------------------------------------------
 <a name="lbg_display_debug"></a>
-### lbg_display_debug
+### lbg_display_debug, lbg_debug
 Displays a debug info message dialog.
 
 #### Usage
 ```bash
 lbg_display_debug [OPTIONS] TEXT
 ```
+or
+```bash
+lbg_debug [OPTIONS] TEXT
+```
 
 #### Options
 ```
@@ -242,7 +261,7 @@ lbg_display_debug [OPTIONS] TEXT
 
 #### Example
 ```bash
-lbg_display_debug "This is a debug message."
+lbg_debug "This is a debug message."
 ```
 
 ---------------------------------------------------------------

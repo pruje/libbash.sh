@@ -366,6 +366,13 @@ Shortcuts to display with common log levels.
 
 It uses the `lb_display` function with `--prefix` and `--level` options.
 
+Available functions:
+- `lb_display_critical`
+- `lb_display_error`
+- `lb_display_warning` (or `lb_warning`)
+- `lb_display_info` (or `lb_info`)
+- `lb_display_debug` (or `lb_debug`)
+
 #### Usage
 ```bash
 lb_display_... [OPTIONS] TEXT
