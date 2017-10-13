@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.1 (2017-10-13)
+- New aliases for display functions:
+    - `lb_warning()` -> `lb_display_warning()`
+    - `lb_info()` -> `lb_display_info()`
+    - `lb_debug()` -> `lb_display_debug()`
+- New aliases for dialogs functions:
+    - `lbg_critical()` -> `lbg_display_critical()`
+    - `lbg_error()` -> `lbg_display_error()`
+    - `lbg_warning()` -> `lbg_display_warning()`
+    - `lbg_info()` -> `lbg_display_info()`
+    - `lbg_debug()` -> `lbg_display_debug()`
+
 ## 1.6.0 (2017-10-07)
 - New function: `lb_date2timestamp()` to convert a date to a timestamp
 - New function: `lb_timestamp2date()` to convert a timestamp to a date
