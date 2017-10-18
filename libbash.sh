@@ -757,7 +757,10 @@ lb_get_logfile() {
 
 	# test if log file is writable
 	if ! lb_is_writable "$lb_logfile" ; then
-		return 2
+		# do not return error if samba share: cannot determine rights in some cases
+		if [ "$(lb_df_fstype "$(dirname "$lb_logfile")")" != smbfs ] ; then
+			return 2
+		fi
 	fi
 
 	# return log file path
@@ -803,7 +806,10 @@ lb_set_logfile() {
 
 	# cancel if file is not writable
 	if ! lb_is_writable "$*" ; then
-		return 2
+		# do not return error if samba share: cannot determine rights in some cases
+		if [ "$(lb_df_fstype "$(dirname "$*")")" != smbfs ] ; then
+			return 2
+		fi
 	fi
 
 	# if file exists
@@ -1767,7 +1773,7 @@ lb_realpath() {
 lb_is_writable() {
 
 	# usage errors
-	if [ $# == 0 ] ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
