@@ -1087,6 +1087,18 @@ real_path=$(lb_realpath /path/link_to_file)
 ### lb_is_writable
 Test if a path (file or directory) is writable.
 
+#### The weird Samba case
+On Windows, this may fails if you are not owner on a network share file/folder.
+We recommand you to do something like the following if you can be in this case:
+
+```bash
+if ! lb_is_writable "$logfile" ; then
+	if [ "$(lb_df_fstype "$(dirname "$logfile")")" != smbfs ] ; then
+		echo "File is not writable!"
+	fi
+fi
+```
+
 #### Usage
 ```bash
 lb_is_writable PATH

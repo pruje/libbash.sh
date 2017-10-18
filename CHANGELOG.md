@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.6.2 (2017-10-18)
+- [Windows] Fixed a bug for `lb_set_logfile()` and `lb_get_logfile()` which failed if logfile was in a samba share
+
 ## 1.6.1 (2017-10-13)
 - New aliases for display functions:
     - `lb_warning()` -> `lb_display_warning()`
