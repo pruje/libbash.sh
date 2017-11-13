@@ -3128,6 +3128,7 @@ lb_detect_os() {
 lb_exitcode=0
 
 # context variables
+lb_current_hostname=$(hostname 2> /dev/null)
 lb_current_path=$(pwd)
 lb_current_user=$(whoami)
 
