@@ -7,9 +7,11 @@
 #  Copyright (c) 2017 Jean Prunneaux                   #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.6.2 (2017-10-18)                          #
+#  Version 1.6.3 (2017-11-13)                          #
 #                                                      #
 ########################################################
+
+lb_version=1.6.3
 
 # Index
 #
@@ -94,9 +96,6 @@
 ####################
 #  MAIN VARIABLES  #
 ####################
-
-# libbash current version
-lb_version=1.6.2
 
 # default labels
 lb_default_result_ok_label="... Done!"

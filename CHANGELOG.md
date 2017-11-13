@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.6.3 (2017-11-13)
+- Add new `$lb_current_hostname` variable
+
 ## 1.6.2 (2017-10-18)
 - [Windows] Fixed a bug for `lb_set_logfile()` and `lb_get_logfile()` which failed if logfile was in a samba share
 
