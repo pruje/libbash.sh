@@ -65,6 +65,7 @@ lb_version=1.6.3
 #       lb_email
 #       lb_read_config
 #       lb_import_config
+#       lb_get_config
 #       lb_set_config
 #   * User interacion
 #       lb_yesno
@@ -2287,6 +2288,85 @@ lb_import_config() {
 }
 
 
+# Get config value
+# Usage: lb_get_config [OPTIONS] FILE PARAM
+lb_get_config() {
+
+	# local variables and default options
+	local lb_getcf_section=""
+	local lb_getcf_ready=true
+
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_getcf_section=$2
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next option
+	done
+
+	# usage error
+	if [ $# -lt 2 ] ; then
+		return 1
+	fi
+
+	# test config file
+	if ! [ -f "$1" ] ; then
+		return 1
+	fi
+	if ! [ -r "$1" ] ; then
+		return 2
+	fi
+
+	# search config line
+	local lb_getcf_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
+
+	# if line not found, return error
+	if [ ${#lb_getcf_line[@]} == 0 ] ; then
+		return 3
+	fi
+
+	# if no filter by section, print the first found
+	if [ -z "$lb_getcf_section" ] ; then
+		sed "${lb_getcf_line[0]}q;d" "$1" | sed "s/.*$2\s*=\s*//"
+		return 0
+	fi
+
+	# filter by section
+	local lb_getcf_section_found=false
+
+	# parse every results
+	for lb_getcf_i in ${lb_getcf_line[@]} ; do
+		# if first line, cannot go up
+		if [ $lb_getcf_i == 1 ] ; then
+			continue
+		fi
+
+		for ((lb_getcf_j=$lb_getcf_i-1; lb_getcf_j>=1; lb_getcf_j--)) ; do
+			lb_getcf_current_section=$(sed "${lb_getcf_j}q;d" "$1" | grep -Eo "^\[.*\]$")
+
+			if [ -n "$lb_getcf_current_section" ] ; then
+				if [ "$lb_getcf_current_section" == "[$lb_getcf_section]" ] ; then
+					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2\s*=\s*//"
+					return 0
+				fi
+				break
+			fi
+		done
+	done
+
+	# if parameter not found in the right section, return error
+	return 3
+}
+
+
 # Set config value
 # Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
 lb_set_config() {
@@ -2355,9 +2435,8 @@ lb_set_config() {
 		# if filter by section,
 		if [ -n "$lb_setcf_section" ] ; then
 
-			lb_setcf_section_ready=false
-
 			local lb_setcf_section_found=false
+			local lb_setcf_section_ready=false
 
 			# parse every results
 			for lb_setcf_i in ${lb_setcf_line[@]} ; do
