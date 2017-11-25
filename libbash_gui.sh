@@ -243,7 +243,7 @@ lbg_display_info() {
 	local lbg_dinf_title=$lb_current_script_name
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
@@ -343,7 +343,7 @@ lbg_display_warning() {
 	local lbg_dwn_title=$lb_current_script_name
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
@@ -432,7 +432,7 @@ lbg_display_error() {
 	local lbg_derr_title=$lb_current_script_name
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
@@ -523,7 +523,7 @@ lbg_notify() {
 	local lbg_notify_use_notifysend=true
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
 				if [ -z "$2" ] ; then
@@ -634,7 +634,7 @@ lbg_yesno() {
 	local lbg_yn_cmd=()
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-y|--yes)
 				lbg_yn_defaultyes=true
@@ -809,7 +809,7 @@ lbg_choose_option() {
 	local lbg_chop_label=$lb_default_chopt_label
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
 				if ! lb_is_integer $2 ; then
@@ -1035,7 +1035,7 @@ lbg_input_text() {
 	local lbg_inp_title=$lb_current_script_name
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
@@ -1149,7 +1149,7 @@ lbg_input_password() {
 	local lbg_inpw_minsize=0
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-l|--label) # old option kept for compatibility
 				if [ -z "$2" ] ; then
@@ -1300,7 +1300,7 @@ lbg_choose_directory() {
 	local lbg_chdir_absolute=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-a|--absolute-path)
 				lbg_chdir_absolute=true
@@ -1451,7 +1451,7 @@ lbg_choose_file() {
 	local lbg_choosefile_absolute=false
 
 	# catch options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--save)
 				lbg_choosefile_save=true
@@ -1650,7 +1650,7 @@ lbg_open_directory() {
 	local lbg_opdir_result=0
 
 	# catch options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-e|--explorer)
 				if [ -z "$2" ] ; then
@@ -1743,7 +1743,7 @@ lbg_display_critical() {
 	lbg_cmd=(lbg_display_error)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lbg_cmd+=("$1")
 		shift
 	done
@@ -1757,7 +1757,7 @@ lbg_critical() {
 	lbg_cmd=(lbg_display_error)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lbg_cmd+=("$1")
 		shift
 	done
@@ -1773,7 +1773,7 @@ lbg_display_debug() {
 	lbg_cmd=(lbg_display_info)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lbg_cmd+=("$1")
 		shift
 	done
@@ -1787,7 +1787,7 @@ lbg_debug() {
 	lbg_cmd=(lbg_display_info)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lbg_cmd+=("$1")
 		shift
 	done
@@ -1802,7 +1802,7 @@ lbg_info() {
 	lbg_cmd=(lbg_display_info)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lbg_cmd+=("$1")
 		shift
 	done
@@ -1816,7 +1816,7 @@ lbg_warning() {
 	lbg_cmd=(lbg_display_warning)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lbg_cmd+=("$1")
 		shift
 	done
@@ -1830,7 +1830,7 @@ lbg_error() {
 	lbg_cmd=(lbg_display_error)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lbg_cmd+=("$1")
 		shift
 	done

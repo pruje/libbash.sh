@@ -229,7 +229,7 @@ lb_exit() {
 	local lb_exit_quiet=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-f|--forward-exitcode)
 				lb_exit_fwdcode=true
@@ -292,7 +292,7 @@ lb_get_display_level() {
 	local lb_getdisplevel_getid=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			--id)
 				lb_getdisplevel_getid=true
@@ -372,7 +372,7 @@ lb_print() {
 	local lb_print_resetcolor=""
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-n)
 				lb_print_opts+="-n "
@@ -428,7 +428,7 @@ lb_display() {
 	local lb_display_displevel=""
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-n)
 				lb_display_opts="-n "
@@ -556,7 +556,7 @@ lb_result() {
 	local lb_result_exit_on_error=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			--ok-label)
 				if [ -z "$2" ] ; then
@@ -664,7 +664,7 @@ lb_short_result() {
 	local lb_shres_exit_on_error=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-l|--log-level)
 				if [ -z "$2" ] ; then
@@ -778,7 +778,7 @@ lb_set_logfile() {
 	local lb_setlogfile_append=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-a|--append)
 				lb_setlogfile_append=true
@@ -848,7 +848,7 @@ lb_get_log_level() {
 	local lb_getloglevel_getid=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			--id)
 				lb_getloglevel_getid=true
@@ -936,7 +936,7 @@ lb_log() {
 	local lb_log_loglevel=""
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-n)
 				lb_log_opts="-n "
@@ -1038,7 +1038,7 @@ lb_read_config() {
 	local lb_rdcf_section_found=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
 				if [ -z "$2" ] ; then
@@ -1126,7 +1126,7 @@ lb_import_config() {
 	local lb_impcf_found_section=false
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
 				if [ -z "$2" ] ; then
@@ -1243,7 +1243,8 @@ lb_get_config() {
 	# default options
 	local lb_getcf_section=""
 
-	while [ -n "$1" ] ; do
+	# get options
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
 				if [ -z "$2" ] ; then
@@ -1323,7 +1324,8 @@ lb_set_config() {
 	local lb_setcf_section=""
 	local lb_setcf_ready=true
 
-	while [ -n "$1" ] ; do
+	# get options
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
 				if [ -z "$2" ] ; then
@@ -1541,7 +1543,7 @@ lb_is_comment() {
 	local lb_iscom_empty=true
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--symbol)
 				if [ -z "$2" ] ; then
@@ -1651,7 +1653,7 @@ lb_date2timestamp() {
 	local lb_d2t_opts=""
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-u|--utc)
 				lb_d2t_opts="-u"
@@ -1690,7 +1692,7 @@ lb_timestamp2date() {
 	local lb_t2d_opts=""
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-f|--format)
 				if [ -z "$2" ] ; then
@@ -2420,7 +2422,7 @@ lb_email() {
 	local lb_email_commands=(/usr/sbin/sendmail)
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--subject)
 				if [ -z "$2" ] ; then
@@ -2629,7 +2631,7 @@ lb_yesno() {
 	local lb_yn_cancellbl=$lb_default_cancel_shortlabel
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-y|--yes)
 				lb_yn_defaultyes=true
@@ -2731,8 +2733,8 @@ lb_choose_option() {
 	# options: initialize with an empty first value (option ID starts to 1, not 0)
 	local lb_chop_options=("")
 
-	# get command options
-	while [ -n "$1" ] ; do
+	# get options
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
@@ -2872,7 +2874,7 @@ lb_input_text() {
 	local lb_inp_opts=""
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
 				if [ -z "$2" ] ; then
@@ -2936,7 +2938,7 @@ lb_input_password() {
 	local lb_inpw_minsize=0
 
 	# get options
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		case $1 in
 			-l|--label) # old option kept for compatibility
 				if [ -z "$2" ] ; then
@@ -3031,7 +3033,7 @@ lb_echo() {
 	local lb_cmd=(lb_print)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3048,7 +3050,7 @@ lb_error() {
 	local lb_cmd=(lb_print)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3065,7 +3067,7 @@ lb_get_loglevel() {
 	local lb_cmd=(lb_get_log_level)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3082,7 +3084,7 @@ lb_set_loglevel() {
 	local lb_cmd=(lb_set_log_level)
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3099,7 +3101,7 @@ lb_display_critical() {
 	local lb_cmd=(lb_display -p -l "$lb_default_critical_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3113,7 +3115,7 @@ lb_display_error() {
 	local lb_cmd=(lb_display -p -l "$lb_default_error_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3127,7 +3129,7 @@ lb_display_warning() {
 	local lb_cmd=(lb_display -p -l "$lb_default_warning_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3141,7 +3143,7 @@ lb_warning() {
 	local lb_cmd=(lb_display -p -l "$lb_default_warning_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3155,7 +3157,7 @@ lb_display_info() {
 	local lb_cmd=(lb_display -p -l "$lb_default_info_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3169,7 +3171,7 @@ lb_info() {
 	local lb_cmd=(lb_display -p -l "$lb_default_info_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3183,7 +3185,7 @@ lb_display_debug() {
 	local lb_cmd=(lb_display -p -l "$lb_default_debug_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3197,7 +3199,7 @@ lb_debug() {
 	local lb_cmd=(lb_display -p -l "$lb_default_debug_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3214,7 +3216,7 @@ lb_log_critical() {
 	local lb_cmd=(lb_log -p -l "$lb_default_critical_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3228,7 +3230,7 @@ lb_log_error() {
 	local lb_cmd=(lb_log -p -l "$lb_default_error_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3242,7 +3244,7 @@ lb_log_warning() {
 	local lb_cmd=(lb_log -p -l "$lb_default_warning_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3256,7 +3258,7 @@ lb_log_info() {
 	local lb_cmd=(lb_log -p -l "$lb_default_info_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3270,7 +3272,7 @@ lb_log_debug() {
 	local lb_cmd=(lb_log -p -l "$lb_default_debug_label")
 
 	# parse arguments
-	while [ -n "$1" ] ; do
+	while [ $# -gt 0 ] ; do
 		lb_cmd+=("$1")
 		shift
 	done
@@ -3332,13 +3334,14 @@ lb_load_gui=false
 # get current user language (e.g. fr, en, ...)
 lb_lang=${LANG:0:2}
 
-# simple catch of options; no errors if bad options
-while [ -n "$1" ] ; do
+# get options
+while [ $# -gt 0 ] ; do
 	case $1 in
 		-g|--gui)
 			lb_load_gui=true
 			;;
 		-l|--lang)
+			# no errors if bad options
 			if [ -n "$2" ] ; then
 				lb_lang=$2
 				shift
