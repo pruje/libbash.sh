@@ -4,16 +4,17 @@ A Bash library that features common functions useful for Bash developpers.
 Tired to search the web any time you don't know or remember how to do a basic action in a bash script?
 Just include libbash.sh to your script and use the functions!
 
-libbash.sh features **47 functions** to:
+libbash.sh features **more than 50 functions** to:
 - test if a program is installed
 - search a value in an array
 - ask user to confirm an action by yes or no
 - print text in colours
 - create and write log files
 - ask user to enter and confirm a password
+- read and write into config files
 - ...
 
-libbash.sh comes also with a GUI part with **13 functions** to:
+libbash.sh comes also with a GUI part with **15 functions** to:
 - display info/warning/error messages
 - display system notifications
 - ask user to choose a file/directory

@@ -24,6 +24,9 @@ Supported languages:
 - `en`: English (default)
 - `fr`: French
 
+**Note: DO NOT USE** variables or functions with `lb_` prefix in your scripts
+(nor `lbg_` if you use libbash.sh GUI) as you could override or broke some libbash.sh features.
+
 ## Variables
 You can use the following variables that are initialized when you include libbash.sh in your scripts:
 - `$lb_version`: the current libbash.sh version
@@ -40,7 +43,7 @@ You can use the following variables that are initialized when you include libbas
 - `$lb_exit_cmd`: array that contains a command to execute when `lb_exit()` function is called (empty by default)
 
 ## Functions
-All functions are named with the `lb_` prefix.
+Be careful with functions with short options (e.g. `lb_exit -q -f`): options must be called separately (e.g. `lb_exit -qf` will not work).
 Functions with a `*` are not fully supported on every OS yet (may change in the future).
 
 * Bash utilities
@@ -95,6 +98,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_email](#lb_email)*
 	* [lb_read_config](#lb_read_config)
 	* [lb_import_config](#lb_import_config)
+	* [lb_get_config](#lb_get_config)
 	* [lb_set_config](#lb_set_config)
 * User interaction
 	* [lb_yesno](#lb_yesno)
@@ -1349,15 +1353,41 @@ lb_import_config [OPTIONS] PATH
 ```bash
 ### content of my_config.conf
 # my config file
-bye_message="\nBye bye!\n"
+hello_message="Hello dear users"
 
-message_cmd = (echo -e)
+users = (John Mark)
 ### end content of my_config.conf
 
 lb_import_config my_config.conf
 
 # print bye message
-"${message_cmd[@]}" "$bye_message"
+echo "$hello_message ${users[@]}"
+```
+
+---------------------------------------------------------------
+<a name="lb_get_config"></a>
+### lb_get_config
+Get a parameter in a INI configuration file.
+
+#### Usage
+```bash
+lb_get_config [OPTIONS] FILE PARAM
+```
+
+#### Options
+```
+-s, --section SECTION  Get the parameter only in the specified section
+```
+
+#### Exit codes
+- 0: Configuration file updated
+- 1: Usage error or file(s) does not exists
+- 2: Configuration file is not readable
+- 3: Parameter not found
+
+#### Example
+```bash
+myoption=$(lb_get_config my_config.conf myoption)
 ```
 
 ---------------------------------------------------------------
