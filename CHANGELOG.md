@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0 (2017-11-25)
+- New function: `lb_get_config()` to get a single value from a config file
+- New option to send emails in HTML format in `lb_email()` function
+- New option to add files attachments in emails in `lb_email()` function
+- Speed optimizations
+- Minor bugfixes
+- Various improvements in documentation
+
 ## 1.6.3 (2017-11-13)
 - Add new `$lb_current_hostname` variable
 
