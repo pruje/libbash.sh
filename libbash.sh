@@ -1283,7 +1283,7 @@ lb_get_config() {
 
 	# if no filter by section, print the first found
 	if [ -z "$lb_getcf_section" ] ; then
-		sed "${lb_getcf_line[0]}q;d" "$1" | sed "s/.*$2\s*=\s*//"
+		sed "${lb_getcf_line[0]}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//"
 		return 0
 	fi
 
@@ -1303,7 +1303,7 @@ lb_get_config() {
 			if [ -n "$lb_getcf_current_section" ] ; then
 				if [ "$lb_getcf_current_section" == "[$lb_getcf_section]" ] ; then
 					# return value (and without any Windows endline)
-					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2\s*=\s*//; s/\r$//"
+					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//; s/\r$//"
 					return 0
 				fi
 				break
