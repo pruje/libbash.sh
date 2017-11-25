@@ -1298,11 +1298,12 @@ lb_get_config() {
 		fi
 
 		for ((lb_getcf_j=$lb_getcf_i-1; lb_getcf_j>=1; lb_getcf_j--)) ; do
-			lb_getcf_current_section=$(sed "${lb_getcf_j}q;d" "$1" | grep -Eo "^\[.*\]$")
+			lb_getcf_current_section=$(sed "${lb_getcf_j}q;d" "$1" | grep -Eo "^\[.*\]")
 
 			if [ -n "$lb_getcf_current_section" ] ; then
 				if [ "$lb_getcf_current_section" == "[$lb_getcf_section]" ] ; then
-					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2\s*=\s*//"
+					# return value (and without any Windows endline)
+					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2\s*=\s*//; s/\r$//"
 					return 0
 				fi
 				break
@@ -1395,7 +1396,7 @@ lb_set_config() {
 				fi
 
 				for ((lb_setcf_j=$lb_setcf_i-1; lb_setcf_j>=1; lb_setcf_j--)) ; do
-					lb_setcf_current_section=$(sed "${lb_setcf_j}q;d" "$lb_setcf_file" | grep -Eo "^\[.*\]$")
+					lb_setcf_current_section=$(sed "${lb_setcf_j}q;d" "$lb_setcf_file" | grep -Eo "^\[.*\]")
 
 					if [ -n "$lb_setcf_current_section" ] ; then
 						if [ "$lb_setcf_current_section" == "[$lb_setcf_section]" ] ; then
@@ -1459,7 +1460,7 @@ lb_set_config() {
 				lb_setcf_line+="\r"
 			fi
 
-			echo "$lb_setcf_line" >> "$lb_setcf_file"
+			echo -e "$lb_setcf_line" >> "$lb_setcf_file"
 			if [ $? != 0 ] ; then
 				return 4
 			fi
@@ -1467,7 +1468,7 @@ lb_set_config() {
 	fi
 
 	# append line to file
-	echo "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
+	echo -e "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
 
 	if [ $? != 0 ] ; then
 		return 4
