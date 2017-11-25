@@ -1722,7 +1722,7 @@ lbg_open_directory() {
 		fi
 
 		# open file explorer
-		"$lbg_opdir_explorer" "$lbg_opdir_path"
+		"$lbg_opdir_explorer" "$lbg_opdir_path" 2> /dev/null
 		if [ $? != 0 ] ; then
 			lbg_opdir_result=3
 		fi
