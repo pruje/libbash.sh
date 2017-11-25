@@ -1955,7 +1955,10 @@ lb_email() {
 	local lb_email_cc=""
 	local lb_email_bcc=""
 	local lb_email_command=""
-	local lb_email_header=""
+	local lb_email_message=""
+	local lb_email_message_html=""
+	local lb_email_multipart=false
+	local lb_email_separator=""
 
 	# email commands
 	local lb_email_commands=(/usr/sbin/sendmail)
@@ -1998,6 +2001,14 @@ lb_email() {
 				lb_email_bcc=$2
 				shift
 				;;
+			--html)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_email_message_html=$2
+				lb_email_multipart=true
+				shift
+				;;
 			*)
 				break
 				;;
@@ -2035,33 +2046,70 @@ lb_email() {
 	# set email header
 
 	if [ -n "$lb_email_sender" ] ; then
-		lb_email_header+="From: $lb_email_sender\n"
+		lb_email_message+="From: $lb_email_sender
+"
 	fi
 
-	lb_email_header+="To: $lb_email_recipients\n"
+	lb_email_message+="To: $lb_email_recipients
+"
 
 	if [ -n "$lb_email_cc" ] ; then
-		lb_email_header+="Cc: $lb_email_cc\n"
+		lb_email_message+="Cc: $lb_email_cc
+"
 	fi
 
 	if [ -n "$lb_email_bcc" ] ; then
-		lb_email_header+="Bcc: $lb_email_bcc\n"
+		lb_email_message+="Bcc: $lb_email_bcc
+"
 	fi
 
 	if [ -n "$lb_email_replyto" ] ; then
-		lb_email_header+="Reply-To: $lb_email_replyto\n"
+		lb_email_message+="Reply-To: $lb_email_replyto
+"
 	fi
 
 	if [ -n "$lb_email_subject" ] ; then
-		lb_email_header+="Subject: $lb_email_subject\n"
+		lb_email_message+="Subject: $lb_email_subject
+"
 	fi
 
-	lb_email_header+="MIME-Version: 1.0\nContent-Type: text/plain; charset=utf-8\n"
+	lb_email_message+="MIME-Version: 1.0
+"
+
+	# multipart definition
+	if $lb_email_multipart ; then
+		lb_email_separator="_----------=_MailPart_118845H_15_62347"
+
+		lb_email_message+="Content-Type: multipart/alternative; boundary=\"$lb_email_separator\"
+
+--$lb_email_separator
+"
+	fi
+
+	# mail in txt
+	lb_email_message+="Content-Type: text/plain; charset=\"utf-8\"
+$*"
+
+	# mail in html
+	if [ -n "$lb_email_message_html" ] ; then
+		lb_email_message+="
+
+--$lb_email_separator
+Content-Type: text/html; charset=\"utf-8\"
+$lb_email_message_html
+"
+	fi
+
+	# close the last section
+	if $lb_email_multipart ; then
+		lb_email_message+="
+--$lb_email_separator--"
+	fi
 
 	# send email with program
 	case $lb_email_command in
 		/usr/sbin/sendmail)
-			echo -e "$lb_email_header\n$*" | /usr/sbin/sendmail -t
+			echo "$lb_email_message" | /usr/sbin/sendmail -t
 			# if unknown error
 			if [ $? != 0 ] ; then
 				return 3
@@ -2292,9 +2340,8 @@ lb_import_config() {
 # Usage: lb_get_config [OPTIONS] FILE PARAM
 lb_get_config() {
 
-	# local variables and default options
+	# default options
 	local lb_getcf_section=""
-	local lb_getcf_ready=true
 
 	while [ -n "$1" ] ; do
 		case $1 in
