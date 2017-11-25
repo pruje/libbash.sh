@@ -1272,21 +1272,27 @@ lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 #### Options
 ```
 -s, --subject TEXT           Email subject
---sender EMAIL               Sender email address
 -r, --reply-to EMAIL         Email address to reply to
 -c, --cc EMAIL[,EMAIL,...]   Add email addresses in the CC field
 -b, --bcc EMAIL[,EMAIL,...]  Add email addresses in the BCC field
+-a, --attachment PATH        Add attachments to the email
+--sender EMAIL               Specify a sender email address
+--html MESSAGE               Send a HTML version of the TEXT
 ```
 
 #### Exit codes
 - 0: Email sent
-- 1: Usage error
+- 1: Usage error (or attachment does not exists)
 - 2: No program available to send email
 - 3: Unknown error from the program sender
 
+#### Notes regarding email contents
+To avoid bugs, be sure that you have correctly set your message and HTML body between quotes.
+For example, if you import content from a file, call it like this: `"$(cat mail.txt)"`.
+
 #### Example
 ```bash
-lb_email --subject "Test" me@example.com "Hello, this is a message!"
+lb_email --subject "Test" me@example.com "Hello, this is an email!"
 ```
 
 ---------------------------------------------------------------

@@ -1974,13 +1974,6 @@ lb_email() {
 				lb_email_subject=$2
 				shift
 				;;
-			--sender)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
-				lb_email_sender=$2
-				shift
-				;;
 			-r|--reply-to)
 				if [ -z "$2" ] ; then
 					return 1
@@ -2007,6 +2000,13 @@ lb_email() {
 					return 1
 				fi
 				lb_email_attachments+=("$2")
+				shift
+				;;
+			--sender)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_email_sender=$2
 				shift
 				;;
 			--html)
