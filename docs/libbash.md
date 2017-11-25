@@ -67,6 +67,11 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_set_log_level](#lb_set_log_level)
 	* [lb_log](#lb_log)
 	* [lb_log_critical, lb_log_error, lb_log_warning, lb_log_info, lb_log_debug](#lb_log_presets)
+* Configuration files
+	* [lb_read_config](#lb_read_config)
+	* [lb_import_config](#lb_import_config)
+	* [lb_get_config](#lb_get_config)
+	* [lb_set_config](#lb_set_config)
 * Operations on variables
 	* [lb_is_number](#lb_is_number)
 	* [lb_is_integer](#lb_is_integer)
@@ -96,10 +101,6 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_group_members](#lb_group_members)*
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)*
-	* [lb_read_config](#lb_read_config)
-	* [lb_import_config](#lb_import_config)
-	* [lb_get_config](#lb_get_config)
-	* [lb_set_config](#lb_set_config)
 * User interaction
 	* [lb_yesno](#lb_yesno)
 	* [lb_choose_option](#lb_choose_option)
@@ -624,6 +625,155 @@ See [lb_log](#lb_log) for usage.
 #### Example
 ```bash
 lb_log_error "There was an error in your script!"
+```
+
+---------------------------------------------------------------
+## Configuration files
+---------------------------------------------------------------
+<a name="lb_read_config"></a>
+### lb_read_config
+Read a config file and put each line that is not a comment or empty into the `${lb_read_config[@]}` array variable.
+
+Config file definition:
+- Simple text file
+- Using `#` or `;` at start of line as comment
+- INI files are required if using sections filter
+
+#### Usage
+```bash
+lb_read_config [OPTIONS] PATH
+```
+
+#### Options
+```
+-s, --section SECTION  Read parameters only in the specified section(s)
+```
+
+#### Exit codes
+- 0: File read
+- 1: Usage error or file(s) does not exists
+- 2: File exists but is not readable
+- 3: Specified section was not found
+
+#### Example
+```bash
+lb_read_config my_config.conf
+
+# print config lines
+for ((i = 0 ; i < ${#lb_read_config[@]} ; i++)) ; do
+	echo "${lb_read_config[$i]}"
+done
+```
+
+---------------------------------------------------------------
+<a name="lb_import_config"></a>
+### lb_import_config
+Import a config file and assign values to bash variables.
+
+Config file definition:
+- Simple text file
+- Using `#` or `;` at start of line as comment
+- INI files are required if using sections filter
+- Values with spaces should have quotes like: `param = 'my value'` or `param = "my value"`
+- Lines that contains $ and \` characters are not imported to avoid shell injection. You can import them anyway with the `--unsecure` option (see below).
+
+#### Usage
+```bash
+lb_import_config [OPTIONS] PATH
+```
+
+#### Options
+```
+-s, --section SECTION  Import parameters only in the specified section(s)
+-e, --all-errors       Return all errors in exit codes
+-u, --unsecure         Do not prevent shell injection (could be dangerous)
+```
+
+#### Exit codes
+- 0: Configuration imported
+- 1: Usage error or file(s) does not exists
+- 2: One or more parameters were not imported, or specified section not found
+- 3: One or more line has a bad syntax (if `--all-errors` option is enabled)
+- 4: One or more line contains shell commands or variables (if `--all-errors` option is enabled)
+- 5: File exists but is not readable
+
+#### Example
+```bash
+### content of my_config.conf
+# my config file
+hello_message="Hello dear users"
+
+users = (John Mark)
+### end content of my_config.conf
+
+lb_import_config my_config.conf
+
+# print bye message
+echo "$hello_message ${users[@]}"
+```
+
+---------------------------------------------------------------
+<a name="lb_get_config"></a>
+### lb_get_config
+Get a parameter in a config file.
+
+Config file definition:
+- Simple text file
+- Using `#` or `;` at start of line as comment
+- INI files are required if using sections filter
+
+#### Usage
+```bash
+lb_get_config [OPTIONS] FILE PARAM
+```
+
+#### Options
+```
+-s, --section SECTION  Get the parameter only in the specified section
+```
+
+#### Exit codes
+- 0: Configuration file updated
+- 1: Usage error or file(s) does not exists
+- 2: Configuration file is not readable
+- 3: Parameter not found
+
+#### Example
+```bash
+myoption=$(lb_get_config my_config.conf myoption)
+```
+
+---------------------------------------------------------------
+<a name="lb_set_config"></a>
+### lb_set_config
+Set a parameter in a config file.
+
+Config file definition:
+- Simple text file
+- Using `#` or `;` at start of line as comment
+- INI files are required if using sections filter
+
+#### Usage
+```bash
+lb_set_config [OPTIONS] FILE PARAM VALUE
+```
+
+#### Options
+```
+-s, --section SECTION  Set the parameter only in the specified section
+--strict               Strict mode: do not insert parameter if it does not exists
+```
+
+#### Exit codes
+- 0: Configuration file updated
+- 1: Usage error or file(s) does not exists
+- 2: Configuration file is not writable
+- 3: Parameter does not exists (if strict mode)
+- 4: Error in setting config
+
+#### Example
+```bash
+lb_set_config my_config.conf myoption "My value"
 ```
 
 ---------------------------------------------------------------
@@ -1293,135 +1443,6 @@ For example, if you import content from a file, call it like this: `"$(cat mail.
 #### Example
 ```bash
 lb_email --subject "Test" me@example.com "Hello, this is an email!"
-```
-
----------------------------------------------------------------
-<a name="lb_read_config"></a>
-### lb_read_config
-Read INI config file and put each line that is not a comment or empty into the `${lb_read_config[@]}` array variable.
-
-#### Usage
-```bash
-lb_read_config [OPTIONS] PATH
-```
-
-#### Options
-```
--s, --section SECTION  Read parameters only in the specified section(s)
-```
-
-#### Exit codes
-- 0: File read
-- 1: Usage error or file(s) does not exists
-- 2: File exists but is not readable
-- 3: Specified section was not found
-
-#### Example
-```bash
-lb_read_config my_config.conf
-
-# print config lines
-for ((i = 0 ; i < ${#lb_read_config[@]} ; i++)) ; do
-	echo "${lb_read_config[$i]}"
-done
-```
-
----------------------------------------------------------------
-<a name="lb_import_config"></a>
-### lb_import_config
-Import INI config file and assign values to bash variables.
-
-To avoid errors while importing config files, please note that:
-- Values with spaces should have quotes like: `param = 'my value'` or `param = "my value"`
-- Lines that contains $ and \` characters are not imported to avoid shell injection. You can import them anyway with the `--unsecure` option (see below).
-
-#### Usage
-```bash
-lb_import_config [OPTIONS] PATH
-```
-
-#### Options
-```
--s, --section SECTION  Import parameters only in the specified section(s)
--e, --all-errors       Return all errors in exit codes
--u, --unsecure         Do not prevent shell injection (could be dangerous)
-```
-
-#### Exit codes
-- 0: Configuration imported
-- 1: Usage error or file(s) does not exists
-- 2: One or more parameters were not imported, or specified section not found
-- 3: One or more line has a bad syntax (if `--all-errors` option is enabled)
-- 4: One or more line contains shell commands or variables (if `--all-errors` option is enabled)
-- 5: File exists but is not readable
-
-#### Example
-```bash
-### content of my_config.conf
-# my config file
-hello_message="Hello dear users"
-
-users = (John Mark)
-### end content of my_config.conf
-
-lb_import_config my_config.conf
-
-# print bye message
-echo "$hello_message ${users[@]}"
-```
-
----------------------------------------------------------------
-<a name="lb_get_config"></a>
-### lb_get_config
-Get a parameter in a INI configuration file.
-
-#### Usage
-```bash
-lb_get_config [OPTIONS] FILE PARAM
-```
-
-#### Options
-```
--s, --section SECTION  Get the parameter only in the specified section
-```
-
-#### Exit codes
-- 0: Configuration file updated
-- 1: Usage error or file(s) does not exists
-- 2: Configuration file is not readable
-- 3: Parameter not found
-
-#### Example
-```bash
-myoption=$(lb_get_config my_config.conf myoption)
-```
-
----------------------------------------------------------------
-<a name="lb_set_config"></a>
-### lb_set_config
-Set a parameter in a INI configuration file.
-
-#### Usage
-```bash
-lb_set_config [OPTIONS] FILE PARAM VALUE
-```
-
-#### Options
-```
--s, --section SECTION  Set the parameter only in the specified section
---strict               Strict mode: do not insert parameter if it does not exists
-```
-
-#### Exit codes
-- 0: Configuration file updated
-- 1: Usage error or file(s) does not exists
-- 2: Configuration file is not writable
-- 3: Parameter does not exists (if strict mode)
-- 4: Error in setting config
-
-#### Example
-```bash
-lb_set_config my_config.conf myoption "My value"
 ```
 
 ---------------------------------------------------------------

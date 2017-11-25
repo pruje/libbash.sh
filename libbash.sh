@@ -34,6 +34,11 @@ lb_version=1.6.3
 #       lb_get_log_level
 #       lb_set_log_level
 #       lb_log
+#   * Configuration files
+#       lb_read_config
+#       lb_import_config
+#       lb_get_config
+#       lb_set_config
 #   * Operations on variables
 #       lb_is_number
 #       lb_is_integer
@@ -63,10 +68,6 @@ lb_version=1.6.3
 #       lb_group_members
 #       lb_generate_password
 #       lb_email
-#       lb_read_config
-#       lb_import_config
-#       lb_get_config
-#       lb_set_config
 #   * User interacion
 #       lb_yesno
 #       lb_choose_option
@@ -1014,6 +1015,460 @@ lb_log() {
 	# unknown write error
 	if [ $? != 0 ] ; then
 		return 2
+	fi
+}
+
+
+########################
+#  CONFIGURATION FILES #
+########################
+
+# Read a config file
+# Usage: lb_read_config [OPTIONS] PATH
+lb_read_config=()
+lb_read_config() {
+
+	# reset variable
+	lb_read_config=()
+
+	# default options
+	local lb_rdcf_sections=()
+	local lb_rdcf_filter=false
+	local lb_rdcf_good_section=false
+	local lb_rdcf_section_found=false
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_rdcf_sections+=("[$2]")
+				lb_rdcf_filter=true
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
+
+	# usage error
+	if ! [ -f "$1" ] ; then
+		return 1
+	fi
+
+	# test if file is readable
+	if ! [ -r "$1" ] ; then
+		return 2
+	fi
+
+	# read config file line by line; backslashes are not escaped
+	while read -r lb_rdcf_line ; do
+
+		# testing if file has Windows format (\r at the end of line)
+		if [ "${lb_rdcf_line:${#lb_rdcf_line}-1}" == $'\r' ] ; then
+			# delete the last character \r
+			lb_rdcf_line=${lb_rdcf_line:0:${#lb_rdcf_line}-1}
+		fi
+
+		# filter by sections
+		if $lb_rdcf_filter ; then
+
+			lb_rdcf_section=$(echo $lb_rdcf_line | grep -Eo "^\[.*\]$")
+
+			# if line is a section definition
+			if [ -n "$lb_rdcf_section" ] ; then
+				# if section is valid, mark it
+				if lb_array_contains $lb_rdcf_section ${lb_rdcf_sections[@]} ; then
+					lb_rdcf_good_section=true
+					lb_rdcf_section_found=true
+				else
+					# if section is not valid, mark it and continue to the next line
+					lb_rdcf_good_section=false
+					continue
+				fi
+			else
+				# if normal line,
+				# if we are not in a good section, continue to the next line
+				if ! $lb_rdcf_good_section ; then
+					continue
+				fi
+			fi
+		fi
+
+		# add line to the lb_read_config variable
+		lb_read_config+=("$lb_rdcf_line")
+
+	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
+
+	# if section was not found, error
+	if $lb_rdcf_filter ; then
+		if ! $lb_rdcf_section_found ; then
+			return 3
+		fi
+	fi
+}
+
+
+# Import a config file into bash variables
+# Usage: lb_import_config [OPTIONS] PATH
+lb_import_config() {
+
+	# local variables and default options
+	local lb_impcf_errors=false
+	local lb_impcf_secure=true
+	local lb_impcf_sections=()
+	local lb_impcf_filter=false
+	local lb_impcf_good_section=false
+	local lb_impcf_found_section=false
+
+	# get options
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_impcf_sections+=("[$2]")
+				lb_impcf_filter=true
+				shift
+				;;
+			-e|--all-errors)
+				lb_impcf_errors=true
+				;;
+			-u|--unsecure)
+				lb_impcf_secure=false
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
+
+	# test if file exists
+	if ! [ -f "$1" ] ; then
+		return 1
+	fi
+
+	# test if file is readable
+	if ! [ -r "$1" ] ; then
+		return 5
+	fi
+
+	local lb_impcf_result=0
+
+	# read file line by line; backslashes are not escaped
+	while read -r lb_impcf_line ; do
+
+		# testing if file has Windows format (\r at the end of line)
+		if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
+			# delete the last character \r
+			lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
+		fi
+
+		# filter by sections
+		if $lb_impcf_filter ; then
+
+			lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]$")
+
+			# if line is a section definition
+			if [ -n "$lb_impcf_section" ] ; then
+				# if section is valid, mark it
+				if lb_array_contains $lb_impcf_section ${lb_impcf_sections[@]} ; then
+					lb_impcf_good_section=true
+					lb_impcf_found_section=true
+				else
+					lb_impcf_good_section=false
+				fi
+			else
+				# if normal line,
+				# if we are not in a good section, continue to the next line
+				if ! $lb_impcf_good_section ; then
+					continue
+				fi
+			fi
+		fi
+
+		# check syntax of the line (param = value)
+		if ! echo $lb_impcf_line | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
+			# if section definition, do nothing (not error)
+			if ! echo $lb_impcf_line | grep -Eq "^\[.*\]$" ; then
+				if $lb_impcf_errors ; then
+					lb_impcf_result=3
+				fi
+			fi
+			continue
+		fi
+
+		# get parameter and value
+		# Note: use [[:space:]] for macOS compatibility
+		lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//")
+
+		# secure config values with prevent bash injection
+		if $lb_impcf_secure ; then
+			if echo $lb_impcf_value | grep -Eq '\$|`' ; then
+				if $lb_impcf_errors ; then
+					lb_impcf_result=4
+				fi
+				continue
+			fi
+		fi
+
+		# run command to attribute value to variable
+		eval "$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[[:space:]]')=$lb_impcf_value" &> /dev/null
+		if [ $? != 0 ] ; then
+			lb_impcf_result=2
+		fi
+	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
+
+	# if section was not found, return error
+	if $lb_impcf_filter ; then
+		if ! $lb_impcf_found_section ; then
+			return 2
+		fi
+	fi
+
+	return $lb_impcf_result
+}
+
+
+# Get config value
+# Usage: lb_get_config [OPTIONS] FILE PARAM
+lb_get_config() {
+
+	# default options
+	local lb_getcf_section=""
+
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_getcf_section=$2
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next option
+	done
+
+	# usage error
+	if [ $# -lt 2 ] ; then
+		return 1
+	fi
+
+	# test config file
+	if ! [ -f "$1" ] ; then
+		return 1
+	fi
+	if ! [ -r "$1" ] ; then
+		return 2
+	fi
+
+	# search config line
+	local lb_getcf_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
+
+	# if line not found, return error
+	if [ ${#lb_getcf_line[@]} == 0 ] ; then
+		return 3
+	fi
+
+	# if no filter by section, print the first found
+	if [ -z "$lb_getcf_section" ] ; then
+		sed "${lb_getcf_line[0]}q;d" "$1" | sed "s/.*$2\s*=\s*//"
+		return 0
+	fi
+
+	# filter by section
+	local lb_getcf_section_found=false
+
+	# parse every results
+	for lb_getcf_i in ${lb_getcf_line[@]} ; do
+		# if first line, cannot go up
+		if [ $lb_getcf_i == 1 ] ; then
+			continue
+		fi
+
+		for ((lb_getcf_j=$lb_getcf_i-1; lb_getcf_j>=1; lb_getcf_j--)) ; do
+			lb_getcf_current_section=$(sed "${lb_getcf_j}q;d" "$1" | grep -Eo "^\[.*\]$")
+
+			if [ -n "$lb_getcf_current_section" ] ; then
+				if [ "$lb_getcf_current_section" == "[$lb_getcf_section]" ] ; then
+					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2\s*=\s*//"
+					return 0
+				fi
+				break
+			fi
+		done
+	done
+
+	# if parameter not found in the right section, return error
+	return 3
+}
+
+
+# Set config value
+# Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
+lb_set_config() {
+
+	# local variables and default options
+	local lb_setcf_strict=false
+	local lb_setcf_section=""
+	local lb_setcf_ready=true
+
+	while [ -n "$1" ] ; do
+		case $1 in
+			-s|--section)
+				if [ -z "$2" ] ; then
+					return 1
+				fi
+				lb_setcf_section=$2
+				shift
+				;;
+			--strict)
+				lb_setcf_strict=true
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next option
+	done
+
+	# usage error
+	if [ $# -lt 2 ] ; then
+		return 1
+	fi
+
+	# test config file
+	if ! [ -f "$1" ] ; then
+		return 1
+	fi
+	if ! [ -w "$1" ] ; then
+		return 2
+	fi
+
+	local lb_setcf_file=$1
+	local lb_setcf_param=$2
+	shift 2
+
+	# get value
+	local lb_setcf_value=$*
+
+	# Windows files: add \r at the end of line
+	if [ "$lb_current_os" == Windows ] ; then
+		lb_setcf_value+="\r"
+	fi
+
+	# prepare value for sed mode
+	local lb_setcf_sed_value=$(echo "$lb_setcf_value" | sed 's/\//\\\//g')
+
+	# search config line
+	local lb_setcf_line=($(grep -En "^\s*(#|;)*\s*$lb_setcf_param\s*=" "$lb_setcf_file" | cut -d: -f1))
+
+	# get number of results
+	local lb_setcf_results=${#lb_setcf_line[@]}
+
+	# if line found, modify line (set the last one if multiple lines)
+	if [ $lb_setcf_results -gt 0 ] ; then
+
+		# if filter by section,
+		if [ -n "$lb_setcf_section" ] ; then
+
+			local lb_setcf_section_found=false
+			local lb_setcf_section_ready=false
+
+			# parse every results
+			for lb_setcf_i in ${lb_setcf_line[@]} ; do
+				# if first line, cannot go up
+				if [ $lb_setcf_i == 1 ] ; then
+					continue
+				fi
+
+				for ((lb_setcf_j=$lb_setcf_i-1; lb_setcf_j>=1; lb_setcf_j--)) ; do
+					lb_setcf_current_section=$(sed "${lb_setcf_j}q;d" "$lb_setcf_file" | grep -Eo "^\[.*\]$")
+
+					if [ -n "$lb_setcf_current_section" ] ; then
+						if [ "$lb_setcf_current_section" == "[$lb_setcf_section]" ] ; then
+							lb_setcf_line=($lb_setcf_i)
+							lb_setcf_results=1
+							lb_setcf_section_found=true
+						fi
+						break
+					fi
+				done
+
+				if $lb_setcf_section_found ; then
+					lb_setcf_section_ready=true
+					break
+				fi
+			done
+		fi
+
+		# if ready to edit
+		if $lb_setcf_section_ready ; then
+			# modify config file
+			# Note: use [[:space:]] for macOS compatibility
+			sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*[[:space:]]*$lb_setcf_param[[:space:]]*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
+
+			if [ $? == 0 ] ; then
+				return 0
+			else
+				return 4
+			fi
+		fi
+	fi
+
+	# if parameter not found (or not in the right section)
+
+	# if strict mode, quit
+	if $lb_setcf_strict ; then
+		return 3
+	fi
+
+	# if filter by section,
+	if [ -n "$lb_setcf_section" ] ; then
+
+		# search for the right section
+		lb_setcf_line=($(grep -En "^\[$lb_setcf_section\]$" "$lb_setcf_file" | cut -d: -f1))
+
+		# if section exists,
+		if [ -n "$lb_setcf_line" ] ; then
+			# append parameter to section
+			sed -i~ "$((${lb_setcf_line[0]}+1))i$lb_setcf_param = $lb_setcf_sed_value" "$lb_setcf_file"
+			if [ $? == 0 ] ; then
+				return 0
+			else
+				return 4
+			fi
+		else
+			# if section not found, append section to the end of file
+			lb_setcf_line="[$lb_setcf_section]"
+
+			# Windows files: add \r at the end of line
+			if [ "$lb_current_os" == Windows ] ; then
+				lb_setcf_line+="\r"
+			fi
+
+			echo "$lb_setcf_line" >> "$lb_setcf_file"
+			if [ $? != 0 ] ; then
+				return 4
+			fi
+		fi
+	fi
+
+	# append line to file
+	echo "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
+
+	if [ $? != 0 ] ; then
+		return 4
 	fi
 }
 
@@ -2155,456 +2610,6 @@ fi
 			return 2
 			;;
 	esac
-}
-
-
-# Read a config file
-# Usage: lb_read_config [OPTIONS] PATH
-lb_read_config=()
-lb_read_config() {
-
-	# reset variable
-	lb_read_config=()
-
-	# default options
-	local lb_rdcf_sections=()
-	local lb_rdcf_filter=false
-	local lb_rdcf_good_section=false
-	local lb_rdcf_section_found=false
-
-	# get options
-	while [ -n "$1" ] ; do
-		case $1 in
-			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
-				lb_rdcf_sections+=("[$2]")
-				lb_rdcf_filter=true
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next argument
-	done
-
-	# usage error
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
-
-	# test if file is readable
-	if ! [ -r "$1" ] ; then
-		return 2
-	fi
-
-	# read config file line by line; backslashes are not escaped
-	while read -r lb_rdcf_line ; do
-
-		# testing if file has Windows format (\r at the end of line)
-		if [ "${lb_rdcf_line:${#lb_rdcf_line}-1}" == $'\r' ] ; then
-			# delete the last character \r
-			lb_rdcf_line=${lb_rdcf_line:0:${#lb_rdcf_line}-1}
-		fi
-
-		# filter by sections
-		if $lb_rdcf_filter ; then
-
-			lb_rdcf_section=$(echo $lb_rdcf_line | grep -Eo "^\[.*\]$")
-
-			# if line is a section definition
-			if [ -n "$lb_rdcf_section" ] ; then
-				# if section is valid, mark it
-				if lb_array_contains $lb_rdcf_section ${lb_rdcf_sections[@]} ; then
-					lb_rdcf_good_section=true
-					lb_rdcf_section_found=true
-				else
-					# if section is not valid, mark it and continue to the next line
-					lb_rdcf_good_section=false
-					continue
-				fi
-			else
-				# if normal line,
-				# if we are not in a good section, continue to the next line
-				if ! $lb_rdcf_good_section ; then
-					continue
-				fi
-			fi
-		fi
-
-		# add line to the lb_read_config variable
-		lb_read_config+=("$lb_rdcf_line")
-
-	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
-
-	# if section was not found, error
-	if $lb_rdcf_filter ; then
-		if ! $lb_rdcf_section_found ; then
-			return 3
-		fi
-	fi
-}
-
-
-# Import a config file into bash variables
-# Usage: lb_import_config [OPTIONS] PATH
-lb_import_config() {
-
-	# local variables and default options
-	local lb_impcf_errors=false
-	local lb_impcf_secure=true
-	local lb_impcf_sections=()
-	local lb_impcf_filter=false
-	local lb_impcf_good_section=false
-	local lb_impcf_found_section=false
-
-	# get options
-	while [ -n "$1" ] ; do
-		case $1 in
-			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
-				lb_impcf_sections+=("[$2]")
-				lb_impcf_filter=true
-				shift
-				;;
-			-e|--all-errors)
-				lb_impcf_errors=true
-				;;
-			-u|--unsecure)
-				lb_impcf_secure=false
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next argument
-	done
-
-	# test if file exists
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
-
-	# test if file is readable
-	if ! [ -r "$1" ] ; then
-		return 5
-	fi
-
-	local lb_impcf_result=0
-
-	# read file line by line; backslashes are not escaped
-	while read -r lb_impcf_line ; do
-
-		# testing if file has Windows format (\r at the end of line)
-		if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
-			# delete the last character \r
-			lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
-		fi
-
-		# filter by sections
-		if $lb_impcf_filter ; then
-
-			lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]$")
-
-			# if line is a section definition
-			if [ -n "$lb_impcf_section" ] ; then
-				# if section is valid, mark it
-				if lb_array_contains $lb_impcf_section ${lb_impcf_sections[@]} ; then
-					lb_impcf_good_section=true
-					lb_impcf_found_section=true
-				else
-					lb_impcf_good_section=false
-				fi
-			else
-				# if normal line,
-				# if we are not in a good section, continue to the next line
-				if ! $lb_impcf_good_section ; then
-					continue
-				fi
-			fi
-		fi
-
-		# check syntax of the line (param = value)
-		if ! echo $lb_impcf_line | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
-			# if section definition, do nothing (not error)
-			if ! echo $lb_impcf_line | grep -Eq "^\[.*\]$" ; then
-				if $lb_impcf_errors ; then
-					lb_impcf_result=3
-				fi
-			fi
-			continue
-		fi
-
-		# get parameter and value
-		# Note: use [[:space:]] for macOS compatibility
-		lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//")
-
-		# secure config values with prevent bash injection
-		if $lb_impcf_secure ; then
-			if echo $lb_impcf_value | grep -Eq '\$|`' ; then
-				if $lb_impcf_errors ; then
-					lb_impcf_result=4
-				fi
-				continue
-			fi
-		fi
-
-		# run command to attribute value to variable
-		eval "$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[[:space:]]')=$lb_impcf_value" &> /dev/null
-		if [ $? != 0 ] ; then
-			lb_impcf_result=2
-		fi
-	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
-
-	# if section was not found, return error
-	if $lb_impcf_filter ; then
-		if ! $lb_impcf_found_section ; then
-			return 2
-		fi
-	fi
-
-	return $lb_impcf_result
-}
-
-
-# Get config value
-# Usage: lb_get_config [OPTIONS] FILE PARAM
-lb_get_config() {
-
-	# default options
-	local lb_getcf_section=""
-
-	while [ -n "$1" ] ; do
-		case $1 in
-			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
-				lb_getcf_section=$2
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next option
-	done
-
-	# usage error
-	if [ $# -lt 2 ] ; then
-		return 1
-	fi
-
-	# test config file
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
-	if ! [ -r "$1" ] ; then
-		return 2
-	fi
-
-	# search config line
-	local lb_getcf_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
-
-	# if line not found, return error
-	if [ ${#lb_getcf_line[@]} == 0 ] ; then
-		return 3
-	fi
-
-	# if no filter by section, print the first found
-	if [ -z "$lb_getcf_section" ] ; then
-		sed "${lb_getcf_line[0]}q;d" "$1" | sed "s/.*$2\s*=\s*//"
-		return 0
-	fi
-
-	# filter by section
-	local lb_getcf_section_found=false
-
-	# parse every results
-	for lb_getcf_i in ${lb_getcf_line[@]} ; do
-		# if first line, cannot go up
-		if [ $lb_getcf_i == 1 ] ; then
-			continue
-		fi
-
-		for ((lb_getcf_j=$lb_getcf_i-1; lb_getcf_j>=1; lb_getcf_j--)) ; do
-			lb_getcf_current_section=$(sed "${lb_getcf_j}q;d" "$1" | grep -Eo "^\[.*\]$")
-
-			if [ -n "$lb_getcf_current_section" ] ; then
-				if [ "$lb_getcf_current_section" == "[$lb_getcf_section]" ] ; then
-					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2\s*=\s*//"
-					return 0
-				fi
-				break
-			fi
-		done
-	done
-
-	# if parameter not found in the right section, return error
-	return 3
-}
-
-
-# Set config value
-# Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
-lb_set_config() {
-
-	# local variables and default options
-	local lb_setcf_strict=false
-	local lb_setcf_section=""
-	local lb_setcf_ready=true
-
-	while [ -n "$1" ] ; do
-		case $1 in
-			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
-				lb_setcf_section=$2
-				shift
-				;;
-			--strict)
-				lb_setcf_strict=true
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next option
-	done
-
-	# usage error
-	if [ $# -lt 2 ] ; then
-		return 1
-	fi
-
-	# test config file
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
-	if ! [ -w "$1" ] ; then
-		return 2
-	fi
-
-	local lb_setcf_file=$1
-	local lb_setcf_param=$2
-	shift 2
-
-	# get value
-	local lb_setcf_value=$*
-
-	# Windows files: add \r at the end of line
-	if [ "$lb_current_os" == Windows ] ; then
-		lb_setcf_value+="\r"
-	fi
-
-	# prepare value for sed mode
-	local lb_setcf_sed_value=$(echo "$lb_setcf_value" | sed 's/\//\\\//g')
-
-	# search config line
-	local lb_setcf_line=($(grep -En "^\s*(#|;)*\s*$lb_setcf_param\s*=" "$lb_setcf_file" | cut -d: -f1))
-
-	# get number of results
-	local lb_setcf_results=${#lb_setcf_line[@]}
-
-	# if line found, modify line (set the last one if multiple lines)
-	if [ $lb_setcf_results -gt 0 ] ; then
-
-		# if filter by section,
-		if [ -n "$lb_setcf_section" ] ; then
-
-			local lb_setcf_section_found=false
-			local lb_setcf_section_ready=false
-
-			# parse every results
-			for lb_setcf_i in ${lb_setcf_line[@]} ; do
-				# if first line, cannot go up
-				if [ $lb_setcf_i == 1 ] ; then
-					continue
-				fi
-
-				for ((lb_setcf_j=$lb_setcf_i-1; lb_setcf_j>=1; lb_setcf_j--)) ; do
-					lb_setcf_current_section=$(sed "${lb_setcf_j}q;d" "$lb_setcf_file" | grep -Eo "^\[.*\]$")
-
-					if [ -n "$lb_setcf_current_section" ] ; then
-						if [ "$lb_setcf_current_section" == "[$lb_setcf_section]" ] ; then
-							lb_setcf_line=($lb_setcf_i)
-							lb_setcf_results=1
-							lb_setcf_section_found=true
-						fi
-						break
-					fi
-				done
-
-				if $lb_setcf_section_found ; then
-					lb_setcf_section_ready=true
-					break
-				fi
-			done
-		fi
-
-		# if ready to edit
-		if $lb_setcf_section_ready ; then
-			# modify config file
-			# Note: use [[:space:]] for macOS compatibility
-			sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*[[:space:]]*$lb_setcf_param[[:space:]]*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
-
-			if [ $? == 0 ] ; then
-				return 0
-			else
-				return 4
-			fi
-		fi
-	fi
-
-	# if parameter not found (or not in the right section)
-
-	# if strict mode, quit
-	if $lb_setcf_strict ; then
-		return 3
-	fi
-
-	# if filter by section,
-	if [ -n "$lb_setcf_section" ] ; then
-
-		# search for the right section
-		lb_setcf_line=($(grep -En "^\[$lb_setcf_section\]$" "$lb_setcf_file" | cut -d: -f1))
-
-		# if section exists,
-		if [ -n "$lb_setcf_line" ] ; then
-			# append parameter to section
-			sed -i~ "$((${lb_setcf_line[0]}+1))i$lb_setcf_param = $lb_setcf_sed_value" "$lb_setcf_file"
-			if [ $? == 0 ] ; then
-				return 0
-			else
-				return 4
-			fi
-		else
-			# if section not found, append section to the end of file
-			lb_setcf_line="[$lb_setcf_section]"
-
-			# Windows files: add \r at the end of line
-			if [ "$lb_current_os" == Windows ] ; then
-				lb_setcf_line+="\r"
-			fi
-
-			echo "$lb_setcf_line" >> "$lb_setcf_file"
-			if [ $? != 0 ] ; then
-				return 4
-			fi
-		fi
-	fi
-
-	# append line to file
-	echo "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
-
-	if [ $? != 0 ] ; then
-		return 4
-	fi
 }
 
 
