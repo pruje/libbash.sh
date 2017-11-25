@@ -1958,7 +1958,8 @@ lb_email() {
 	local lb_email_message=""
 	local lb_email_message_html=""
 	local lb_email_multipart=false
-	local lb_email_separator=""
+	local lb_email_separator="_----------=_MailPart_118845H_15_62347"
+	local lb_email_attachments=()
 
 	# email commands
 	local lb_email_commands=(/usr/sbin/sendmail)
@@ -1999,6 +2000,13 @@ lb_email() {
 					return 1
 				fi
 				lb_email_bcc=$2
+				shift
+				;;
+			-a|--attachment)
+				if ! [ -f "$2" ] ; then
+					return 1
+				fi
+				lb_email_attachments+=("$2")
 				shift
 				;;
 			--html)
@@ -2076,37 +2084,64 @@ lb_email() {
 	lb_email_message+="MIME-Version: 1.0
 "
 
-	# multipart definition
-	if $lb_email_multipart ; then
-		lb_email_separator="_----------=_MailPart_118845H_15_62347"
+	# mixed definition (if attachments)
+	if [ ${#lb_email_attachments[@]} -gt 0 ] ; then
+		lb_email_message+="Content-Type: multipart/mixed; boundary=\"${lb_email_separator}_mixed\"
 
+--${lb_email_separator}_mixed
+"
+	fi
+
+	# multipart definition (if HTML + TXT)
+	if $lb_email_multipart ; then
 		lb_email_message+="Content-Type: multipart/alternative; boundary=\"$lb_email_separator\"
 
 --$lb_email_separator
 "
 	fi
 
-	# mail in txt
+	# mail in TXT
 	lb_email_message+="Content-Type: text/plain; charset=\"utf-8\"
-$*"
 
-	# mail in html
-	if [ -n "$lb_email_message_html" ] ; then
-		lb_email_message+="
-
---$lb_email_separator
-Content-Type: text/html; charset=\"utf-8\"
-$lb_email_message_html
+$*
 "
-	fi
 
-	# close the last section
+	# mail in HTML + close multipart
 	if $lb_email_multipart ; then
 		lb_email_message+="
+--$lb_email_separator
+Content-Type: text/html; charset=\"utf-8\"
+
+$lb_email_message_html
 --$lb_email_separator--"
 	fi
 
-	# send email with program
+	# add attachments
+	if [ ${#lb_email_attachments[@]} -gt 0 ] ; then
+		local lb_email_attachment=""
+		local lb_email_filename=""
+		local lb_email_filetype=""
+
+		for ((lb_email_i=0; lb_email_i<${#lb_email_attachments[@]}; lb_email_i++)) ; do
+			lb_email_attachment=${lb_email_attachments[$lb_email_i]}
+			lb_email_filename=$(basename "$lb_email_attachment")
+			lb_email_filetype=$(file --mime-type "$lb_email_attachment" 2> /dev/null | sed 's/.*: //')
+
+			lb_email_message+="
+--${lb_email_separator}_mixed
+Content-Type: $lb_email_filetype
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=\"$lb_email_filename\"
+
+$(base64 "$lb_email_attachment")
+"
+		done
+
+		# close mixed section
+		lb_email_message+="--${lb_email_separator}_mixed--"
+fi
+
+	# send email
 	case $lb_email_command in
 		/usr/sbin/sendmail)
 			echo "$lb_email_message" | /usr/sbin/sendmail -t
