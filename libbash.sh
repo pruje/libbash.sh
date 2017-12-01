@@ -1077,7 +1077,7 @@ lb_read_config() {
 		# filter by sections
 		if $lb_rdcf_filter ; then
 
-			lb_rdcf_section=$(echo $lb_rdcf_line | grep -Eo "^\[.*\]$")
+			lb_rdcf_section=$(echo $lb_rdcf_line | grep -Eo "^\[.*\]")
 
 			# if line is a section definition
 			if [ -n "$lb_rdcf_section" ] ; then
@@ -1173,7 +1173,7 @@ lb_import_config() {
 		# filter by sections
 		if $lb_impcf_filter ; then
 
-			lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]$")
+			lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]")
 
 			# if line is a section definition
 			if [ -n "$lb_impcf_section" ] ; then
