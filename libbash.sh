@@ -3321,7 +3321,7 @@ fi
 lb_directory=$(dirname "$lb_path")
 
 # current script context
-lb_current_script=$(lb_realpath "$BASH_SOURCE")
+lb_current_script=$(lb_realpath "$0")
 if [ $? != 0 ] ; then
 	echo >&2 "libbash.sh: [ERROR] cannot get current script path"
 	return 2
