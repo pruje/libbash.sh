@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.1 (2017-12-01)
+- Fix bad values in `$lb_current_script` `$lb_current_script_name` and `$lb_current_script_directory` (bug exists since v1.6.0)
+- Fix section bugs in `lb_read_config()` and `lb_import_config()` when reading files with Windows end of line format
+
 ## 1.7.0 (2017-11-25)
 - New function: `lb_get_config()` to get a single value from a config file
 - New option to send emails in HTML format in `lb_email()` function
