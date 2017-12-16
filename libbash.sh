@@ -374,6 +374,9 @@ lb_print() {
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
+			-e)
+				# already done
+				;;
 			-n)
 				lb_print_opts+="-n "
 				;;
@@ -3293,6 +3296,7 @@ lb_detect_os() {
 #  INITIALIZATION  #
 ####################
 
+lb_load_result=0
 lb_exitcode=0
 
 # context variables
@@ -3303,8 +3307,8 @@ lb_current_user=$(whoami)
 # get current OS
 lb_current_os=$(lb_current_os)
 if [ $? != 0 ] ; then
-	echo >&2 "libbash.sh: [ERROR] cannot get current OS"
-	return 2
+	lb_error "libbash.sh: [WARNING] cannot get current OS"
+	lb_load_result=4
 fi
 
 # if macOS, disable text formatting in console
@@ -3315,22 +3319,19 @@ fi
 # libbash context
 lb_path=$(lb_realpath "$BASH_SOURCE")
 if [ $? != 0 ] ; then
-	echo >&2 "libbash.sh: [ERROR] cannot get libbash path"
-	return 2
+	lb_error "libbash.sh: [WARNING] cannot get libbash path"
+	lb_load_result=4
 fi
 lb_directory=$(dirname "$lb_path")
 
 # current script context
 lb_current_script=$(lb_realpath "$0")
 if [ $? != 0 ] ; then
-	echo >&2 "libbash.sh: [ERROR] cannot get current script path"
-	return 2
+	lb_error "libbash.sh: [WARNING] cannot get current script path"
+	lb_load_result=4
 fi
 lb_current_script_name=$(basename "$lb_current_script")
 lb_current_script_directory=$(dirname "$lb_current_script")
-
-# do not load libbash GUI by default
-lb_load_gui=false
 
 # get current user language (e.g. fr, en, ...)
 lb_lang=${LANG:0:2}
@@ -3339,7 +3340,21 @@ lb_lang=${LANG:0:2}
 while [ $# -gt 0 ] ; do
 	case $1 in
 		-g|--gui)
-			lb_load_gui=true
+			# load libbash GUI
+			source "$lb_directory/libbash_gui.sh" &> /dev/null
+			case $? in
+				0)
+					# continue
+					;;
+				2)
+					lb_error "libbash.sh GUI: [ERROR] cannot set a GUI interface"
+					lb_load_result=2
+					;;
+				*)
+					lb_error "libbash.sh: [ERROR] cannot load GUI part. Please verify the path $lb_directory."
+					lb_load_result=2
+					;;
+			esac
 			;;
 		-l|--lang)
 			# no errors if bad options
@@ -3355,22 +3370,15 @@ while [ $# -gt 0 ] ; do
    shift # get next option
 done
 
-# load libbash GUI
-if $lb_load_gui ; then
-	source "$lb_directory/libbash_gui.sh"
-	# in case of bad load, return error
-	if [ $? != 0 ] ; then
-		echo >&2 "libbash.sh: [ERROR] cannot load libbash GUI. Please verify the path $lb_directory."
-		return 2
-	fi
-fi
-
 # load translations (do not exit if errors)
 case $lb_lang in
 	fr)
 		source "$lb_directory/locales/$lb_lang.sh" &> /dev/null
 		if [ $? != 0 ] ; then
-			echo >&2 "libbash.sh: [ERROR] cannot load the following libbash translation: $lb_lang"
+			lb_error "libbash.sh: [WARNING] cannot load translation: $lb_lang"
+			lb_load_result=3
 		fi
 		;;
 esac
+
+return $lb_load_result

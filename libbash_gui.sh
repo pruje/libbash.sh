@@ -1845,4 +1845,6 @@ lbg_error() {
 ####################
 
 # set the default GUI tool
-lbg_set_gui
+if ! lbg_set_gui ; then
+	return 2
+fi

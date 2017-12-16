@@ -27,6 +27,14 @@ Supported languages:
 **Note: DO NOT USE** variables or functions with `lb_` prefix in your scripts
 (nor `lbg_` if you use libbash.sh GUI) as you could override or broke some libbash.sh features.
 
+## Exit codes
+When you load libbash.sh, you can have the following return codes:
+- 0: libbash.sh is loaded
+- 1: libbash.sh file does not exists (in most cases), or is corrupted
+- 2: cannot load libbash.sh GUI
+- 3: cannot load translation file
+- 4: some variables could not be initialized
+
 ## Variables
 You can use the following variables that are initialized when you include libbash.sh in your scripts:
 - `$lb_version`: the current libbash.sh version
