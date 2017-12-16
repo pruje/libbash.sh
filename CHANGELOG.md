@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.7.2 (2017-12-16)
+- Improve loading and add new return codes for libbash loading status
+
 ## 1.7.1 (2017-12-01)
 - Fix bad values in `$lb_current_script` `$lb_current_script_name` and `$lb_current_script_directory` (bug exists since v1.6.0)
 - Fix section bugs in `lb_read_config()` and `lb_import_config()` when reading files with Windows end of line format
