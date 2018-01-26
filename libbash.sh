@@ -143,15 +143,15 @@ lb_exit_cmd=()
 #  BASH UTILITIES  #
 ####################
 
-# Check if a command exists
-# Usage: lb_command_exists COMMAND
+# Check if command(s) exists
+# Usage: lb_command_exists COMMAND [COMMAND...]
 lb_command_exists() {
 	which $* &> /dev/null
 }
 
 
-# Check if a function exists
-# Usage: lb_function_exists FUNCTION
+# Check if function(s) exists
+# Usage: lb_function_exists FUNCTION [FUNCTION...]
 lb_function_exists() {
 
 	# usage error
@@ -159,17 +159,22 @@ lb_function_exists() {
 		return 1
 	fi
 
-	# get type of argument
-	lb_function_exists_type=$(type -t "$1")
+	local t types=()
+
+	# get type of argument(s)
+	types=($(type -t $*))
+
+	# if failed to get type, it does not exists
 	if [ $? != 0 ] ; then
-		# if failed to get type, it does not exists
 		return 2
 	fi
 
-	# test if is not a function
-	if [ "$lb_function_exists_type" != function ] ; then
-		return 3
-	fi
+	# test if one is not a function
+	for t in ${types[@]} ; do
+		if [ $t != "function" ] ; then
+			return 3
+		fi
+	done
 }
 
 

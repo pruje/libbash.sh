@@ -146,13 +146,13 @@ Check if a function exists.
 
 #### Usage
 ```bash
-lb_function_exists FUNCTION
+lb_function_exists FUNCTION [FUNCTION...]
 ```
 
 #### Exit codes
-- 0: Function exists
+- 0: Function(s) exists
 - 1: Usage error
-- 2: Function does not exists
+- 2: Function(s) does not exists
 - 3: Command exists, but is not a function
 
 #### Example
