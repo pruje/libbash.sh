@@ -204,15 +204,14 @@ lb_test_arguments() {
 		return 1
 	fi
 
-	local lb_testarg_operator=$1
-	local lb_testarg_value=$2
+	local operator=$1 value=$2
 	shift 2
 
 	# test if operator is ok
-	case $lb_testarg_operator in
+	case $operator in
 		-eq|-ne|-lt|-le|-gt|-ge)
 			# execute test on arguments number
-			[ $# $lb_testarg_operator $lb_testarg_value ]
+			[ $# $operator $value ]
 			;;
 		*)
 			# syntax error
@@ -231,17 +230,17 @@ lb_test_arguments() {
 # Usage: lb_exit [OPTIONS] [EXIT_CODE]
 lb_exit() {
 
-	local lb_exit_fwdcode=false
-	local lb_exit_quiet=false
+	# default options
+	local forward_code=false quiet_mode=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-f|--forward-exitcode)
-				lb_exit_fwdcode=true
+				forward_code=true
 				;;
 			-q|--quiet)
-				lb_exit_quiet=true
+				quiet_mode=true
 				;;
 			*)
 				break
@@ -252,12 +251,12 @@ lb_exit() {
 
 	# if exit code is set,
 	if [ -n "$1" ] ; then
-		# if it is an integer, set new exitcode
+		# set exitcode
 		if lb_is_integer $1 ; then
 			lb_exitcode=$1
 		else
-			# if not an integer, exit with 255
-			exit 255
+			# if not an integer, set to 255
+			lb_exitcode=255
 		fi
 	fi
 
@@ -265,18 +264,18 @@ lb_exit() {
 	if [ ${#lb_exit_cmd[@]} -gt 0 ] ; then
 
 		# run command
-		if $lb_exit_quiet ; then
+		if $quiet_mode ; then
 			"${lb_exit_cmd[@]}" &> /dev/null
 		else
 			"${lb_exit_cmd[@]}"
 		fi
 
 		# get command result
-		local lb_exit_cmdres=$?
+		local result=$?
 
 		# forward exit code option
-		if $lb_exit_fwdcode ; then
-			exit $lb_exit_cmdres
+		if $forward_code ; then
+			exit $result
 		fi
 	fi
 
@@ -294,14 +293,13 @@ lb_exit() {
 lb_get_display_level() {
 
 	# default options
-	local lb_getdisplevel_level=$lb_display_level
-	local lb_getdisplevel_getid=false
+	local i get_id=false level=$lb_display_level
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			--id)
-				lb_getdisplevel_getid=true
+				get_id=true
 				;;
 			*)
 				break
@@ -316,26 +314,26 @@ lb_get_display_level() {
 			return 1
 		else
 			# print actual and exit
-			if $lb_getdisplevel_getid ; then
-				echo "$lb_display_level"
+			if $get_id ; then
+				echo $lb_display_level
 			else
-				echo "${lb_log_levels[$lb_display_level]}"
+				echo "${lb_log_levels[lb_display_level]}"
 			fi
 			return 0
 		fi
 	else
 		# get gived level name
-		lb_getdisplevel_level=$1
+		level=$1
 	fi
 
 	# search log level id for a gived level name
-	for ((lb_getdisplevel_i=0 ; lb_getdisplevel_i < ${#lb_log_levels[@]} ; lb_getdisplevel_i++)) ; do
+	for ((i=0 ; i < ${#lb_log_levels[@]} ; i++)) ; do
 		# if found, return it
-		if [ "${lb_log_levels[$lb_getdisplevel_i]}" == "$lb_getdisplevel_level" ] ; then
-			if $lb_getdisplevel_getid ; then
-				echo "$lb_getdisplevel_i"
+		if [ "${lb_log_levels[i]}" == "$level" ] ; then
+			if $get_id ; then
+				echo $i
 			else
-				echo "${lb_log_levels[$lb_getdisplevel_i]}"
+				echo "${lb_log_levels[i]}"
 			fi
 			return 0
 		fi
@@ -356,10 +354,11 @@ lb_set_display_level() {
 	fi
 
 	# search if level exists
-	for ((lb_setdisplevel_id=0 ; lb_setdisplevel_id < ${#lb_log_levels[@]} ; lb_setdisplevel_id++)) ; do
+	local id
+	for ((id=0 ; id < ${#lb_log_levels[@]} ; id++)) ; do
 		# search by name and set level id
-		if [ "${lb_log_levels[$lb_setdisplevel_id]}" == "$1" ] ; then
-			lb_display_level=$lb_setdisplevel_id
+		if [ "${lb_log_levels[id]}" == $1 ] ; then
+			lb_display_level=$id
 			return 0
 		fi
 	done
@@ -373,9 +372,7 @@ lb_set_display_level() {
 # Usage: lb_print [OPTIONS] TEXT
 lb_print() {
 
-	local lb_print_format=()
-	local lb_print_opts=""
-	local lb_print_resetcolor=""
+	local opts reset_color format=()
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -384,22 +381,22 @@ lb_print() {
 				# already done
 				;;
 			-n)
-				lb_print_opts+="-n "
+				opts+="-n "
 				;;
 			--bold)
-				lb_print_format+=(1)
+				format+=(1)
 				;;
 			--cyan)
-				lb_print_format+=(36)
+				format+=(36)
 				;;
 			--green)
-				lb_print_format+=(32)
+				format+=(32)
 				;;
 			--yellow)
-				lb_print_format+=(33)
+				format+=(33)
 				;;
 			--red)
-				lb_print_format+=(31)
+				format+=(31)
 				;;
 			*)
 				break
@@ -410,19 +407,20 @@ lb_print() {
 
 	# append formatting options
 	if $lb_format_print ; then
-		if [ ${#lb_print_format[@]} -gt 0 ] ; then
-			lb_print_opts+="\e["
-			for lb_print_f in ${lb_print_format[@]} ; do
-				lb_print_opts+=";$lb_print_f"
+		if [ ${#format[@]} -gt 0 ] ; then
+			opts+="\e["
+			local f
+			for f in ${format[@]} ; do
+				opts+=";$f"
 			done
-			lb_print_opts+="m"
+			opts+="m"
 
-			lb_print_resetcolor="\e[0m"
+			reset_color="\e[0m"
 		fi
 	fi
 
 	# print to the console
-	echo -e $lb_print_opts"$*"$lb_print_resetcolor
+	echo -e $opts"$*"$reset_color
 }
 
 
@@ -431,29 +429,29 @@ lb_print() {
 lb_display() {
 
 	# default options
-	local lb_display_log=false
-	local lb_display_prefix=false
-	local lb_display_opts=""
-	local lb_display_displevel=""
+	local opts display_level display_prefix=false log_message=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
+			-e)
+				opts+="-e "
+				;;
 			-n)
-				lb_display_opts="-n "
+				opts+="-n "
 				;;
 			-l|--level)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_display_displevel=$2
+				display_level=$2
 				shift
 				;;
 			-p|--prefix)
-				lb_display_prefix=true
+				display_prefix=true
 				;;
 			--log)
-				lb_display_log=true
+				log_message=true
 				;;
 			*)
 				break
@@ -463,88 +461,87 @@ lb_display() {
 	done
 
 	# other options
-	local lb_display_exitcode=0
-	local lb_display_display=true
-	local lb_display_msgprefix=""
+	local prefix display=true result=0
 
 	# if a display level is set,
-	if [ -n "$lb_display_displevel" ] ; then
+	if [ -n "$display_level" ] ; then
 		# test current display level
 		if [ -n "$lb_display_level" ] ; then
 			# get display level ID
-			lb_display_idlvl=$(lb_get_display_level --id "$lb_display_displevel")
+			local level_id
+			level_id=$(lb_get_display_level --id "$display_level")
 
 			# Note: if level is unknown, message will be displayed
 			if [ $? == 0 ] ; then
 				# if display level is higher than default, will not display (but can log)
-				if [ $lb_display_idlvl -gt $lb_display_level ] ; then
-					lb_display_display=false
+				if [ $level_id -gt $lb_display_level ] ; then
+					display=false
 				fi
 			fi
 		fi
 	fi
 
 	# add level prefix
-	if [ -n "$lb_display_displevel" ] ; then
-		if $lb_display_prefix ; then
-			lb_display_msgprefix="[$lb_display_displevel]  "
+	if [ -n "$display_level" ] ; then
+		if $display_prefix ; then
+			prefix="[$display_level]  "
 		fi
 	fi
 
 	# print into logfile
-	if $lb_display_log ; then
+	if $log_message ; then
 		# prepare command to log
-		local lb_display_logcmd=(lb_log $lb_display_opts)
+		local log_cmd=(lb_log $opts)
 
-		if [ -n "$lb_display_displevel" ] ; then
-			lb_display_logcmd+=(--level "$lb_display_displevel")
+		if [ -n "$display_level" ] ; then
+			log_cmd+=(--level "$display_level")
 		fi
 
-		lb_display_logcmd+=("$lb_display_msgprefix$*")
+		log_cmd+=("$prefix$*")
 
 		# execute lb_log
-		"${lb_display_logcmd[@]}"
+		"${log_cmd[@]}"
 		if [ $? != 0 ] ; then
-			lb_display_exitcode=2
+			result=2
 		fi
 	fi
 
-	# if no display, return
-	if ! $lb_display_display ; then
-		return $lb_display_exitcode
+	# if no need to display, return
+	if ! $display ; then
+		return $result
 	fi
 
 	# enable coloured prefixes
-	if $lb_display_prefix ; then
-		case $lb_display_displevel in
+	if $display_prefix ; then
+		case $display_level in
 			$lb_default_critical_label)
-				lb_display_msgprefix="[$(lb_print --red "$lb_display_displevel")]  "
+				prefix="[$(lb_print --red "$display_level")]  "
 				;;
 			$lb_default_error_label)
-				lb_display_msgprefix="[$(lb_print --red "$lb_display_displevel")]  "
+				prefix="[$(lb_print --red "$display_level")]  "
 				;;
 			$lb_default_warning_label)
-				lb_display_msgprefix="[$(lb_print --yellow "$lb_display_displevel")]  "
+				prefix="[$(lb_print --yellow "$display_level")]  "
 				;;
 			$lb_default_info_label)
-				lb_display_msgprefix="[$(lb_print --green "$lb_display_displevel")]  "
+				prefix="[$(lb_print --green "$display_level")]  "
 				;;
 			$lb_default_debug_label)
-				lb_display_msgprefix="[$(lb_print --cyan "$lb_display_displevel")]  "
+				prefix="[$(lb_print --cyan "$display_level")]  "
 				;;
 			*)
-				lb_display_msgprefix="[$lb_display_displevel]  "
+				prefix="[$display_level]  "
 				;;
 		esac
 	fi
 
 	# print text
-	lb_print $lb_display_opts"$lb_display_msgprefix$*"
+	lb_print $opts"$prefix$*"
 	if [ $? != 0 ] ; then
 		return 3
 	fi
 
-	return $lb_display_exitcode
+	return $result
 }
 
 
@@ -553,16 +550,12 @@ lb_display() {
 lb_result() {
 
 	# get last command result
-	local lb_result_res=$?
+	local result=$?
 
 	# default values and options
-	local lb_result_ok=$lb_default_result_ok_label
-	local lb_result_failed=$lb_default_result_failed_label
-	local lb_result_opts=""
-	local lb_result_quiet=false
-	local lb_result_save_exitcode=false
-	local lb_result_error_exitcode=""
-	local lb_result_exit_on_error=false
+	local ok_label=$lb_default_result_ok_label failed_label=$lb_default_result_failed_label
+	local display_cmd=(lb_display)
+	local error_exitcode save_exitcode=false exit_on_error=false quiet_mode=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -571,42 +564,42 @@ lb_result() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_result_ok=$2
+				ok_label=$2
 				shift
 				;;
 			--failed-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_result_failed=$2
+				failed_label=$2
 				shift
 				;;
 			-l|--log-level)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_result_opts="-l $2 "
+				display_cmd+=(-l "$2")
 				shift
 				;;
 			--log)
-				lb_result_opts="--log "
+				display_cmd+=(--log)
 				;;
 			-s|--save-exitcode)
-				lb_result_save_exitcode=true
+				save_exitcode=true
 				;;
 			-e|--error-exitcode)
 				# check type and validity
 				if ! lb_is_integer $2 ; then
 					return 1
 				fi
-				lb_result_error_exitcode=$2
+				error_exitcode=$2
 				shift
 				;;
 			-x|--exit-on-error)
-				lb_result_exit_on_error=true
+				exit_on_error=true
 				;;
 			-q|--quiet)
-				lb_result_quiet=true
+				quiet_mode=true
 				;;
 			*)
 				break
@@ -620,41 +613,45 @@ lb_result() {
 		if ! lb_is_integer $1 ; then
 			return 1
 		fi
-		lb_result_res=$1
+		result=$1
 	fi
 
 	# save result to exit code
-	if $lb_result_save_exitcode ; then
-		lb_exitcode=$lb_result_res
+	if $save_exitcode ; then
+		lb_exitcode=$result
 	fi
 
 	# if result OK (code 0)
-	if [ $lb_result_res == 0 ] ; then
-		if ! $lb_result_quiet ; then
-			lb_display $lb_result_opts"$lb_result_ok"
+	if [ $result == 0 ] ; then
+		if ! $quiet_mode ; then
+			# display result
+			display_cmd+=("$ok_label")
+			"${display_cmd[@]}"
 		fi
 	else
 		# if error (code 1-255)
-		if ! $lb_result_quiet ; then
-			lb_display $lb_result_opts"$lb_result_failed"
+		if ! $quiet_mode ; then
+			# display result
+			display_cmd+=("$failed_label")
+			"${display_cmd[@]}"
 		fi
 
 		# if save exit code is not set,
-		if ! $lb_result_save_exitcode ; then
+		if ! $save_exitcode ; then
 			# and error exitcode is specified, save it
-			if [ -n "$lb_result_error_exitcode" ] ; then
-				lb_exitcode=$lb_result_error_exitcode
+			if [ -n "$error_exitcode" ] ; then
+				lb_exitcode=$error_exitcode
 			fi
 		fi
 
 		# if exit on error, exit
-		if $lb_result_exit_on_error ; then
+		if $exit_on_error ; then
 			lb_exit
 		fi
 	fi
 
 	# return result code
-	return $lb_result_res
+	return $result
 }
 
 
@@ -663,14 +660,11 @@ lb_result() {
 lb_short_result() {
 
 	# get last command result
-	local lb_shres_res=$?
+	local result=$?
 
 	# default values and options
-	local lb_shres_opts=""
-	local lb_shres_quiet=false
-	local lb_shres_save_exitcode=false
-	local lb_shres_error_exitcode=""
-	local lb_shres_exit_on_error=false
+	local display_cmd=(lb_display)
+	local error_exitcode save_exitcode=false exit_on_error=false quiet_mode=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -679,28 +673,28 @@ lb_short_result() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_shres_opts="-l $2 "
+				display_cmd+=(-l "$2")
 				shift
 				;;
 			--log)
-				lb_shres_opts="--log "
+				display_cmd+=(--log)
 				;;
 			-s|--save-exitcode)
-				lb_shres_save_exitcode=true
+				save_exitcode=true
 				;;
 			-e|--error-exitcode)
 				# check type and validity
 				if ! lb_is_integer $2 ; then
 					return 1
 				fi
-				lb_shres_error_exitcode=$2
+				error_exitcode=$2
 				shift
 				;;
 			-x|--exit-on-error)
-				lb_shres_exit_on_error=true
+				exit_on_error=true
 				;;
 			-q|--quiet)
-				lb_shres_quiet=true
+				quiet_mode=true
 				;;
 			*)
 				break
@@ -714,41 +708,45 @@ lb_short_result() {
 		if ! lb_is_integer $1 ; then
 			return 1
 		fi
-		lb_shres_res=$1
+		result=$1
 	fi
 
 	# save result to exit code
-	if $lb_shres_save_exitcode ; then
-		lb_exitcode=$lb_shres_res
+	if $save_exitcode ; then
+		lb_exitcode=$result
 	fi
 
 	# if result OK (code 0)
-	if [ $lb_shres_res == 0 ] ; then
-		if ! $lb_shres_quiet ; then
-			lb_display $lb_shres_opts"[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]"
+	if [ $result == 0 ] ; then
+		if ! $quiet_mode ; then
+			# display result
+			display_cmd+=("[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]")
+			"${display_cmd[@]}"
 		fi
 	else
 		# if error (code 1-255)
-		if ! $lb_shres_quiet ; then
-			lb_display $lb_shres_opts"[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]"
+		if ! $quiet_mode ; then
+			# display result
+			display_cmd+=("[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]")
+			"${display_cmd[@]}"
 		fi
 
 		# if save exit code is not set,
-		if ! $lb_shres_save_exitcode ; then
+		if ! $save_exitcode ; then
 			# and error exitcode is specified, save it
-			if [ -n "$lb_shres_error_exitcode" ] ; then
-				lb_exitcode=$lb_shres_error_exitcode
+			if [ -n "$error_exitcode" ] ; then
+				lb_exitcode=$error_exitcode
 			fi
 		fi
 
 		# if exit on error, exit
-		if $lb_shres_exit_on_error ; then
+		if $exit_on_error ; then
 			lb_exit
 		fi
 	fi
 
-	# return exit code
-	return $lb_shres_res
+	# return result code
+	return $result
 }
 
 
@@ -878,7 +876,7 @@ lb_get_log_level() {
 			if $lb_getloglevel_getid ; then
 				echo "$lb_log_level"
 			else
-				echo "${lb_log_levels[$lb_log_level]}"
+				echo "${lb_log_levels[lb_log_level]}"
 			fi
 			return 0
 		fi
@@ -890,11 +888,11 @@ lb_get_log_level() {
 	# search log level id for a gived level name
 	for ((lb_getloglevel_i=0 ; lb_getloglevel_i < ${#lb_log_levels[@]} ; lb_getloglevel_i++)) ; do
 		# if found, return it
-		if [ "${lb_log_levels[$lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
+		if [ "${lb_log_levels[lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
 			if $lb_getloglevel_getid ; then
 				echo "$lb_getloglevel_i"
 			else
-				echo "${lb_log_levels[$lb_getloglevel_i]}"
+				echo "${lb_log_levels[lb_getloglevel_i]}"
 			fi
 			return 0
 		fi
@@ -917,7 +915,7 @@ lb_set_log_level() {
 	# search if level exists
 	for ((lb_setloglevel_id=0 ; lb_setloglevel_id < ${#lb_log_levels[@]} ; lb_setloglevel_id++)) ; do
 		# search by name and set level id
-		if [ "${lb_log_levels[$lb_setloglevel_id]}" == "$1" ] ; then
+		if [ "${lb_log_levels[lb_setloglevel_id]}" == "$1" ] ; then
 			lb_log_level=$lb_setloglevel_id
 			return 0
 		fi
@@ -1428,7 +1426,7 @@ lb_set_config() {
 		if $lb_setcf_section_ready ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			sed -i~ "${lb_setcf_line[$lb_setcf_results-1]}s/\(#\|;\)*[[:space:]]*$lb_setcf_param[[:space:]]*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
+			sed -i~ "${lb_setcf_line[lb_setcf_results-1]}s/\(#\|;\)*[[:space:]]*$lb_setcf_param[[:space:]]*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
 
 			if [ $? == 0 ] ; then
 				return 0
@@ -1591,7 +1589,7 @@ lb_is_comment() {
 
 		# test if text starts with comment symbols
 		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
-			lb_iscom_symbol=${lb_iscom_symbols[$lb_iscom_i]}
+			lb_iscom_symbol=${lb_iscom_symbols[lb_iscom_i]}
 
 			if [ "${lb_iscom_line:0:${#lb_iscom_symbol}}" == "$lb_iscom_symbol" ] ; then
 				# is a comment: exit
@@ -1687,7 +1685,7 @@ lb_array_contains() {
 	# parse array to find value
 	for ((lb_arraycontains_i=0 ; lb_arraycontains_i < ${#lb_arraycontains_array[@]} ; lb_arraycontains_i++)) ; do
 		# if found, exit
-		if [ "${lb_arraycontains_array[$lb_arraycontains_i]}" == "$lb_arraycontains_search" ] ; then
+		if [ "${lb_arraycontains_array[lb_arraycontains_i]}" == "$lb_arraycontains_search" ] ; then
 			return 0
 		fi
 	done
@@ -2632,7 +2630,7 @@ $lb_email_message_html
 		local lb_email_filetype=""
 
 		for ((lb_email_i=0; lb_email_i<${#lb_email_attachments[@]}; lb_email_i++)) ; do
-			lb_email_attachment=${lb_email_attachments[$lb_email_i]}
+			lb_email_attachment=${lb_email_attachments[lb_email_i]}
 			lb_email_filename=$(basename "$lb_email_attachment")
 			lb_email_filetype=$(file --mime-type "$lb_email_attachment" 2> /dev/null | sed 's/.*: //')
 
@@ -2845,7 +2843,7 @@ lb_choose_option() {
 
 	# print options
 	for ((lb_chop_i=1 ; lb_chop_i < ${#lb_chop_options[@]} ; lb_chop_i++)) ; do
-		echo "  $lb_chop_i. ${lb_chop_options[$lb_chop_i]}"
+		echo "  $lb_chop_i. ${lb_chop_options[lb_chop_i]}"
 	done
 
 	echo
@@ -3082,16 +3080,16 @@ lb_input_password() {
 # See lb_print for usage
 lb_echo() {
 	# basic command
-	local lb_cmd=(lb_print)
+	local cmd=(lb_print)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 
@@ -3099,16 +3097,16 @@ lb_echo() {
 # See lb_print for usage
 lb_error() {
 	# basic command
-	local lb_cmd=(lb_print)
+	local cmd=(lb_print)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	>&2 "${lb_cmd[@]}"
+	>&2 "${cmd[@]}"
 }
 
 
@@ -3116,16 +3114,16 @@ lb_error() {
 # See lb_get_log_level for usage
 lb_get_loglevel() {
 	# basic command
-	local lb_cmd=(lb_get_log_level)
+	local cmd=(lb_get_log_level)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 
@@ -3133,16 +3131,16 @@ lb_get_loglevel() {
 # See lb_set_log_level for usage
 lb_set_loglevel() {
 	# basic command
-	local lb_cmd=(lb_set_log_level)
+	local cmd=(lb_set_log_level)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 
@@ -3150,114 +3148,114 @@ lb_set_loglevel() {
 # See lb_display for usage
 lb_display_critical() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_critical_label")
+	local cmd=(lb_display -p -l "$lb_default_critical_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_display_error() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_error_label")
+	local cmd=(lb_display -p -l "$lb_default_error_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_display_warning() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_warning_label")
+	local cmd=(lb_display -p -l "$lb_default_warning_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_warning() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_warning_label")
+	local cmd=(lb_display -p -l "$lb_default_warning_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_display_info() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_info_label")
+	local cmd=(lb_display -p -l "$lb_default_info_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_info() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_info_label")
+	local cmd=(lb_display -p -l "$lb_default_info_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_display_debug() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_debug_label")
+	local cmd=(lb_display -p -l "$lb_default_debug_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_debug() {
 	# basic command
-	local lb_cmd=(lb_display -p -l "$lb_default_debug_label")
+	local cmd=(lb_display -p -l "$lb_default_debug_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 # Common log functions
@@ -3265,72 +3263,72 @@ lb_debug() {
 # See lb_log for options usage
 lb_log_critical() {
 	# basic command
-	local lb_cmd=(lb_log -p -l "$lb_default_critical_label")
+	local cmd=(lb_log -p -l "$lb_default_critical_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_log_error() {
 	# basic command
-	local lb_cmd=(lb_log -p -l "$lb_default_error_label")
+	local cmd=(lb_log -p -l "$lb_default_error_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_log_warning() {
 	# basic command
-	local lb_cmd=(lb_log -p -l "$lb_default_warning_label")
+	local cmd=(lb_log -p -l "$lb_default_warning_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_log_info() {
 	# basic command
-	local lb_cmd=(lb_log -p -l "$lb_default_info_label")
+	local cmd=(lb_log -p -l "$lb_default_info_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lb_log_debug() {
 	# basic command
-	local lb_cmd=(lb_log -p -l "$lb_default_debug_label")
+	local cmd=(lb_log -p -l "$lb_default_debug_label")
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lb_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lb_cmd[@]}"
+	"${cmd[@]}"
 }
 
 

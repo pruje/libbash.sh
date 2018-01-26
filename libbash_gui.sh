@@ -862,7 +862,7 @@ lbg_choose_option() {
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
+				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[lbg_chop_i]}")
 				if [ $lbg_chop_i == $lbg_chop_default ] ; then
 					lbg_chop_cmd+=(on)
 				else
@@ -885,7 +885,7 @@ lbg_choose_option() {
 					lbg_chop_cmd+=(FALSE)
 				fi
 
-				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
+				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[lbg_chop_i]}")
 			done
 
 			# run command
@@ -899,12 +899,12 @@ lbg_choose_option() {
 			local lbg_chop_opts="{"
 
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_opts+="\"${lbg_chop_options[$lbg_chop_i]}\","
+				lbg_chop_opts+="\"${lbg_chop_options[lbg_chop_i]}\","
 
 				# set default option
 				if [ $lbg_chop_default != 0 ] ; then
 					if [ $lbg_chop_default == $lbg_chop_i ] ; then
-						lbg_chop_default_option=${lbg_chop_options[$lbg_chop_i]}
+						lbg_chop_default_option=${lbg_chop_options[lbg_chop_i]}
 					fi
 				fi
 			done
@@ -923,7 +923,7 @@ EOF)
 
 			# macOS case: find result
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				if [ "$lbg_chop_choice" == "${lbg_chop_options[$lbg_chop_i]}" ] ; then
+				if [ "$lbg_chop_choice" == "${lbg_chop_options[lbg_chop_i]}" ] ; then
 					lbg_choose_option=$lbg_chop_i
 				fi
 			done
@@ -935,7 +935,7 @@ EOF)
 
 			# add options to the label, with a line return between each option
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_label+=$(echo -e "\n   $lbg_chop_i. ${lbg_chop_options[$lbg_chop_i]}")
+				lbg_chop_label+=$(echo -e "\n   $lbg_chop_i. ${lbg_chop_options[lbg_chop_i]}")
 			done
 
 			# prepare command (inputbox)
@@ -962,7 +962,7 @@ EOF)
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[$lbg_chop_i]}")
+				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[lbg_chop_i]}")
 				if [ $lbg_chop_i == $lbg_chop_default ] ; then
 					lbg_chop_cmd+=(on)
 				else
@@ -989,7 +989,7 @@ EOF)
 
 			# add options
 			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_cmd+=("${lbg_chop_options[$lbg_chop_i]}")
+				lbg_chop_cmd+=("${lbg_chop_options[lbg_chop_i]}")
 			done
 
 			# execute console function
@@ -1709,7 +1709,7 @@ lbg_open_directory() {
 
 	# open directories one by one
 	for ((lbg_opdir_i=0; lbg_opdir_i<${#lbg_opdir_paths[@]}; lbg_opdir_i++)) ; do
-		lbg_opdir_path=${lbg_opdir_paths[$lbg_opdir_i]}
+		lbg_opdir_path=${lbg_opdir_paths[lbg_opdir_i]}
 
 		if [ "lb_current_os" == Windows ] ; then
 			# particular case where explorer will not work if path finishes with '/'
