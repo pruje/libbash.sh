@@ -11,7 +11,7 @@
 #                                                      #
 ########################################################
 
-lb_version=1.7.2
+lb_version=1.8.0-beta.1
 
 # Index
 #
@@ -46,6 +46,8 @@ lb_version=1.7.2
 #       lb_is_email
 #       lb_is_comment
 #       lb_trim
+#       lb_split
+#       lb_join
 #       lb_array_contains
 #       lb_date2timestamp
 #       lb_timestamp2date
@@ -1617,6 +1619,48 @@ lb_trim() {
 	lb_trim_text=${lb_trim_text%${lb_trim_text##*[![:space:]]}}
 
 	echo "$lb_trim_text"
+}
+
+
+# Split a string into array
+# Usage: lb_split DELIMITER STRING
+lb_split=()
+lb_split() {
+
+	# reset result
+	lb_split=()
+
+	# usage error
+	if [ -z "$1" ] ; then
+		return 1
+	fi
+
+	# define delimiter
+	local i IFS=$1
+	shift
+
+	# split string in array
+	for i in $* ; do
+		lb_split+=("$i")
+	done
+}
+
+
+# Join an array into string
+# Usage: lb_join DELIMITER "${ARRAY[@]}"
+lb_join() {
+
+	# usage error
+	if [ -z "$1" ] ; then
+		return 1
+	fi
+
+	# define delimiter
+	local IFS=$1
+	shift
+
+	# return string
+	echo "$*"
 }
 
 
