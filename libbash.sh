@@ -1497,7 +1497,7 @@ lb_is_number() {
 	fi
 
 	# test if is a number (also works for negative numbers)
-	if ! [[ $1 =~ ^-?[0-9]+([.][0-9]+)?$ ]] ; then
+	if ! [[ $* =~ ^-?[0-9]+([.][0-9]+)?$ ]] ; then
 		return 1
 	fi
 }
@@ -1515,7 +1515,7 @@ lb_is_integer() {
 	fi
 
 	# test if is an integer (also works for negative numbers)
-	if ! [[ $1 =~ ^-?[0-9]+$ ]] ; then
+	if ! [[ $* =~ ^-?[0-9]+$ ]] ; then
 		return 1
 	fi
 }
@@ -1524,7 +1524,7 @@ lb_is_integer() {
 # Test if a value is a boolean
 # Usage: lb_is_boolean VALUE
 lb_is_boolean() {
-	case $1 in
+	case $* in
 		true|false)
 			return 0
 			;;
