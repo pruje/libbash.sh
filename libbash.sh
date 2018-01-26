@@ -4,7 +4,7 @@
 #  A library of useful functions for bash developers   #
 #                                                      #
 #  MIT License                                         #
-#  Copyright (c) 2017 Jean Prunneaux                   #
+#  Copyright (c) 2017-2018 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
 #  Version 1.7.2 (2017-12-16)                          #

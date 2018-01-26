@@ -4,12 +4,8 @@
 # This file is part of libbash.sh (https://github.com/pruje/libbash.sh)
 #
 # MIT License
-# Copyright (c) 2017 Jean Prunneaux
+# Copyright (c) 2017-2018 Jean Prunneaux
 #
-
-# This file must be included after libbash.sh:
-# source "/path/to/libbash/libbash.sh"
-# source "/path/to/libbash/locales/fr.sh"
 
 # translation for default labels
 lb_default_result_ok_label="... Terminé!"
