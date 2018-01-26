@@ -125,13 +125,12 @@ Works for commands, functions and executable files.
 
 #### Usage
 ```bash
-lb_command_exists COMMAND
+lb_command_exists COMMAND [COMMAND...]
 ```
 
 #### Exit codes
-- 0: Command exists
-- 1: Usage error
-- 2: Command does not exists
+- 0: Command(s) exists
+- 1: Command(s) does not exists
 
 #### Example
 ```bash

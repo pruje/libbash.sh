@@ -146,17 +146,7 @@ lb_exit_cmd=()
 # Check if a command exists
 # Usage: lb_command_exists COMMAND
 lb_command_exists() {
-
-	# usage error
-	if [ $# == 0 ] ; then
-		return 1
-	fi
-
-	# test command
-	which "$1" &> /dev/null
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	which $* &> /dev/null
 }
 
 
