@@ -146,7 +146,16 @@ lb_exit_cmd=()
 # Check if command(s) exists
 # Usage: lb_command_exists COMMAND [COMMAND...]
 lb_command_exists() {
-	which $* &> /dev/null
+
+	# prepare which command (support spaces in arguments)
+	local cmd=(which)
+	while [ $# -gt 0 ] ; do
+		cmd+=("$1")
+		shift
+	done
+
+	# run which command
+	"${cmd[@]}" &> /dev/null
 }
 
 
