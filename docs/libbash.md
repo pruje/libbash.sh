@@ -1321,13 +1321,12 @@ Test if an user exists.
 
 #### Usage
 ```bash
-lb_user_exists USER
+lb_user_exists USER [USER...]
 ```
 
 #### Exit codes
-- 0: User exists
-- 1: Usage error
-- 2: User does not exists
+- 0: User(s) exists
+- 1: User(s) does not exists
 
 #### Example
 ```bash

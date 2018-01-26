@@ -168,21 +168,22 @@ lb_function_exists() {
 		return 1
 	fi
 
-	local t types=()
+	local type
 
-	# get type of argument(s)
-	types=($(type -t $*))
+	while [ $# -gt 0 ] ; do
+		# get type of argument
+		type=$(type -t $1)
 
-	# if failed to get type, it does not exists
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+		# if failed to get type, it does not exists
+		if [ $? != 0 ] ; then
+			return 2
+		fi
 
-	# test if one is not a function
-	for t in ${types[@]} ; do
-		if [ $t != "function" ] ; then
+		# test if is not a function
+		if [ "$type" != "function" ] ; then
 			return 3
 		fi
+		shift
 	done
 }
 
@@ -2330,19 +2331,25 @@ lb_current_os() {
 
 
 # Test if a user exists
-# Usage: lb_user_exists USER
+# Usage: lb_user_exists USER [USER...]
 lb_user_exists() {
 
-	# usage errors
-	if [ -z "$1" ] ; then
+	# usage error
+	if [ $# == 0 ] ; then
 		return 1
 	fi
 
-	# check groups of the user
-	groups $1 &> /dev/null
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	# for each user
+	while [ $# -gt 0 ] ; do
+		if [ -z "$1" ] ; then
+			return 1
+		fi
+		# check groups of the user
+		if ! groups $1 &> /dev/null ; then
+			return 1
+		fi
+		shift
+	done
 }
 
 
