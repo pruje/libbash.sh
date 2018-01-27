@@ -102,26 +102,25 @@ lbg_get_console_size() {
 
 # Set dialog size to fit console
 # Usage: lbg_dialog_size MAX_WIDTH MAX_HEIGHT
-# Return: "HEIGHT WIDTH"
+# Return: HEIGHT WIDTH
 # e.g. dialog --msgbox "Hello world" $(lbg_dialog_size 50 10)
 lbg_dialog_size() {
 
 	# given size
-	local lbg_dialog_width=$1
-	local lbg_dialog_height=$2
+	local dialog_width=$1 dialog_height=$2
 
 	# if max width > console width, fit to console width
-	if [ "$lbg_dialog_width" -gt "$lbg_console_width" ] ; then
-		lbg_dialog_width=$lbg_console_width
+	if [ "$dialog_width" -gt "$lbg_console_width" ] ; then
+		dialog_width=$lbg_console_width
 	fi
 
 	# if max height > console height, fit to console height
-	if [ "$lbg_dialog_height" -gt "$lbg_console_height" ] ; then
-		lbg_dialog_height=$lbg_console_height
+	if [ "$dialog_height" -gt "$lbg_console_height" ] ; then
+		dialog_height=$lbg_console_height
 	fi
 
-	# return "height width"
-	echo $lbg_dialog_height $lbg_dialog_width
+	# return height width
+	echo $dialog_height $dialog_width
 }
 
 
@@ -139,7 +138,7 @@ lbg_get_gui() {
 	fi
 
 	# return current GUI tool
-	echo "$lbg_gui"
+	echo $lbg_gui
 }
 
 
@@ -148,61 +147,61 @@ lbg_get_gui() {
 lbg_set_gui() {
 
 	# default options
-	local lbg_setgui_tools=(${lbg_supported_gui[@]})
-	local lbg_setgui_res=0
+	local gui_tools=(${lbg_supported_gui[@]}) result=0
 
 	# if args set, test list of commands
 	if [ $# -gt 0 ] ; then
-		lbg_setgui_tools=($*)
+		gui_tools=($*)
 	fi
 
 	# test GUI tools
-	for lbg_sgt in ${lbg_setgui_tools[@]} ; do
+	local gui
+	for gui in ${gui_tools[@]} ; do
 
 		# set console mode is always OK
-		if [ "$lbg_sgt" == console ] ; then
-			lbg_setgui_res=0
+		if [ "$gui" == console ] ; then
+			result=0
 			break
 		fi
 
 		# test if GUI is supported
-		if ! lb_array_contains "$lbg_sgt" "${lbg_supported_gui[@]}" ; then
-			lbg_setgui_res=1
+		if ! lb_array_contains $gui "${lbg_supported_gui[@]}" ; then
+			result=1
 			continue
 		fi
 
 		# test if command exists
-		if ! lb_command_exists "$lbg_sgt" ; then
-			lbg_setgui_res=3
+		if ! lb_command_exists "$gui" ; then
+			result=3
 			continue
 		fi
 
 		# dialog command
-		case $lbg_sgt in
+		case $gui in
 			dialog)
 				# get console size
 				if ! lbg_get_console_size ; then
-					lbg_setgui_res=4
+					result=4
 					continue
 				fi
 				;;
 			osascript)
 				# test OS
 				if [ "$lb_current_os" != macOS ] ; then
-					lbg_setgui_res=4
+					result=4
 					continue
 				fi
 				;;
 			cscript)
 				# test OS
 				if [ "$lb_current_os" != Windows ] ; then
-					lbg_setgui_res=4
+					result=4
 					continue
 				fi
 
 				# test VB script
 				if ! [ -f "$lbg_vbscript_directory/$lbg_vbscript" ] ; then
-					lbg_setgui_res=4
+					result=4
 					continue
 				fi
 				;;
@@ -210,7 +209,7 @@ lbg_set_gui() {
 				# test if X server started (only for Linux and Windows)
 				if [ "$lb_current_os" != macOS ] ; then
 					if [ -z "$DISPLAY" ] ; then
-						lbg_setgui_res=4
+						result=4
 						continue
 					fi
 				fi
@@ -218,16 +217,16 @@ lbg_set_gui() {
 		esac
 
 		# all tests passed: tool can be set
-		lbg_setgui_res=0
+		result=0
 		break
 	done
 
 	# set gui tool
-	if [ $lbg_setgui_res == 0 ] ; then
-		lbg_gui=$lbg_sgt
+	if [ $result == 0 ] ; then
+		lbg_gui=$gui
 	fi
 
-	return $lbg_setgui_res
+	return $result
 }
 
 
@@ -240,7 +239,7 @@ lbg_set_gui() {
 lbg_display_info() {
 
 	# default options
-	local lbg_dinf_title=$lb_current_script_name
+	local title=$lb_current_script_name
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -249,7 +248,7 @@ lbg_display_info() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_dinf_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -265,19 +264,20 @@ lbg_display_info() {
 	fi
 
 	# prepare command
+	local cmd
 	case $lbg_gui in
 		kdialog)
-			lbg_dinf_cmd=(kdialog --title "$lbg_dinf_title" --msgbox "$*")
+			cmd=(kdialog --title "$title" --msgbox "$*")
 			;;
 
 		zenity)
-			lbg_dinf_cmd=(zenity --title "$lbg_dinf_title" --info --text "$*")
+			cmd=(zenity --title "$title" --info --text "$*")
 			;;
 
 		osascript)
 			# run command
 			osascript &> /dev/null << EOF
-display dialog "$*" with title "$lbg_dinf_title" with icon note buttons {"$lb_default_ok_label"} default button 1
+display dialog "$*" with title "$title" with icon note buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# if command error
 			if [ $? != 0 ] ; then
@@ -289,11 +289,11 @@ EOF
 			;;
 
 		cscript)
-			lbg_dinf_cmd=("${lbg_cscript[@]}")
-			lbg_dinf_cmd+=(lbg_display_info "$(echo -e "$*")" "$lbg_dinf_title")
+			cmd=("${lbg_cscript[@]}")
+			cmd+=(lbg_display_info "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${lbg_dinf_cmd[@]}")
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed
 			if [ $? != 0 ] ; then
@@ -304,14 +304,14 @@ EOF
 			;;
 
 		dialog)
-			dialog --title "$lbg_dinf_title" --clear --msgbox "$*" $(lbg_dialog_size 50 10) 2> /dev/null
-			lbg_dinf_res=$?
+			dialog --title "$title" --clear --msgbox "$*" $(lbg_dialog_size 50 10) 2> /dev/null
+			local result=$?
 
 			# clear console
 			clear
 
 			# command error
-			if [ $lbg_dinf_res != 0 ] ; then
+			if [ $result != 0 ] ; then
 				return 2
 			fi
 
@@ -321,12 +321,12 @@ EOF
 
 		*)
 			# console mode
-			lbg_dinf_cmd=(lb_display_info "$*")
+			cmd=(lb_display_info "$*")
 			;;
 	esac
 
 	# run command
-	"${lbg_dinf_cmd[@]}" 2> /dev/null
+	"${cmd[@]}" 2> /dev/null
 
 	# command error
 	if [ $? != 0 ] ; then
@@ -340,7 +340,7 @@ EOF
 lbg_display_warning() {
 
 	# default options
-	local lbg_dwn_title=$lb_current_script_name
+	local title=$lb_current_script_name
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -349,7 +349,7 @@ lbg_display_warning() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_dwn_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -365,19 +365,20 @@ lbg_display_warning() {
 	fi
 
 	# prepare command
+	local cmd
 	case $lbg_gui in
 		kdialog)
-			lbg_dwn_cmd=(kdialog --title "$lbg_dwn_title" --sorry "$*")
+			cmd=(kdialog --title "$title" --sorry "$*")
 			;;
 
 		zenity)
-			lbg_dwn_cmd=(zenity --title "$lbg_dwn_title" --warning --text "$*")
+			cmd=(zenity --title "$title" --warning --text "$*")
 			;;
 
 		osascript)
 			# run command
 			osascript &> /dev/null << EOF
-display dialog "$*" with title "$lbg_dwn_title" with icon caution buttons {"$lb_default_ok_label"} default button 1
+display dialog "$*" with title "$title" with icon caution buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# command error
 			if [ $? != 0 ] ; then
@@ -389,11 +390,11 @@ EOF
 			;;
 
 		cscript)
-			lbg_dwn_cmd=("${lbg_cscript[@]}")
-			lbg_dwn_cmd+=(lbg_display_warning "$(echo -e "$*")" "$lbg_dwn_title")
+			cmd=("${lbg_cscript[@]}")
+			cmd+=(lbg_display_warning "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${lbg_dwn_cmd[@]}")
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed
 			if [ $? != 0 ] ; then
@@ -405,17 +406,17 @@ EOF
 
 		dialog)
 			# same command as lbg_display_info, but we add warning prefix
-			lbg_dwn_cmd=(lbg_display_info "$lb_default_warning_label: $*")
+			cmd=(lbg_display_info "$lb_default_warning_label: $*")
 			;;
 
 		*)
 			# console mode
-			lbg_dwn_cmd=(lb_display_warning "$*")
+			cmd=(lb_display_warning "$*")
 			;;
 	esac
 
 	# run command
-	"${lbg_dwn_cmd[@]}" 2> /dev/null
+	"${cmd[@]}" 2> /dev/null
 
 	# command error
 	if [ $? != 0 ] ; then
@@ -429,7 +430,7 @@ EOF
 lbg_display_error() {
 
 	# default options
-	local lbg_derr_title=$lb_current_script_name
+	local title=$lb_current_script_name
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -438,7 +439,7 @@ lbg_display_error() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_derr_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -454,19 +455,20 @@ lbg_display_error() {
 	fi
 
 	# prepare command
+	local cmd
 	case $lbg_gui in
 		kdialog)
-			lbg_derr_cmd=(kdialog --title "$lbg_derr_title" --error "$*")
+			cmd=(kdialog --title "$title" --error "$*")
 			;;
 
 		zenity)
-			lbg_derr_cmd=(zenity --title "$lbg_derr_title" --error --text "$*")
+			cmd=(zenity --title "$title" --error --text "$*")
 			;;
 
 		osascript)
 			# run command
 			osascript &> /dev/null << EOF
-display dialog "$*" with title "$lbg_derr_title" with icon stop buttons {"$lb_default_ok_label"} default button 1
+display dialog "$*" with title "$title" with icon stop buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# command error
 			if [ $? != 0 ] ; then
@@ -478,11 +480,11 @@ EOF
 			;;
 
 		cscript)
-			lbg_derr_cmd=("${lbg_cscript[@]}")
-			lbg_derr_cmd+=(lbg_display_error "$(echo -e "$*")" "$lbg_derr_title")
+			cmd=("${lbg_cscript[@]}")
+			cmd+=(lbg_display_error "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${lbg_derr_cmd[@]}")
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed
 			if [ $? != 0 ] ; then
@@ -494,17 +496,17 @@ EOF
 
 		dialog)
 			# same command as lbg_display_info, but we add error prefix
-			lbg_derr_cmd=(lbg_display_info "$lb_default_error_label: $*")
+			cmd=(lbg_display_info "$lb_default_error_label: $*")
 			;;
 
 		*)
 			# console mode
-			lbg_derr_cmd=(lb_display_error $*)
+			cmd=(lb_display_error $*)
 			;;
 	esac
 
 	# run command
-	"${lbg_derr_cmd[@]}" 2> /dev/null
+	"${cmd[@]}" 2> /dev/null
 
 	# command error
 	if [ $? != 0 ] ; then
@@ -518,9 +520,7 @@ EOF
 lbg_notify() {
 
 	# default options
-	local lbg_notify_title=$lb_current_script_name
-	local lbg_notify_timeout=""
-	local lbg_notify_use_notifysend=true
+	local timeout use_notifysend=true title=$lb_current_script_name
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -529,19 +529,19 @@ lbg_notify() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_notify_title=$2
+				title=$2
 				shift
 				;;
 			--timeout)
 				if ! lb_is_integer $2 ; then
 					return 1
 				fi
-				lbg_notify_timeout=$2
+				timeout=$2
 				shift
 				;;
 			--no-notify-send)
 				# do not use notify-send command if available
-				lbg_notify_use_notifysend=false
+				use_notifysend=false
 				;;
 			*)
 				break
@@ -555,20 +555,22 @@ lbg_notify() {
 		return 1
 	fi
 
+	local opts
+
 	# if notify-send is installed, use it by default,
 	# as it is better than zenity or other system
 	if lb_command_exists notify-send ; then
-		if $lbg_notify_use_notifysend ; then
+		if $use_notifysend ; then
 			# do not override kdialog because it has the best integration to KDE desktop
 			# do not use it on macOS nor in console mode
 			if ! lb_array_contains "$lbg_gui" kdialog osascript console ; then
 				# execute command with timeout in milliseconds
-				if [ -n "$lbg_notify_timeout" ] ; then
-					lbg_notify_opts="-t $(($lbg_notify_timeout * 1000)) "
+				if [ -n "$timeout" ] ; then
+					opts="-t $(($timeout * 1000)) "
 				fi
 
 				# push notification and return
-				notify-send $lbg_notify_opts"$lbg_notify_title" "$*"
+				notify-send $opts"$title" "$*"
 				if [ $? == 0 ] ; then
 					return 0
 				else
@@ -581,24 +583,24 @@ lbg_notify() {
 	# run command
 	case $lbg_gui in
 		kdialog)
-			kdialog --title "$lbg_notify_title" --passivepopup "$*" $lbg_notify_timeout 2> /dev/null
+			kdialog --title "$title" --passivepopup "$*" $timeout 2> /dev/null
 			;;
 
 		zenity)
-			lbg_notify_opts=""
+			opts=""
 
 			# set a timeout
-			if [ -n "$lbg_notify_timeout" ] ; then
-				lbg_notify_opts="--timeout=$lbg_notify_timeout"
+			if [ -n "$timeout" ] ; then
+				opts="--timeout=$timeout"
 			fi
 
 			# run command
-			zenity --notification $lbg_notify_opts --text "$*" 2> /dev/null
+			zenity --notification $opts --text "$*" 2> /dev/null
 			;;
 
 		osascript)
 			osascript &> /dev/null << EOF
-display notification "$*" with title "$lbg_notify_title"
+display notification "$*" with title "$title"
 EOF
 			;;
 
@@ -627,31 +629,27 @@ EOF
 lbg_yesno() {
 
 	# default options
-	local lbg_yn_defaultyes=false
-	local lbg_yn_yeslbl=""
-	local lbg_yn_nolbl=""
-	local lbg_yn_title=$lb_current_script_name
-	local lbg_yn_cmd=()
+	local yes_label no_label yes_default=false title=$lb_current_script_name
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-y|--yes)
-				lbg_yn_defaultyes=true
+				yes_default=true
 				;;
 			--yes-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_yn_yeslbl=$2
+				yes_label=$2
 				shift
 				;;
 			--no-label)
-				lbg_yn_nolbl=$2
+				no_label=$2
 				shift
 				;;
 			-t|--title)
-				lbg_yn_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -666,63 +664,65 @@ lbg_yesno() {
 		return 1
 	fi
 
+	local cmd=() result
+
 	# prepare command
 	case $lbg_gui in
 		kdialog)
-			lbg_yn_cmd=(kdialog --title "$lbg_yn_title")
-			if [ -n "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
+			cmd=(kdialog --title "$title")
+			if [ -n "$yes_label" ] ; then
+				cmd+=(--yes-label "$yes_label")
 			fi
-			if [ -n "$lbg_yn_nolbl" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
+			if [ -n "$no_label" ] ; then
+				cmd+=(--no-label "$no_label")
 			fi
-			lbg_yn_cmd+=(--yesno "$*")
+			cmd+=(--yesno "$*")
 			;;
 
 		zenity)
-			lbg_yn_cmd=(zenity --question --title "$lbg_yn_title" --text "$*")
+			cmd=(zenity --question --title "$title" --text "$*")
 			;;
 
 		osascript)
 			# set button labels
-			if [ -z "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_yeslbl=$lb_default_yes_label
+			if [ -z "$yes_label" ] ; then
+				yes_label=$lb_default_yes_label
 			fi
-			if [ -z "$lbg_yn_nolbl" ] ; then
-				lbg_yn_nolbl=$lb_default_no_label
+			if [ -z "$no_label" ] ; then
+				no_label=$lb_default_no_label
 			fi
 
 			# set options
-			lbg_yn_opts="default button "
-			if $lbg_yn_defaultyes ; then
-				lbg_yn_opts+="1"
+			local opts="default button "
+			if $yes_default ; then
+				opts+="1"
 			else
-				lbg_yn_opts+="2"
+				opts+="2"
 			fi
 
 			# run command
-			lbg_yn_res=$(osascript << EOF
-set question to (display dialog "$*" with title "$lbg_yn_title" buttons {"$lbg_yn_yeslbl", "$lbg_yn_nolbl"} $lbg_yn_opts)
+			result=$(osascript << EOF
+set question to (display dialog "$*" with title "$title" buttons {"$yes_label", "$no_label"} $opts)
 set answer to button returned of question
-if answer is equal to "$lbg_yn_yeslbl" then
+if answer is equal to "$yes_label" then
 	return 0
 else
 	return 2
 end if
 EOF)
 			# return choice
-			return $lbg_yn_res
+			return $result
 			;;
 
 		cscript)
-			lbg_yn_cmd=("${lbg_cscript[@]}")
-			lbg_yn_cmd+=(lbg_yesno "$(echo -e "$*")" "$lbg_yn_title")
-			if $lbg_yn_defaultyes ; then
-				lbg_yn_cmd+=(true)
+			cmd=("${lbg_cscript[@]}")
+			cmd+=(lbg_yesno "$(echo -e "$*")" "$title")
+			if $yes_default ; then
+				cmd+=(true)
 			fi
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${lbg_yn_cmd[@]}")
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed or response is no
 			if [ $? != 0 ] ; then
@@ -733,27 +733,27 @@ EOF)
 			;;
 
 		dialog)
-			lbg_yn_cmd=(dialog --title "$lbg_yn_title")
-			if ! $lbg_yn_defaultyes ; then
-				lbg_yn_cmd+=(--defaultno)
+			cmd=(dialog --title "$title")
+			if ! $yes_default ; then
+				cmd+=(--defaultno)
 			fi
-			if [ -n "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
+			if [ -n "$yes_label" ] ; then
+				cmd+=(--yes-label "$yes_label")
 			fi
-			if [ -n "$lbg_yn_nolbl" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
+			if [ -n "$no_label" ] ; then
+				cmd+=(--no-label "$no_label")
 			fi
-			lbg_yn_cmd+=(--clear --yesno "$*" $(lbg_dialog_size 100 10))
+			cmd+=(--clear --yesno "$*" $(lbg_dialog_size 100 10))
 
 			# run command
-			"${lbg_yn_cmd[@]}"
-			lbg_yn_res=$?
+			"${cmd[@]}"
+			result=$?
 
 			# clear console
 			clear
 
 			# return result
-			case $lbg_yn_res in
+			case $result in
 				0)
 					return 0
 					;;
@@ -769,22 +769,22 @@ EOF)
 
 		*)
 			# console mode
-			lbg_yn_cmd=(lb_yesno)
-			if $lbg_yn_defaultyes ; then
-				lbg_yn_cmd+=(-y)
+			cmd=(lb_yesno)
+			if $yes_default ; then
+				cmd+=(-y)
 			fi
-			if [ -n "$lbg_yn_yeslbl" ] ; then
-				lbg_yn_cmd+=(--yes-label "$lbg_yn_yeslbl")
+			if [ -n "$yes_label" ] ; then
+				cmd+=(--yes-label "$yes_label")
 			fi
-			if [ -n "$lbg_yn_nolbl" ] ; then
-				lbg_yn_cmd+=(--no-label "$lbg_yn_nolbl")
+			if [ -n "$no_label" ] ; then
+				cmd+=(--no-label "$no_label")
 			fi
-			lbg_yn_cmd+=("$*")
+			cmd+=("$*")
 			;;
 	esac
 
 	# run command
-	"${lbg_yn_cmd[@]}" 2> /dev/null
+	"${cmd[@]}" 2> /dev/null
 
 	# command error
 	if [ $? != 0 ] ; then
@@ -801,35 +801,34 @@ lbg_choose_option() {
 	# reset result
 	lbg_choose_option=""
 
-	# default options and local variables
-	local lbg_chop_default=0
-	# options: initialize with an empty first value (option ID starts to 1, not 0)
-	local lbg_chop_options=("")
-	local lbg_chop_title=$lb_current_script_name
-	local lbg_chop_label=$lb_default_chopt_label
+	# default options
+	local default=() multiple_choices=false
+	local title=$lb_current_script_name label=$lb_default_chopt_label
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
-				if ! lb_is_integer $2 ; then
+				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chop_default=$2
+				# transform option1,option2,... to array
+				lb_split , $2
+				default=(${lb_split[@]})
 				shift
 				;;
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chop_label=$2
+				label=$2
 				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chop_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -844,109 +843,122 @@ lbg_choose_option() {
 		return 1
 	fi
 
-	# prepare options
+	# options: initialize with an empty first value (option ID starts to 1, not 0)
+	local options=("")
+
+	# prepare choice options
 	while [ -n "$1" ] ; do
-		lbg_chop_options+=("$1")
+		options+=("$1")
 		shift
 	done
 
-	# verify if default option is valid
-	if [ $lbg_chop_default -lt 0 ] || [ $lbg_chop_default -ge ${#lbg_chop_options[@]} ] ; then
-		return 1
+	# verify if default options are valid
+	if [ ${#default[@]} -gt 0 ] ; then
+		local d
+		for d in ${default[@]} ; do
+			if ! lb_is_integer $d ; then
+				return 1
+			fi
+			if [ $d -lt 1 ] || [ $d -ge ${#options[@]} ] ; then
+				return 1
+			fi
+		done
+	else
+		# initialize first choice as default
+		default=(0)
 	fi
 
 	# prepare command
+	local i cmd
 	case $lbg_gui in
 		kdialog)
-			lbg_chop_cmd=(kdialog --title "$lbg_chop_title" --radiolist "$lbg_chop_label")
+			cmd=(kdialog --title "$title" --radiolist "$label")
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[lbg_chop_i]}")
-				if [ $lbg_chop_i == $lbg_chop_default ] ; then
-					lbg_chop_cmd+=(on)
+			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
+				cmd+=($i "${options[i]}")
+				if lb_array_contains $i ${default[@]} ; then
+					cmd+=(on)
 				else
-					lbg_chop_cmd+=(off)
+					cmd+=(off)
 				fi
 			done
 
 			# run command
-			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
+			lbg_choose_option=$("${cmd[@]}" 2> /dev/null)
 			;;
 
 		zenity)
-			lbg_chop_cmd=(zenity --list --title "$lbg_chop_title" --text "$lbg_chop_label" --radiolist --column "" --column "" --column "")
+			cmd=(zenity --list --title "$title" --text "$label" --radiolist --column "" --column "" --column "")
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				if [ $lbg_chop_i == $lbg_chop_default ] ; then
-					lbg_chop_cmd+=(TRUE)
+			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
+				if lb_array_contains $i ${default[@]} ; then
+					cmd+=(TRUE)
 				else
-					lbg_chop_cmd+=(FALSE)
+					cmd+=(FALSE)
 				fi
 
-				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[lbg_chop_i]}")
+				cmd+=($i "${options[i]}")
 			done
 
 			# run command
-			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2> /dev/null)
+			lbg_choose_option=$("${cmd[@]}" 2> /dev/null)
 			;;
 
 		osascript)
-			lbg_chop_default_option=""
-
 			# prepare options
-			local lbg_chop_opts="{"
+			local default_option opts="{"
 
-			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_opts+="\"${lbg_chop_options[lbg_chop_i]}\","
+			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
+				opts+="\"${options[i]}\","
 
 				# set default option
-				if [ $lbg_chop_default != 0 ] ; then
-					if [ $lbg_chop_default == $lbg_chop_i ] ; then
-						lbg_chop_default_option=${lbg_chop_options[lbg_chop_i]}
+				if [ ${#default[@]} -gt 0 ] ; then
+					if lb_array_contains $i ${default[@]} ; then
+						default_option=${options[i]}
 					fi
 				fi
 			done
 
 			# delete last comma
-			lbg_chop_opts="${lbg_chop_opts%?}}"
+			opts="${opts%?}}"
 
 			# execute command
-			lbg_chop_choice=$(osascript 2> /dev/null <<EOF
-set answer to (choose from list $lbg_chop_opts with prompt "$lbg_chop_label" default items "$lbg_chop_default_option" with title "$lbg_chop_title")
+			local choice=$(osascript 2> /dev/null <<EOF
+set answer to (choose from list $opts with prompt "$label" default items "$default_option" with title "$title")
 EOF)
 			# if empty, error
-			if [ -z "$lbg_chop_choice" ] ; then
+			if [ -z "$choice" ] ; then
 				return 2
 			fi
 
 			# macOS case: find result
-			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				if [ "$lbg_chop_choice" == "${lbg_chop_options[lbg_chop_i]}" ] ; then
-					lbg_choose_option=$lbg_chop_i
+			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
+				if [ "$choice" == "${options[i]}" ] ; then
+					lbg_choose_option=$i
 				fi
 			done
 			;;
 
 		cscript)
 			# avoid \n in label
-			lbg_chop_label=$(echo -e "$lbg_chop_label")
+			label=$(echo -e "$label")
 
 			# add options to the label, with a line return between each option
-			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_label+=$(echo -e "\n   $lbg_chop_i. ${lbg_chop_options[lbg_chop_i]}")
+			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
+				label+=$(echo -e "\n   $i. ${options[i]}")
 			done
 
 			# prepare command (inputbox)
-			lbg_chop_cmd=("${lbg_cscript[@]}")
-			lbg_chop_cmd+=(lbg_input_text "$lbg_chop_label" "$lbg_chop_title")
-			if [ $lbg_chop_default != 0 ] ; then
-				lbg_chop_cmd+=("$lbg_chop_default")
-			fi
+			cmd=("${lbg_cscript[@]}")
+			cmd+=(lbg_input_text "$label" "$title")
+			for d in ${default[@]} ; do
+				cmd+=($d)
+			done
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			lbg_choose_option=$(cd "$lbg_vbscript_directory" && "${lbg_chop_cmd[@]}")
+			lbg_choose_option=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# cancelled
 			if [ $? != 0 ] ; then
@@ -958,21 +970,21 @@ EOF)
 			;;
 
 		dialog)
-			lbg_chop_cmd=(dialog --title "$lbg_chop_title" --clear --radiolist "$lbg_chop_label" $(lbg_dialog_size 100 30) 1000)
+			cmd=(dialog --title "$title" --clear --radiolist "$label" $(lbg_dialog_size 100 30) 1000)
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_cmd+=($lbg_chop_i "${lbg_chop_options[lbg_chop_i]}")
-				if [ $lbg_chop_i == $lbg_chop_default ] ; then
-					lbg_chop_cmd+=(on)
+			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
+				cmd+=($i "${options[i]}")
+				if lb_array_contains $i ${default[@]} ; then
+					cmd+=(on)
 				else
-					lbg_chop_cmd+=(off)
+					cmd+=(off)
 				fi
 			done
 
 			# run command (complex case)
 			exec 3>&1
-			lbg_choose_option=$("${lbg_chop_cmd[@]}" 2>&1 1>&3)
+			lbg_choose_option=$("${cmd[@]}" 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -981,19 +993,21 @@ EOF)
 
 		*)
 			# console mode
-			lbg_chop_cmd=(lb_choose_option)
-			if [ $lbg_chop_default -gt 0 ] ; then
-				lbg_chop_cmd+=(-d $lbg_chop_default)
+			cmd=(lb_choose_option)
+
+			# add default without the first 0
+			if [ "$default" != 0 ] ; then
+				cmd+=(-d $(lb_join , ${default[@]}))
 			fi
-			lbg_chop_cmd+=(-l "$lbg_chop_label")
+			cmd+=(-l "$label")
 
 			# add options
-			for ((lbg_chop_i=1 ; lbg_chop_i <= ${#lbg_chop_options[@]}-1 ; lbg_chop_i++)) ; do
-				lbg_chop_cmd+=("${lbg_chop_options[lbg_chop_i]}")
+			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
+				cmd+=("${options[i]}")
 			done
 
 			# execute console function
-			"${lbg_chop_cmd[@]}"
+			"${cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
 				lbg_choose_option=$lb_choose_option
@@ -1014,7 +1028,7 @@ EOF)
 	fi
 
 	# check if user choice is valid
-	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -ge ${#lbg_chop_options[@]} ] ; then
+	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -ge ${#options[@]} ] ; then
 		# reset result and return error
 		lbg_choose_option=""
 		return 3
@@ -1031,8 +1045,7 @@ lbg_input_text() {
 	lbg_input_text=""
 
 	# default options
-	local lbg_inp_default=""
-	local lbg_inp_title=$lb_current_script_name
+	local default title=$lb_current_script_name
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1041,14 +1054,14 @@ lbg_input_text() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inp_default=$2
+				default=$2
 				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inp_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -1064,31 +1077,32 @@ lbg_input_text() {
 	fi
 
 	# run command
+	local cmd
 	case $lbg_gui in
 		kdialog)
-			lbg_input_text=$(kdialog --title "$lbg_inp_title" --inputbox "$*" "$lbg_inp_default" 2> /dev/null)
+			lbg_input_text=$(kdialog --title "$title" --inputbox "$*" "$default" 2> /dev/null)
 			;;
 
 		zenity)
-			lbg_input_text=$(zenity --entry --title "$lbg_inp_title" --entry-text "$lbg_inp_default" --text "$*" 2> /dev/null)
+			lbg_input_text=$(zenity --entry --title "$title" --entry-text "$default" --text "$*" 2> /dev/null)
 			;;
 
 		osascript)
 			lbg_input_text=$(osascript 2> /dev/null << EOF
-set answer to the text returned of (display dialog "$*" with title "$lbg_inp_title" default answer "$lbg_inp_default")
+set answer to the text returned of (display dialog "$*" with title "$title" default answer "$default")
 EOF)
 			;;
 
 		cscript)
 			# prepare command
-			lbg_inp_cmd=("${lbg_cscript[@]}")
-			lbg_inp_cmd+=(lbg_input_text "$(echo -e "$*")" "$lbg_inp_title")
-			if [ -n "$lbg_inp_default" ] ; then
-				lbg_inp_cmd+=("$lbg_inp_default")
+			cmd=("${lbg_cscript[@]}")
+			cmd+=(lbg_input_text "$(echo -e "$*")" "$title")
+			if [ -n "$default" ] ; then
+				cmd+=("$default")
 			fi
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			lbg_input_text=$(cd "$lbg_vbscript_directory" && "${lbg_inp_cmd[@]}")
+			lbg_input_text=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# cancelled
 			if [ $? != 0 ] ; then
@@ -1102,7 +1116,7 @@ EOF)
 		dialog)
 			# run command (complex case)
 			exec 3>&1
-			lbg_input_text=$(dialog --title "$lbg_inp_title" --clear --inputbox "$*" $(lbg_dialog_size 100 10) "$lbg_inp_default" 2>&1 1>&3)
+			lbg_input_text=$(dialog --title "$title" --clear --inputbox "$*" $(lbg_dialog_size 100 10) "$default" 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1111,14 +1125,14 @@ EOF)
 
 		*)
 			# console mode
-			lbg_inp_cmd=(lb_input_text)
-			if [ -n "$lbg_inp_default" ] ; then
-				lbg_inp_cmd+=(-d "$lbg_inp_default")
+			cmd=(lb_input_text)
+			if [ -n "$default" ] ; then
+				cmd+=(-d "$default")
 			fi
-			lbg_inp_cmd+=("$*")
+			cmd+=("$*")
 
 			# execute console function
-			"${lbg_inp_cmd[@]}"
+			"${cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
 				lbg_input_text=$lb_input_text
@@ -1142,11 +1156,11 @@ lbg_input_password() {
 	lbg_input_password=""
 
 	# default options
-	local lbg_inpw_label=$lb_default_pwd_label
-	local lbg_inpw_confirm=false
-	local lbg_inpw_confirm_label=$lb_default_pwd_confirm_label
-	local lbg_inpw_title=$lb_current_script_name
-	local lbg_inpw_minsize=0
+	local label=$lb_default_pwd_label
+	local confirm=false
+	local confirm_label=$lb_default_pwd_confirm_label
+	local title=$lb_current_script_name
+	local min_size=0
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1155,17 +1169,17 @@ lbg_input_password() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inpw_label=$2
+				label=$2
 				shift
 				;;
 			-c|--confirm)
-				lbg_inpw_confirm=true
+				confirm=true
 				;;
 			--confirm-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inpw_confirm_label=$2
+				confirm_label=$2
 				shift
 				;;
 			-m|--min-size)
@@ -1175,14 +1189,14 @@ lbg_input_password() {
 				if [ $2 -lt 1 ] ; then
 					return 1
 				fi
-				lbg_inpw_minsize=$2
+				min_size=$2
 				shift
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_inpw_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -1194,33 +1208,34 @@ lbg_input_password() {
 
 	# text label
 	if [ -n "$*" ] ; then
-		lbg_inpw_label=$*
+		label=$*
 	fi
 
 	# display dialog
-	for lbg_inpw_i in 1 2 ; do
+	local i
+	for i in 1 2 ; do
 
 		# run command
 		case $lbg_gui in
 			kdialog)
-				lbg_input_password=$(kdialog --title "$lbg_inpw_title" --password "$lbg_inpw_label" 2> /dev/null)
+				lbg_input_password=$(kdialog --title "$title" --password "$label" 2> /dev/null)
 				;;
 
 			zenity)
 				# zenity does not support labels, so we put it in the dialog title
-				lbg_input_password=$(zenity --title "$lbg_inpw_label" --password 2> /dev/null)
+				lbg_input_password=$(zenity --title "$label" --password 2> /dev/null)
 				;;
 
 			osascript)
 				lbg_input_password=$(osascript 2> /dev/null << EOF
-set answer to the text returned of (display dialog "$lbg_inpw_label" with title "$lbg_inpw_title" default answer "" hidden answer true)
+set answer to the text returned of (display dialog "$label" with title "$title" default answer "" hidden answer true)
 EOF)
 				;;
 
 			dialog)
 				# run command (complex case)
 				exec 3>&1
-				lbg_input_password=$(dialog --title "$lbg_inpw_title" --clear --passwordbox "$lbg_inpw_label" $(lbg_dialog_size 50 10) 2>&1 1>&3)
+				lbg_input_password=$(dialog --title "$title" --clear --passwordbox "$label" $(lbg_dialog_size 50 10) 2>&1 1>&3)
 				exec 3>&-
 
 				# clear console
@@ -1230,7 +1245,11 @@ EOF)
 			*)
 				# console mode
 				# execute console function
-				lb_input_password --label "$lbg_inpw_label"
+				cmd=(lb_input_password --label "$label")
+				if [ $min_size -gt 0 ] ; then
+					cmd+=(--min-size $min_size)
+				fi
+				"${cmd[@]}"
 				lbg_inpw_res=$?
 				if [ $lbg_inpw_res == 0 ] ; then
 					# forward result
@@ -1247,29 +1266,29 @@ EOF)
 		fi
 
 		# check password size (if --min-size option is set)
-		if [ $lbg_inpw_minsize -gt 0 ] ; then
-			if [ $(echo -n "$lbg_input_password" | wc -m) -lt $lbg_inpw_minsize ] ; then
+		if [ $min_size -gt 0 ] ; then
+			if [ $(echo -n "$lbg_input_password" | wc -m) -lt $min_size ] ; then
 				lbg_input_password=""
 				return 4
 			fi
 		fi
 
 		# if no confirm, quit
-		if ! $lbg_inpw_confirm ; then
+		if ! $confirm ; then
 			return 0
 		fi
 
 		# if first iteration,
-		if [ $lbg_inpw_i == 1 ] ; then
+		if [ $i == 1 ] ; then
 			# save password
-			lbg_inpw_password_confirm=$lbg_input_password
+			local password_confirm=$lbg_input_password
 
 			# set new confirm label and continue
-			lbg_inpw_label=$lbg_inpw_confirm_label
+			label=$confirm_label
 		else
 			# if 2nd iteration (confirmation)
 			# comparison with confirm password
-			if [ "$lbg_input_password" != "$lbg_inpw_password_confirm" ] ; then
+			if [ "$lbg_input_password" != "$password_confirm" ] ; then
 				lbg_input_password=""
 				return 3
 			fi
@@ -1296,20 +1315,19 @@ lbg_choose_directory() {
 	lbg_choose_directory=""
 
 	# default options
-	local lbg_chdir_title=$lb_current_script_name
-	local lbg_chdir_absolute=false
+	local path absolute_path=false title=$lb_current_script_name
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-a|--absolute-path)
-				lbg_chdir_absolute=true
+				absolute_path=true
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_chdir_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -1321,48 +1339,49 @@ lbg_choose_directory() {
 
 	# if no path specified, use current
 	if lb_test_arguments -eq 0 $* ; then
-		lbg_chdir_path=$lb_current_path
+		path=$lb_current_path
 	else
-		lbg_chdir_path=$*
+		path=$*
 	fi
 
 	# if path is not a directory, usage error
-	if ! [ -d "$lbg_chdir_path" ] ; then
+	if ! [ -d "$path" ] ; then
 		return 1
 	fi
 
 	# run command
+	local cmd choice
 	case $lbg_gui in
 		kdialog)
-			lbg_chdir_choice=$(kdialog --title "$lbg_chdir_title" --getexistingdirectory "$lbg_chdir_path" 2> /dev/null)
+			choice=$(kdialog --title "$title" --getexistingdirectory "$path" 2> /dev/null)
 			;;
 
 		zenity)
-			lbg_chdir_choice=$(zenity --title "$lbg_chdir_title" --file-selection --directory --filename "$lbg_chdir_path" 2> /dev/null)
+			choice=$(zenity --title "$title" --file-selection --directory --filename "$path" 2> /dev/null)
 			;;
 
 		osascript)
-			lbg_chdir_choice=$(osascript 2> /dev/null <<EOF
-set answer to POSIX path of (choose folder with prompt "$lbg_chdir_title" default location "$lbg_chdir_path")
+			choice=$(osascript 2> /dev/null <<EOF
+set answer to POSIX path of (choose folder with prompt "$title" default location "$path")
 EOF)
 			;;
 
 		cscript)
 			# prepare command
-			lbg_chdir_cmd=("${lbg_cscript[@]}")
-			lbg_chdir_cmd+=(lbg_choose_directory)
+			cmd=("${lbg_cscript[@]}")
+			cmd+=(lbg_choose_directory)
 
 			# if title is not defined,
-			if [ "$lbg_chdir_title" == "$lb_current_script_name" ] ; then
+			if [ "$title" == "$lb_current_script_name" ] ; then
 				# print default label
-				lbg_chdir_cmd+=("$lb_default_chdir_label")
+				cmd+=("$lb_default_chdir_label")
 			else
 				# print title as label
-				lbg_chdir_cmd+=("$lbg_chdir_title")
+				cmd+=("$title")
 			fi
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			lbg_chdir_choice=$(cd "$lbg_vbscript_directory" && "${lbg_chdir_cmd[@]}")
+			choice=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# cancelled
 			if [ $? != 0 ] ; then
@@ -1370,13 +1389,13 @@ EOF)
 			fi
 
 			# remove \r ending character
-			lbg_chdir_choice=${lbg_chdir_choice:0:${#lbg_chdir_choice}-1}
+			choice=${choice:0:${#choice}-1}
 			;;
 
 		dialog)
 			# run command (complex case)
 			exec 3>&1
-			lbg_chdir_choice=$(dialog --title "$lbg_chdir_title" --clear --dselect "$lbg_chdir_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
+			choice=$(dialog --title "$title" --clear --dselect "$path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1385,47 +1404,47 @@ EOF)
 
 		*)
 			# console mode
-			lbg_chdir_cmd=(lb_input_text -d "$lbg_chdir_path")
+			cmd=(lb_input_text -d "$path")
 
 			# set dialog title as label
-			if [ "$lbg_chdir_title" == "$lb_current_script_name" ] ; then
-				lbg_chdir_cmd+=("$lb_default_chdir_label")
+			if [ "$title" == "$lb_current_script_name" ] ; then
+				cmd+=("$lb_default_chdir_label")
 			else
-				lbg_chdir_cmd+=("$lbg_chdir_title")
+				cmd+=("$title")
 			fi
 
 			# execute console function
-			"${lbg_chdir_cmd[@]}"
+			"${cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_chdir_choice=$lb_input_text
+				choice=$lb_input_text
 			fi
 			;;
 	esac
 
 	# if empty, cancelled
-	if [ -z "$lbg_chdir_choice" ] ; then
+	if [ -z "$choice" ] ; then
 		return 2
 	fi
 
 	# return windows paths
 	if [ "$lb_current_os" == "Windows" ] ; then
-		lbg_chdir_choice=$(lb_realpath "$lbg_chdir_choice")
+		choice=$(lb_realpath "$choice")
 		if [ $? != 0 ] ; then
 			return 3
 		fi
 	fi
 
 	# if not a directory, return error
-	if ! [ -d "$lbg_chdir_choice" ] ; then
+	if ! [ -d "$choice" ] ; then
 		return 3
 	fi
 
 	# save path
-	lbg_choose_directory=$lbg_chdir_choice
+	lbg_choose_directory=$choice
 
 	# return absolute path if option set
-	if $lbg_chdir_absolute ; then
+	if $absolute_path ; then
 		lbg_choose_directory=$(lb_abspath "$lbg_choose_directory")
 		if [ $? != 0 ] ; then
 			# in case of error, user can get returned path
@@ -1444,33 +1463,31 @@ lbg_choose_file() {
 	lbg_choose_file=""
 
 	# default options
-	local lbg_choosefile_save=false
-	local lbg_choosefile_title=$lb_current_script_name
-	local lbg_choosefile_path=""
-	local lbg_choosefile_filters=()
-	local lbg_choosefile_absolute=false
+	local absolute_path=false save_mode=false
+	local title=$lb_current_script_name filename=$lb_default_newfile_name
+	local path filters=()
 
 	# catch options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--save)
-				lbg_choosefile_save=true
+				save_mode=true
 				;;
 			-f|--filter)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_choosefile_filters+=("$2")
+				filters+=("$2")
 				shift
 				;;
 			-a|--absolute-path)
-				lbg_choosefile_absolute=true
+				absolute_path=true
 				;;
 			-t|--title)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_choosefile_title=$2
+				title=$2
 				shift
 				;;
 			*)
@@ -1482,84 +1499,96 @@ lbg_choose_file() {
 
 	# if no path specified, use current directory
 	if lb_test_arguments -eq 0 $* ; then
-		lbg_choosefile_path=$lb_current_path
+		path=$lb_current_path
 	else
-		lbg_choosefile_path=$*
+		path=$*
 	fi
 
 	# if directory does not exists (save mode), error
-	if $lbg_choosefile_save ; then
-		if ! [ -d "$(dirname "$lbg_choosefile_path")" ] ; then
+	if $save_mode ; then
+		if ! [ -d "$(dirname "$path")" ] ; then
 			return 1
 		fi
 	else
 		# if path does not exists (open mode), error
-		if ! [ -e "$lbg_choosefile_path" ] ; then
+		if ! [ -e "$path" ] ; then
 			return 1
 		fi
 	fi
 
 	# display dialog
+	local cmd choice mode
 	case $lbg_gui in
 		kdialog)
-			# kdialog has a strange behaviour: it takes a path but only as a file name.
-			# it starts on the current directory path. This is a hack to work:
-			lbg_choosefile_pathfile="."
-			if ! [ -d "$lbg_choosefile_path" ] ; then
-				lbg_choosefile_pathfile=$(basename "$lbg_choosefile_path")
-				lbg_choosefile_path=$(dirname "$lbg_choosefile_path")
+			# kdialog has a strange behaviour: it takes a path but only as a file name and needs to be run from start directory.
+			if [ -d "$path" ] ; then
+				# open mode: do not set default file name
+				if ! $save_mode ; then
+					filename=.
+				fi
+			else
+				filename=$(basename "$path")
+				path=$(dirname "$path")
 			fi
 
 			# set mode (open or save)
-			if $lbg_choosefile_save ; then
-				lbg_choosefile_mode="--getsavefilename"
+			if $save_mode ; then
+				mode="--getsavefilename"
 			else
-				lbg_choosefile_mode="--getopenfilename"
+				mode="--getopenfilename"
 			fi
 
 			# go into the directory then open kdialog
-			lbg_choosefile_choice=$(cd "$lbg_choosefile_path" &> /dev/null; kdialog --title "$lbg_choosefile_title" $lbg_choosefile_mode "$lbg_choosefile_pathfile" "${lbg_choosefile_filters[@]}" 2> /dev/null)
+			choice=$(cd "$path" &> /dev/null && kdialog --title "$title" $mode "$filename" "${filters[@]}" 2> /dev/null)
 			;;
 
 		zenity)
-			local lbg_choosefile_opts=""
-			if [ ${#lbg_choosefile_filters[@]} -gt 0 ] ; then
-				lbg_choosefile_opts=--file-filter="${lbg_choosefile_filters[@]}"
+			# if save mode and no filename specified, set it
+			if [ -d "$path" ] ; then
+				if $save_mode ; then
+					path+="/$filename"
+				fi
 			fi
+
+			cmd=(zenity --title "$title" --file-selection --filename "$path")
 
 			# set save mode
-			if $lbg_choosefile_save ; then
-				lbg_choosefile_opts="--save"
+			if $save_mode ; then
+				cmd+=(--save)
 			fi
 
-			lbg_choosefile_choice=$(zenity --title "$lbg_choosefile_title" --file-selection $lbg_choosefile_opts --filename "$lbg_choosefile_path" "$lbg_choosefile_opts" 2> /dev/null)
+			# set filters
+			if [ ${#filters[@]} -gt 0 ] ; then
+				cmd+=("--file-filter=${filters[@]}")
+			fi
+
+			choice=$("${cmd[@]}" 2> /dev/null)
 			;;
 
 		osascript)
-			local lbg_choosefile_opts=""
-			local lbg_choosefile_file=$lb_default_newfile_name
+			local opts=""
 
 			# set save mode
-			if $lbg_choosefile_save ; then
-				lbg_choosefile_mode="name"
+			if $save_mode ; then
+				mode="name"
 
-				if ! [ -d "$lbg_choosefile_path" ] ; then
-					lbg_choosefile_file=$(basename "$lbg_choosefile_path")
-					lbg_choosefile_path=$(dirname "$lbg_choosefile_path")
+				if ! [ -d "$path" ] ; then
+					filename=$(basename "$path")
+					path=$(dirname "$path")
 				fi
 
-				lbg_choosefile_opts="default name \"$lbg_choosefile_file\""
+				opts="default name \"$filename\""
 			fi
 
-			lbg_choosefile_choice=$(osascript 2> /dev/null <<EOF
-set answer to POSIX path of (choose file $lbg_choosefile_mode with prompt "$lbg_choosefile_title" $lbg_choosefile_opts default location "$lbg_choosefile_path")
+			choice=$(osascript 2> /dev/null <<EOF
+set answer to POSIX path of (choose file $mode with prompt "$title" $opts default location "$path")
 EOF)
 			;;
 
 		dialog)
 			# execute dialog (complex case)
 			exec 3>&1
-			lbg_choosefile_choice=$(dialog --title "$lbg_choosefile_title" --clear --fselect "$lbg_choosefile_path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
+			choice=$(dialog --title "$title" --clear --fselect "$path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1568,26 +1597,26 @@ EOF)
 
 		*)
 			# console mode
-			lbg_choosefile_cmd=(lb_input_text -d "$lbg_choosefile_path")
+			cmd=(lb_input_text -d "$path")
 
 			# set dialog title as label
-			if [ "$lbg_choosefile_title" == "$lb_current_script_name" ] ; then
-				lbg_choosefile_cmd+=("$lb_default_chfile_label")
+			if [ "$title" == "$lb_current_script_name" ] ; then
+				cmd+=("$lb_default_chfile_label")
 			else
-				lbg_choosefile_cmd+=("$lbg_choosefile_title")
+				cmd+=("$title")
 			fi
 
 			# execute console function
-			"${lbg_choosefile_cmd[@]}"
+			"${cmd[@]}"
 			if [ $? == 0 ] ; then
 				# forward result
-				lbg_choosefile_choice=$lb_input_text
+				choice=$lb_input_text
 			fi
 			;;
 	esac
 
 	# if empty, cancelled
-	if [ -z "$lbg_choosefile_choice" ] ; then
+	if [ -z "$choice" ] ; then
 		return 2
 	fi
 
@@ -1595,10 +1624,10 @@ EOF)
 	if [ "$lb_current_os" == "Windows" ] ; then
 
 		# beware the save mode where file does not exists!
-		if $lbg_choosefile_save ; then
-			lbg_choosefile_choice="$(lb_realpath "$(dirname "$lbg_choosefile_choice")")/$(basename "$lbg_choosefile_choice")"
+		if $save_mode ; then
+			choice="$(lb_realpath "$(dirname "$choice")")/$(basename "$choice")"
 		else
-			lbg_choosefile_choice=$(lb_realpath "$lbg_choosefile_choice")
+			choice=$(lb_realpath "$choice")
 		fi
 		if [ $? != 0 ] ; then
 			return 3
@@ -1606,36 +1635,36 @@ EOF)
 	fi
 
 	# if save mode,
-	if $lbg_choosefile_save ; then
+	if $save_mode ; then
 		# if directory parent does not exists, reset variable and return error
-		if ! [ -d "$(dirname "$lbg_choosefile_choice")" ] ; then
+		if ! [ -d "$(dirname "$choice")" ] ; then
 			return 3
 		fi
 
 		# if exists but is not a file, return error
-		if [ -e "$lbg_choosefile_choice" ] ; then
-			if ! [ -f "$lbg_choosefile_choice" ] ; then
+		if [ -e "$choice" ] ; then
+			if ! [ -f "$choice" ] ; then
 				return 3
 			fi
 		fi
 	else
 		# open mode
 		# if file does not exists, reset variable and return error
-		if ! [ -f "$lbg_choosefile_choice" ] ; then
+		if ! [ -f "$choice" ] ; then
 			return 3
 		fi
 	fi
 
 	# return absolute path if option set
-	if $lbg_choosefile_absolute ; then
-		lbg_choose_file=$(lb_abspath "$lbg_choosefile_choice")
+	if $absolute_path ; then
+		lbg_choose_file=$(lb_abspath "$choice")
 		if [ $? != 0 ] ; then
 			# in case of error, user can get returned path
 			return 4
 		fi
 	else
 		# return choice
-		lbg_choose_file=$lbg_choosefile_choice
+		lbg_choose_file=$choice
 	fi
 }
 
@@ -1645,9 +1674,7 @@ EOF)
 lbg_open_directory() {
 
 	# default options
-	local lbg_opdir_explorer=""
-	local lbg_opdir_paths=()
-	local lbg_opdir_result=0
+	local explorer result=0 paths=()
 
 	# catch options
 	while [ $# -gt 0 ] ; do
@@ -1656,7 +1683,7 @@ lbg_open_directory() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lbg_opdir_explorer="$2"
+				explorer="$2"
 				shift
 				;;
 			*)
@@ -1668,67 +1695,68 @@ lbg_open_directory() {
 
 	# if no path specified, use current directory
 	if [ -z "$*" ] ; then
-		lbg_opdir_paths=("$lb_current_path")
+		paths=("$lb_current_path")
 	fi
 
 	# get specified path(s)
 	while [ -n "$1" ] ; do
 		# if not a directory, ignore it
 		if [ -d "$1" ] ; then
-			lbg_opdir_paths+=("$1")
+			paths+=("$1")
 		else
-			lbg_opdir_result=4
+			result=4
 		fi
 		shift
 	done
 
 	# if no existing directory, usage error
-	if [ ${#lbg_opdir_paths[@]} == 0 ] ; then
+	if [ ${#paths[@]} == 0 ] ; then
 		return 1
 	fi
 
 	# set OS explorer if not specified
-	if [ -z "$lbg_opdir_explorer" ] ; then
+	if [ -z "$explorer" ] ; then
 		case $lb_current_os in
 			Linux)
-				lbg_opdir_explorer=xdg-open
+				explorer=xdg-open
 				;;
 			macOS)
-				lbg_opdir_explorer=open
+				explorer=open
 				;;
 			Windows)
-				lbg_opdir_explorer=explorer
+				explorer=explorer
 				;;
 		esac
 	fi
 
 	# test explorer command
-	if ! lb_command_exists "$lbg_opdir_explorer" ; then
+	if ! lb_command_exists "$explorer" ; then
 		return 2
 	fi
 
 	# open directories one by one
-	for ((lbg_opdir_i=0; lbg_opdir_i<${#lbg_opdir_paths[@]}; lbg_opdir_i++)) ; do
-		lbg_opdir_path=${lbg_opdir_paths[lbg_opdir_i]}
+	local i path
+	for ((i=0; i < ${#paths[@]}; i++)) ; do
+		path=${paths[i]}
 
 		if [ "lb_current_os" == Windows ] ; then
 			# particular case where explorer will not work if path finishes with '/'
-			if [ "${lbg_opdir_path:${#lbg_opdir_path}-1}" == "/" ] ; then
-				lbg_opdir_path=${lbg_opdir_path:0:${#lbg_opdir_path}-1}
+			if [ "${path:${#path}-1}" == "/" ] ; then
+				path=${path:0:${#path}-1}
 			fi
 
 			# convert to Windows paths
-			lbg_opdir_path=$(cygpath -w "$lbg_opdir_path")
+			path=$(cygpath -w "$path")
 		fi
 
 		# open file explorer
-		"$lbg_opdir_explorer" "$lbg_opdir_path" 2> /dev/null
+		"$explorer" "$path" 2> /dev/null
 		if [ $? != 0 ] ; then
-			lbg_opdir_result=3
+			result=3
 		fi
 	done
 
-	return $lbg_opdir_result
+	return $result
 }
 
 
@@ -1740,103 +1768,103 @@ lbg_open_directory() {
 # See lbg_display_error for usage
 lbg_display_critical() {
 	# basic command
-	lbg_cmd=(lbg_display_error)
+	local cmd=(lbg_display_error)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lbg_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lbg_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lbg_critical() {
 	# basic command
-	lbg_cmd=(lbg_display_error)
+	local cmd=(lbg_display_error)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lbg_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lbg_cmd[@]}"
+	"${cmd[@]}"
 }
 
 # Display a debug dialog
 # See lbg_display_info for usage
 lbg_display_debug() {
 	# basic command
-	lbg_cmd=(lbg_display_info)
+	local cmd=(lbg_display_info)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lbg_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lbg_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lbg_debug() {
 	# basic command
-	lbg_cmd=(lbg_display_info)
+	local cmd=(lbg_display_info)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lbg_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lbg_cmd[@]}"
+	"${cmd[@]}"
 }
 
 # Aliases for dialogs
 lbg_info() {
 	# basic command
-	lbg_cmd=(lbg_display_info)
+	local cmd=(lbg_display_info)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lbg_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lbg_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lbg_warning() {
 	# basic command
-	lbg_cmd=(lbg_display_warning)
+	local cmd=(lbg_display_warning)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lbg_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lbg_cmd[@]}"
+	"${cmd[@]}"
 }
 
 lbg_error() {
 	# basic command
-	lbg_cmd=(lbg_display_error)
+	local cmd=(lbg_display_error)
 
 	# parse arguments
 	while [ $# -gt 0 ] ; do
-		lbg_cmd+=("$1")
+		cmd+=("$1")
 		shift
 	done
 
 	# run command
-	"${lbg_cmd[@]}"
+	"${cmd[@]}"
 }
 
 

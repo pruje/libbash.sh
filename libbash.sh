@@ -782,17 +782,16 @@ lb_get_logfile() {
 lb_set_logfile() {
 
 	# default options
-	local lb_setlogfile_erase=false
-	local lb_setlogfile_append=false
+	local overwrite=false append=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-a|--append)
-				lb_setlogfile_append=true
+				append=true
 				;;
 			-x|--overwrite)
-				lb_setlogfile_erase=true
+				overwrite=true
 				;;
 			*)
 				break
@@ -824,12 +823,16 @@ lb_set_logfile() {
 	# if file exists
 	if [ -f "$*" ] ; then
 		# overwrite file
-		if $lb_setlogfile_erase ; then
+		if $overwrite ; then
 			# empty file
 			> "$*"
+			# if error: file is not writable
+			if [ $? != 0 ] ; then
+				return 2
+			fi
 		else
 			# cancel if can not be append
-			if ! $lb_setlogfile_append ; then
+			if ! $append ; then
 				return 3
 			fi
 		fi
@@ -852,14 +855,13 @@ lb_set_logfile() {
 lb_get_log_level() {
 
 	# default options
-	local lb_getloglevel_level=$lb_log_level
-	local lb_getloglevel_getid=false
+	local i get_id=false level=$lb_log_level
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			--id)
-				lb_getloglevel_getid=true
+				get_id=true
 				;;
 			*)
 				break
@@ -874,8 +876,8 @@ lb_get_log_level() {
 			return 1
 		else
 			# print actual and exit
-			if $lb_getloglevel_getid ; then
-				echo "$lb_log_level"
+			if $get_id ; then
+				echo $lb_log_level
 			else
 				echo "${lb_log_levels[lb_log_level]}"
 			fi
@@ -883,17 +885,17 @@ lb_get_log_level() {
 		fi
 	else
 		# get gived level name
-		lb_getloglevel_level=$1
+		level=$1
 	fi
 
 	# search log level id for a gived level name
-	for ((lb_getloglevel_i=0 ; lb_getloglevel_i < ${#lb_log_levels[@]} ; lb_getloglevel_i++)) ; do
+	for ((i=0 ; i < ${#lb_log_levels[@]} ; i++)) ; do
 		# if found, return it
-		if [ "${lb_log_levels[lb_getloglevel_i]}" == "$lb_getloglevel_level" ] ; then
-			if $lb_getloglevel_getid ; then
-				echo "$lb_getloglevel_i"
+		if [ "${lb_log_levels[i]}" == "$level" ] ; then
+			if $get_id ; then
+				echo $i
 			else
-				echo "${lb_log_levels[lb_getloglevel_i]}"
+				echo "${lb_log_levels[i]}"
 			fi
 			return 0
 		fi
@@ -908,16 +910,17 @@ lb_get_log_level() {
 # Usage: lb_set_log_level LEVEL_NAME
 lb_set_log_level() {
 
-	# usage error
+	# usage error: must be non empty
 	if [ -z "$1" ] ; then
 		return 1
 	fi
 
 	# search if level exists
-	for ((lb_setloglevel_id=0 ; lb_setloglevel_id < ${#lb_log_levels[@]} ; lb_setloglevel_id++)) ; do
+	local id
+	for ((id=0 ; id < ${#lb_log_levels[@]} ; id++)) ; do
 		# search by name and set level id
-		if [ "${lb_log_levels[lb_setloglevel_id]}" == "$1" ] ; then
-			lb_log_level=$lb_setloglevel_id
+		if [ "${lb_log_levels[id]}" == $1 ] ; then
+			lb_log_level=$id
 			return 0
 		fi
 	done
@@ -937,37 +940,34 @@ lb_log() {
 	fi
 
 	# default options
-	local lb_log_date=false
-	local lb_log_prefix=false
-	local lb_log_erase=false
-	local lb_log_opts=""
-	local lb_log_loglevel=""
+	local echo_opts level
+	local prefix=false date_prefix=false overwrite=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-n)
-				lb_log_opts="-n "
+				echo_opts="-n "
 				;;
 			-l|--level)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_log_loglevel=$2
+				level=$2
 				shift
 				;;
 			-p|--prefix)
-				lb_log_prefix=true
+				prefix=true
 				;;
 			-d|--date-prefix)
-				lb_log_date=true
+				date_prefix=true
 				;;
 			-a|--all-prefixes)
-				lb_log_prefix=true
-				lb_log_date=true
+				prefix=true
+				date_prefix=true
 				;;
 			-x|--overwrite)
-				lb_log_erase=true
+				overwrite=true
 				;;
 			*)
 				break
@@ -977,48 +977,47 @@ lb_log() {
 	done
 
 	# if a default log level is set,
-	if [ -n "$lb_log_loglevel" ] ; then
+	if [ -n "$level" ] ; then
 		# test current log level
 		if [ -n "$lb_log_level" ] ; then
-			lb_log_idlvl=$(lb_get_log_level --id "$lb_log_loglevel")
+			local id_level
+			id_level=$(lb_get_log_level --id "$level")
 
 			# Note: if level unknown, message will be logged
 			if [ $? == 0 ] ; then
 				# if log level is higher than default, do not log
-				if [ $lb_log_idlvl -gt $lb_log_level ] ; then
+				if [ $id_level -gt $lb_log_level ] ; then
 					return 0
 				fi
 			fi
 		fi
 	fi
 
-	# initialize log text
-	local lb_log_text=""
-	# tee options
-	local lb_log_teeopts=""
+	# initialize log text + tee options
+	local log_message tee_opts
 
 	# add date prefix
-	if $lb_log_date ; then
-		lb_log_text+="[$(date +"%d %b %Y %H:%M:%S %z")] "
+	if $date_prefix ; then
+		log_message+="[$(date +"%d %b %Y %H:%M:%S %z")] "
 	fi
 
 	# add level prefix
-	if [ -n "$lb_log_loglevel" ] ; then
-		if $lb_log_prefix ; then
-			lb_log_text+="[$lb_log_loglevel] "
+	if [ -n "$level" ] ; then
+		if $prefix ; then
+			log_message+="[$level] "
 		fi
 	fi
 
 	# prepare text
-	lb_log_text+=$*
+	log_message+=$*
 
 	# if not erase, append to file with tee -a
-	if ! $lb_log_erase ; then
-		lb_log_teeopts="-a "
+	if ! $overwrite ; then
+		tee_opts="-a "
 	fi
 
 	# print into log file; do not output text or errors
-	echo -e $lb_log_opts"$lb_log_text" | tee $lb_log_teeopts"$lb_logfile" &> /dev/null
+	echo -e $echo_opts"$log_message" | tee $tee_opts"$lb_logfile" &> /dev/null
 
 	# unknown write error
 	if [ $? != 0 ] ; then
@@ -1040,10 +1039,7 @@ lb_read_config() {
 	lb_read_config=()
 
 	# default options
-	local lb_rdcf_sections=()
-	local lb_rdcf_filter=false
-	local lb_rdcf_good_section=false
-	local lb_rdcf_section_found=false
+	local sections=()
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1052,8 +1048,7 @@ lb_read_config() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_rdcf_sections+=("[$2]")
-				lb_rdcf_filter=true
+				sections+=("[$2]")
 				shift
 				;;
 			*)
@@ -1073,48 +1068,50 @@ lb_read_config() {
 		return 2
 	fi
 
+	local line section good_section=false section_found=false
+
 	# read config file line by line; backslashes are not escaped
-	while read -r lb_rdcf_line ; do
+	while read -r line ; do
 
 		# testing if file has Windows format (\r at the end of line)
-		if [ "${lb_rdcf_line:${#lb_rdcf_line}-1}" == $'\r' ] ; then
+		if [ "${line:${#line}-1}" == $'\r' ] ; then
 			# delete the last character \r
-			lb_rdcf_line=${lb_rdcf_line:0:${#lb_rdcf_line}-1}
+			line=${line:0:${#line}-1}
 		fi
 
 		# filter by sections
-		if $lb_rdcf_filter ; then
+		if [ ${#sections[@]} -gt 0 ] ; then
 
-			lb_rdcf_section=$(echo $lb_rdcf_line | grep -Eo "^\[.*\]")
+			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo "^\[.*\]")
 
 			# if line is a section definition
-			if [ -n "$lb_rdcf_section" ] ; then
+			if [ -n "$section" ] ; then
 				# if section is valid, mark it
-				if lb_array_contains $lb_rdcf_section ${lb_rdcf_sections[@]} ; then
-					lb_rdcf_good_section=true
-					lb_rdcf_section_found=true
+				if lb_array_contains $section ${sections[@]} ; then
+					good_section=true
+					section_found=true
 				else
 					# if section is not valid, mark it and continue to the next line
-					lb_rdcf_good_section=false
+					good_section=false
 					continue
 				fi
 			else
 				# if normal line,
 				# if we are not in a good section, continue to the next line
-				if ! $lb_rdcf_good_section ; then
+				if ! $good_section ; then
 					continue
 				fi
 			fi
 		fi
 
 		# add line to the lb_read_config variable
-		lb_read_config+=("$lb_rdcf_line")
+		lb_read_config+=("$line")
 
 	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
 
 	# if section was not found, error
-	if $lb_rdcf_filter ; then
-		if ! $lb_rdcf_section_found ; then
+	if [ ${#sections[@]} -gt 0 ] ; then
+		if ! $section_found ; then
 			return 3
 		fi
 	fi
@@ -1126,12 +1123,7 @@ lb_read_config() {
 lb_import_config() {
 
 	# local variables and default options
-	local lb_impcf_errors=false
-	local lb_impcf_secure=true
-	local lb_impcf_sections=()
-	local lb_impcf_filter=false
-	local lb_impcf_good_section=false
-	local lb_impcf_found_section=false
+	local sections=() return_errors=false secure_mode=true
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1140,15 +1132,14 @@ lb_import_config() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_impcf_sections+=("[$2]")
-				lb_impcf_filter=true
+				sections+=("[$2]")
 				shift
 				;;
 			-e|--all-errors)
-				lb_impcf_errors=true
+				return_errors=true
 				;;
 			-u|--unsecure)
-				lb_impcf_secure=false
+				secure_mode=false
 				;;
 			*)
 				break
@@ -1167,46 +1158,46 @@ lb_import_config() {
 		return 5
 	fi
 
-	local lb_impcf_result=0
+	local result=0 line section value good_section=false section_found=false
 
 	# read file line by line; backslashes are not escaped
-	while read -r lb_impcf_line ; do
+	while read -r line ; do
 
 		# testing if file has Windows format (\r at the end of line)
-		if [ "${lb_impcf_line:${#lb_impcf_line}-1}" == $'\r' ] ; then
+		if [ "${line:${#line}-1}" == $'\r' ] ; then
 			# delete the last character \r
-			lb_impcf_line=${lb_impcf_line:0:${#lb_impcf_line}-1}
+			line=${line:0:${#line}-1}
 		fi
 
 		# filter by sections
-		if $lb_impcf_filter ; then
+		if [ ${#sections[@]} -gt 0 ] ; then
 
-			lb_impcf_section=$(echo $lb_impcf_line | grep -Eo "^\[.*\]")
+			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo "^\[.*\]")
 
 			# if line is a section definition
-			if [ -n "$lb_impcf_section" ] ; then
+			if [ -n "$section" ] ; then
 				# if section is valid, mark it
-				if lb_array_contains $lb_impcf_section ${lb_impcf_sections[@]} ; then
-					lb_impcf_good_section=true
-					lb_impcf_found_section=true
+				if lb_array_contains $section ${sections[@]} ; then
+					good_section=true
+					section_found=true
 				else
-					lb_impcf_good_section=false
+					good_section=false
 				fi
 			else
 				# if normal line,
 				# if we are not in a good section, continue to the next line
-				if ! $lb_impcf_good_section ; then
+				if ! $good_section ; then
 					continue
 				fi
 			fi
 		fi
 
 		# check syntax of the line (param = value)
-		if ! echo $lb_impcf_line | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
+		if ! echo "$line" | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
 			# if section definition, do nothing (not error)
-			if ! echo $lb_impcf_line | grep -Eq "^\[.*\]$" ; then
-				if $lb_impcf_errors ; then
-					lb_impcf_result=3
+			if ! echo "$line" | grep -Eq "^\[.*\]\s*$" ; then
+				if $return_errors ; then
+					result=3
 				fi
 			fi
 			continue
@@ -1214,33 +1205,33 @@ lb_import_config() {
 
 		# get parameter and value
 		# Note: use [[:space:]] for macOS compatibility
-		lb_impcf_value=$(echo "$lb_impcf_line" | sed "s/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//")
+		value=$(echo "$line" | sed "s/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//")
 
 		# secure config values with prevent bash injection
-		if $lb_impcf_secure ; then
-			if echo $lb_impcf_value | grep -Eq '\$|`' ; then
-				if $lb_impcf_errors ; then
-					lb_impcf_result=4
+		if $secure_mode ; then
+			if echo "$value" | grep -Eq '\$|`' ; then
+				if $return_errors ; then
+					result=4
 				fi
 				continue
 			fi
 		fi
 
 		# run command to attribute value to variable
-		eval "$(echo $lb_impcf_line | cut -d= -f1 | tr -d '[[:space:]]')=$lb_impcf_value" &> /dev/null
+		eval "$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')=$value" &> /dev/null
 		if [ $? != 0 ] ; then
-			lb_impcf_result=2
+			result=2
 		fi
 	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
 
 	# if section was not found, return error
-	if $lb_impcf_filter ; then
-		if ! $lb_impcf_found_section ; then
+	if [ ${#sections[@]} -gt 0 ] ; then
+		if ! $section_found ; then
 			return 2
 		fi
 	fi
 
-	return $lb_impcf_result
+	return $result
 }
 
 
@@ -1249,7 +1240,7 @@ lb_import_config() {
 lb_get_config() {
 
 	# default options
-	local lb_getcf_section=""
+	local section
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1258,7 +1249,7 @@ lb_get_config() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_getcf_section=$2
+				section=$2
 				shift
 				;;
 			*)
@@ -1282,36 +1273,34 @@ lb_get_config() {
 	fi
 
 	# search config line
-	local lb_getcf_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
+	local config_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
 
 	# if line not found, return error
-	if [ ${#lb_getcf_line[@]} == 0 ] ; then
+	if [ ${#config_line[@]} == 0 ] ; then
 		return 3
 	fi
 
 	# if no filter by section, print the first found
-	if [ -z "$lb_getcf_section" ] ; then
-		sed "${lb_getcf_line[0]}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//"
+	if [ -z "$section" ] ; then
+		sed "${config_line[0]}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//"
 		return 0
 	fi
 
-	# filter by section
-	local lb_getcf_section_found=false
-
 	# parse every results
-	for lb_getcf_i in ${lb_getcf_line[@]} ; do
+	local i j current_section
+	for i in ${config_line[@]} ; do
 		# if first line, cannot go up
-		if [ $lb_getcf_i == 1 ] ; then
+		if [ $i == 1 ] ; then
 			continue
 		fi
 
-		for ((lb_getcf_j=$lb_getcf_i-1; lb_getcf_j>=1; lb_getcf_j--)) ; do
-			lb_getcf_current_section=$(sed "${lb_getcf_j}q;d" "$1" | grep -Eo "^\[.*\]")
+		for ((j=$i-1; j>=1; j--)) ; do
+			current_section=$(sed "${j}q;d" "$1" | grep -Eo "^\[.*\]")
 
-			if [ -n "$lb_getcf_current_section" ] ; then
-				if [ "$lb_getcf_current_section" == "[$lb_getcf_section]" ] ; then
+			if [ -n "$current_section" ] ; then
+				if [ "$current_section" == "[$section]" ] ; then
 					# return value (and without any Windows endline)
-					sed "${lb_getcf_i}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//; s/\r$//"
+					sed "${i}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//; s/\r$//"
 					return 0
 				fi
 				break
@@ -1328,10 +1317,8 @@ lb_get_config() {
 # Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
 lb_set_config() {
 
-	# local variables and default options
-	local lb_setcf_strict=false
-	local lb_setcf_section=""
-	local lb_setcf_ready=true
+	# local variables
+	local section strict_mode=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1340,11 +1327,11 @@ lb_set_config() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_setcf_section=$2
+				section=$2
 				shift
 				;;
 			--strict)
-				lb_setcf_strict=true
+				strict_mode=true
 				;;
 			*)
 				break
@@ -1366,68 +1353,66 @@ lb_set_config() {
 		return 2
 	fi
 
-	local lb_setcf_file=$1
-	local lb_setcf_param=$2
+	local config_file=$1 param=$2
 	shift 2
 
 	# get value
-	local lb_setcf_value=$*
+	local value=$*
 
 	# Windows files: add \r at the end of line
 	if [ "$lb_current_os" == Windows ] ; then
-		lb_setcf_value+="\r"
+		value+="\r"
 	fi
 
 	# prepare value for sed mode
-	local lb_setcf_sed_value=$(echo "$lb_setcf_value" | sed 's/\//\\\//g')
+	local sed_value=$(echo "$value" | sed 's/\//\\\//g')
 
 	# search config line
-	local lb_setcf_line=($(grep -En "^\s*(#|;)*\s*$lb_setcf_param\s*=" "$lb_setcf_file" | cut -d: -f1))
+	local config_line=($(grep -En "^\s*(#|;)*\s*$param\s*=" "$config_file" | cut -d: -f1))
 
 	# get number of results
-	local lb_setcf_results=${#lb_setcf_line[@]}
+	local found=${#config_line[@]}
 
 	# if line found, modify line (set the last one if multiple lines)
-	if [ $lb_setcf_results -gt 0 ] ; then
+	if [ $found -gt 0 ] ; then
 
 		# if filter by section,
-		if [ -n "$lb_setcf_section" ] ; then
+		if [ -n "$section" ] ; then
 
-			local lb_setcf_section_found=false
-			local lb_setcf_section_ready=false
+			local i j section_found=false section_ready=false
 
 			# parse every results
-			for lb_setcf_i in ${lb_setcf_line[@]} ; do
+			for i in ${config_line[@]} ; do
 				# if first line, cannot go up
-				if [ $lb_setcf_i == 1 ] ; then
+				if [ $i == 1 ] ; then
 					continue
 				fi
 
-				for ((lb_setcf_j=$lb_setcf_i-1; lb_setcf_j>=1; lb_setcf_j--)) ; do
-					lb_setcf_current_section=$(sed "${lb_setcf_j}q;d" "$lb_setcf_file" | grep -Eo "^\[.*\]")
+				for ((j=$i-1; j>=1; j--)) ; do
+					lb_setcf_current_section=$(sed "${j}q;d" "$config_file" | grep -Eo "^\[.*\]")
 
 					if [ -n "$lb_setcf_current_section" ] ; then
-						if [ "$lb_setcf_current_section" == "[$lb_setcf_section]" ] ; then
-							lb_setcf_line=($lb_setcf_i)
-							lb_setcf_results=1
-							lb_setcf_section_found=true
+						if [ "$lb_setcf_current_section" == "[$section]" ] ; then
+							config_line=($i)
+							found=1
+							section_found=true
 						fi
 						break
 					fi
 				done
 
-				if $lb_setcf_section_found ; then
-					lb_setcf_section_ready=true
+				if $section_found ; then
+					section_ready=true
 					break
 				fi
 			done
 		fi
 
 		# if ready to edit
-		if $lb_setcf_section_ready ; then
+		if $section_ready ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			sed -i~ "${lb_setcf_line[lb_setcf_results-1]}s/\(#\|;\)*[[:space:]]*$lb_setcf_param[[:space:]]*=.*/$lb_setcf_param = $lb_setcf_sed_value/" "$lb_setcf_file"
+			sed -i~ "${config_line[found-1]}s/\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file"
 
 			if [ $? == 0 ] ; then
 				return 0
@@ -1440,20 +1425,20 @@ lb_set_config() {
 	# if parameter not found (or not in the right section)
 
 	# if strict mode, quit
-	if $lb_setcf_strict ; then
+	if $strict_mode ; then
 		return 3
 	fi
 
 	# if filter by section,
-	if [ -n "$lb_setcf_section" ] ; then
+	if [ -n "$section" ] ; then
 
 		# search for the right section
-		lb_setcf_line=($(grep -En "^\[$lb_setcf_section\]$" "$lb_setcf_file" | cut -d: -f1))
+		config_line=($(grep -En "^\[$section\]$" "$config_file" | cut -d: -f1))
 
 		# if section exists,
-		if [ -n "$lb_setcf_line" ] ; then
+		if [ -n "$config_line" ] ; then
 			# append parameter to section
-			sed -i~ "$((${lb_setcf_line[0]}+1))i$lb_setcf_param = $lb_setcf_sed_value" "$lb_setcf_file"
+			sed -i~ "$((${config_line[0]}+1))i$param = $sed_value" "$config_file"
 			if [ $? == 0 ] ; then
 				return 0
 			else
@@ -1461,14 +1446,14 @@ lb_set_config() {
 			fi
 		else
 			# if section not found, append section to the end of file
-			lb_setcf_line="[$lb_setcf_section]"
+			config_line="[$section]"
 
 			# Windows files: add \r at the end of line
 			if [ "$lb_current_os" == Windows ] ; then
-				lb_setcf_line+="\r"
+				config_line+="\r"
 			fi
 
-			echo -e "$lb_setcf_line" >> "$lb_setcf_file"
+			echo -e "$config_line" >> "$config_file"
 			if [ $? != 0 ] ; then
 				return 4
 			fi
@@ -1476,7 +1461,7 @@ lb_set_config() {
 	fi
 
 	# append line to file
-	echo -e "$lb_setcf_param = $lb_setcf_value" >> "$lb_setcf_file"
+	echo -e "$param = $value" >> "$config_file"
 
 	if [ $? != 0 ] ; then
 		return 4
@@ -1548,8 +1533,7 @@ lb_is_email() {
 lb_is_comment() {
 
 	# default options
-	local lb_iscom_symbols=()
-	local lb_iscom_empty=true
+	local symbols=() empty_is_comment=true
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1558,11 +1542,11 @@ lb_is_comment() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_iscom_symbols+=("$2")
+				symbols+=("$2")
 				shift
 				;;
 			-n|--not-empty)
-				lb_iscom_empty=false
+				empty_is_comment=false
 				;;
 			*)
 				break
@@ -1572,40 +1556,39 @@ lb_is_comment() {
 	done
 
 	# delete spaces to find the first character
-	lb_iscom_line=$(echo $1 | tr -d '[[:space:]]')
+	# echo "$1" is to avoid * interpretation
+	local line=$(echo "$1" | tr -d '[:space:]')
 
 	# empty line
-	if [ -z "$lb_iscom_line" ] ; then
-		if $lb_iscom_empty ; then
+	if [ -z "$line" ] ; then
+		if $empty_is_comment ; then
 			return 0
 		else
 			return 3
 		fi
-	else
-
-		# set default comment symbol if none is set
-		if [ ${#lb_iscom_symbols[@]} == 0 ] ; then
-			lb_iscom_symbols+=("#")
-		fi
-
-		# test if text starts with comment symbols
-		for ((lb_iscom_i=0 ; lb_iscom_i < ${#lb_iscom_symbols[@]} ; lb_iscom_i++)) ; do
-			lb_iscom_symbol=${lb_iscom_symbols[lb_iscom_i]}
-
-			if [ "${lb_iscom_line:0:${#lb_iscom_symbol}}" == "$lb_iscom_symbol" ] ; then
-				# is a comment: exit
-				return 0
-			fi
-		done
 	fi
+
+	# set default comment symbol if none is set
+	if [ ${#symbols[@]} == 0 ] ; then
+		symbols+=("#")
+	fi
+
+	# test if text starts with comment symbol
+	local s
+	for s in ${symbols[@]} ; do
+		if [ "${line:0:${#s}}" == "$s" ] ; then
+			# is a comment: exit
+			return 0
+		fi
+	done
 
 	# symbol not found: not a comment
 	return 2
 }
 
 
-# Deletes spaces before and after a text
-# Usage: lb_trim TEXT
+# Deletes spaces before and after a string
+# Usage: lb_trim STRING
 lb_trim() {
 
 	# empty text: do nothing
@@ -1613,15 +1596,16 @@ lb_trim() {
 		return 0
 	fi
 
-	local lb_trim_text=$*
+	local string=$*
 
-	# remove spaces before text
-	lb_trim_text=${lb_trim_text#${lb_trim_text%%[![:space:]]*}}
+	# remove spaces before string
+	string=${string#${string%%[![:space:]]*}}
 
-	# remove spaces after text
-	lb_trim_text=${lb_trim_text%${lb_trim_text##*[![:space:]]}}
+	# remove spaces after string
+	string=${string%${string##*[![:space:]]}}
 
-	echo "$lb_trim_text"
+	# return string
+	echo "$string"
 }
 
 
@@ -1672,26 +1656,31 @@ lb_join() {
 lb_array_contains() {
 
 	# get usage errors
-	if [ $# -lt 2 ] ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
 
 	# first arg is the value to search
-	local lb_arraycontains_search=$1
+	local search=$1
 	shift
 
+	# if array is empty, return not found
+	if [ $# == 0 ] ; then
+		return 2
+	fi
+
 	# get array to search in
-	local lb_arraycontains_array=("$@")
+	local i array=("$@")
 
 	# parse array to find value
-	for ((lb_arraycontains_i=0 ; lb_arraycontains_i < ${#lb_arraycontains_array[@]} ; lb_arraycontains_i++)) ; do
+	for ((i=0 ; i < ${#array[@]} ; i++)) ; do
 		# if found, exit
-		if [ "${lb_arraycontains_array[lb_arraycontains_i]}" == "$lb_arraycontains_search" ] ; then
+		if [ "${array[i]}" == "$search" ] ; then
 			return 0
 		fi
 	done
 
-	# if not found, return 2
+	# not found
 	return 2
 }
 
@@ -1701,13 +1690,13 @@ lb_array_contains() {
 lb_date2timestamp() {
 
 	# default options
-	local lb_d2t_opts=""
+	local date_opts
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-u|--utc)
-				lb_d2t_opts="-u"
+				date_opts="-u"
 				;;
 			*)
 				break
@@ -1723,9 +1712,9 @@ lb_date2timestamp() {
 
 	# return timestamp
 	if [ "$lb_current_os" == macOS ] ; then
-		date $lb_d2t_opts -j -f '%Y-%m-%d %H:%M:%S' "$*" +%s 2> /dev/null
+		date $date_opts -j -f '%Y-%m-%d %H:%M:%S' "$*" +%s 2> /dev/null
 	else
-		date $lb_d2t_opts -d "$*" +%s 2> /dev/null
+		date $date_opts -d "$*" +%s 2> /dev/null
 	fi
 
 	if [ $? != 0 ] ; then
@@ -1739,8 +1728,7 @@ lb_date2timestamp() {
 lb_timestamp2date() {
 
 	# default options
-	local lb_t2d_format=""
-	local lb_t2d_opts=""
+	local format date_opts
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1749,11 +1737,11 @@ lb_timestamp2date() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_t2d_format="+$2"
+				format="+$2"
 				shift
 				;;
 			-u|--utc)
-				lb_t2d_opts="-u"
+				date_opts="-u"
 				;;
 			*)
 				break
@@ -1769,16 +1757,16 @@ lb_timestamp2date() {
 
 	# return formatted date
 	if [ "$lb_current_os" == macOS ] ; then
-		if [ -z "$lb_t2d_format" ] ; then
-			date $lb_t2d_opts -j -f %s $1 2> /dev/null
+		if [ -z "$format" ] ; then
+			date $date_opts -j -f %s $1 2> /dev/null
 		else
-			date $lb_t2d_opts -j -f %s $1 "$lb_t2d_format" 2> /dev/null
+			date $date_opts -j -f %s $1 "$format" 2> /dev/null
 		fi
 	else
-		if [ -z "$lb_t2d_format" ] ; then
-			date $lb_t2d_opts -d @$1 2> /dev/null
+		if [ -z "$format" ] ; then
+			date $date_opts -d @$1 2> /dev/null
 		else
-			date $lb_t2d_opts -d @$1 "$lb_t2d_format" 2> /dev/null
+			date $date_opts -d @$1 "$format" 2> /dev/null
 		fi
 	fi
 
@@ -1798,10 +1786,10 @@ lb_compare_versions() {
 	fi
 
 	# get operator
-	local lb_cpver_operator=$2
+	local operator=$2
 
 	# check operator validity
-	case $lb_cpver_operator in
+	case $operator in
 		-eq|-ne|-lt|-le|-gt|-ge)
 			# do nothing, continue
 			;;
@@ -1812,13 +1800,13 @@ lb_compare_versions() {
 	esac
 
 	# get versions, ignore builds (e.g. 1.0.0-rc.1+20170320 => 1.0.0-rc.1)
-	local lb_cpver_v1=$(echo $1 | cut -d+ -f1)
-	local lb_cpver_v2=$(echo $3 | cut -d+ -f1)
+	local version1=$(echo "$1" | tr -d '[:space:]' | cut -d+ -f1)
+	local version2=$(echo "$3" | tr -d '[:space:]' | cut -d+ -f1)
 
 	# global comparison
-	if [ "$lb_cpver_v1" == "$lb_cpver_v2" ] ; then
+	if [ "$version1" == "$version2" ] ; then
 		# versions are equal
-		case $lb_cpver_operator in
+		case $operator in
 			-eq|-le|-ge)
 				return 0
 				;;
@@ -1829,54 +1817,55 @@ lb_compare_versions() {
 	fi
 
 	# get main version numbers
-	local lb_cpver_v1_main=$(echo $lb_cpver_v1 | cut -d- -f1)
-	local lb_cpver_v2_main=$(echo $lb_cpver_v2 | cut -d- -f1)
+	local version1_main=$(echo "$version1" | tr -d '[:space:]' | cut -d- -f1)
+	local version2_main=$(echo "$version2" | tr -d '[:space:]' | cut -d- -f1)
 
 	# compare main version numbers
-	if [ "$lb_cpver_v1_main" != "$lb_cpver_v2_main" ] ; then
+	if [ "$version1_main" != "$version2_main" ] ; then
 
-		declare -i lb_cpver_i=1
+		local version1_num version2_num
+		local -i i=1
 
 		# compare version numbers separated by dots
 		while true ; do
 
 			# get major number
-			if [ $lb_cpver_i == 1 ] ; then
-				lb_cpver_v1_num=$(echo "$lb_cpver_v1_main" | cut -d. -f$lb_cpver_i)
-				lb_cpver_v2_num=$(echo "$lb_cpver_v2_main" | cut -d. -f$lb_cpver_i)
+			if [ $i == 1 ] ; then
+				version1_num=$(echo "$version1_main" | cut -d. -f$i)
+				version2_num=$(echo "$version2_main" | cut -d. -f$i)
 			else
 				# get minor numbers
-				lb_cpver_v1_num=$(echo "$lb_cpver_v1_main" | cut -d. -s -f$lb_cpver_i)
-				lb_cpver_v2_num=$(echo "$lb_cpver_v2_main" | cut -d. -s -f$lb_cpver_i)
+				version1_num=$(echo "$version1_main" | cut -d. -s -f$i)
+				version2_num=$(echo "$version2_main" | cut -d. -s -f$i)
 			fi
 
 			# transform simple numbers to dotted numbers
 			# e.g. v3 => v3.0, v2.1 => v2.1.0
-			if [ -z "$lb_cpver_v1_num" ] ; then
-				lb_cpver_v1_num=0
+			if [ -z "$version1_num" ] ; then
+				version1_num=0
 			fi
-			if [ -z "$lb_cpver_v2_num" ] ; then
-				lb_cpver_v2_num=0
+			if [ -z "$version2_num" ] ; then
+				version2_num=0
 			fi
 
-			if [ "$lb_cpver_v1_num" == "$lb_cpver_v2_num" ] ; then
+			if [ "$version1_num" == "$version2_num" ] ; then
 
 				# if minor numbers (x.x.x.0), avoid infinite loop
-				if [ $lb_cpver_i -gt 3 ] ; then
+				if [ $i -gt 3 ] ; then
 					# end of comparison
-					if [ $lb_cpver_v1_num == 0 ] && [ $lb_cpver_v2_num == 0 ] ; then
+					if [ $version1_num == 0 ] && [ $version2_num == 0 ] ; then
 						break
 					fi
 				fi
 
 				# compare next numbers
-				lb_cpver_i+=1
+				i+=1
 				continue
 			fi
 
-			if lb_is_integer $lb_cpver_v1_num && lb_is_integer $lb_cpver_v2_num ; then
+			if lb_is_integer $version1_num && lb_is_integer $version2_num ; then
 				# compare versions and quit
-				[ "$lb_cpver_v1_num" $lb_cpver_operator "$lb_cpver_v2_num" ]
+				[ "$version1_num" $operator "$version2_num" ]
 				if [ $? == 0 ] ; then
 					return 0
 				else
@@ -1890,21 +1879,19 @@ lb_compare_versions() {
 	fi
 
 	# get pre-release tags
-	local lb_cpver_v1_tag=""
-	if [[ "$lb_cpver_v1" == *"-"* ]] ; then
-		lb_cpver_v1_tag=$(echo $lb_cpver_v1 | cut -d- -f2)
+	local version1_tag version2_tag
+	if [[ "$version1" == *"-"* ]] ; then
+		version1_tag=$(echo "$version1" | tr -d '[:space:]' | cut -d- -f2)
 	fi
-
-	local lb_cpver_v2_tag=""
-	if [[ "$lb_cpver_v2" == *"-"* ]] ; then
-		lb_cpver_v2_tag=$(echo $lb_cpver_v2 | cut -d- -f2)
+	if [[ "$version2" == *"-"* ]] ; then
+		version2_tag=$(echo "$version2" | tr -d '[:space:]' | cut -d- -f2)
 	fi
 
 	# tags are equal
 	# this can happen if main versions are different
 	# e.g. v1.0 == v1.0.0 or v2.1-beta == v2.1.0-beta
-	if [ "$lb_cpver_v1_tag" == "$lb_cpver_v2_tag" ] ; then
-		case $lb_cpver_operator in
+	if [ "$version1_tag" == "$version2_tag" ] ; then
+		case $operator in
 			-eq|-le|-ge)
 				return 0
 				;;
@@ -1914,7 +1901,7 @@ lb_compare_versions() {
 		esac
 	else
 		# tags are different
-		case $lb_cpver_operator in
+		case $operator in
 			-eq)
 				return 2
 				;;
@@ -1926,8 +1913,8 @@ lb_compare_versions() {
 
 	# 1st tag is empty: final version is always superior to pre-release tags
 	# e.g. v1.0.0 > v1.0.0-rc
-	if [ -z "$lb_cpver_v1_tag" ] ; then
-		case $lb_cpver_operator in
+	if [ -z "$version1_tag" ] ; then
+		case $operator in
 			-gt|-ge)
 				return 0
 				;;
@@ -1939,8 +1926,8 @@ lb_compare_versions() {
 
 	# 2nd tag is empty: final version is always superior to pre-release tags
 	# e.g. v1.0.0-rc < v1.0.0
-	if [ -z "$lb_cpver_v2_tag" ] ; then
-		case $lb_cpver_operator in
+	if [ -z "$version2_tag" ] ; then
+		case $operator in
 			-gt|-ge)
 				return 2
 				;;
@@ -1951,30 +1938,28 @@ lb_compare_versions() {
 	fi
 
 	# compare tags
-	lb_cpver_tags=("$lb_cpver_v1_tag" "$lb_cpver_v2_tag")
+	local tags1=("$version1_tag" "$version2_tag")
 
-	# save current field separator
-	lb_cpver_IFS=$IFS
-	# set new one
-	IFS=$'\n'
+	# save current field separator and set a new with line return
+	local old_IFS=$IFS IFS=$'\n'
 
 	# sort tags in alphanumerical order
-	lb_cpver_tags_2=($(sort <<<"${lb_cpver_tags[*]}"))
+	local tags2=($(sort <<<"${tags1[*]}"))
 
 	# restore field separator
-	IFS=$lb_cpver_IFS
+	IFS=$old_IFS
 
 	# tags order has changed => v1 > v2
 	# e.g. ("1.0.0-beta" "1.0.0-alpha") => ("1.0.0-alpha" "1.0.0-beta")
-	if [ "${lb_cpver_tags[0]}" != "${lb_cpver_tags_2[0]}" ] ; then
-		case $lb_cpver_operator in
+	if [ "${tags1[0]}" != "${tags2[0]}" ] ; then
+		case $operator in
 			-gt|-ge)
 				return 0
 				;;
 		esac
 	else
 		# tags order has NOT changed => v1 < v2
-		case $lb_cpver_operator in
+		case $operator in
 			-lt|-le)
 				return 0
 				;;
@@ -2008,13 +1993,13 @@ lb_df_fstype() {
 		Linux)
 			if lb_command_exists lsblk ; then
 				# get device
-				lb_dffstype_device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
-				if [ -z "$lb_dffstype_device" ] ; then
+				local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
+				if [ -z "$device" ] ; then
 					return 3
 				fi
 
 				# get "real" fs type
-				lsblk --output=FSTYPE "$lb_dffstype_device" 2> /dev/null | tail -n 1
+				lsblk --output=FSTYPE "$device" 2> /dev/null | tail -n 1
 			else
 				# no lsblk command: use df command
 				df --output=fstype "$*" 2> /dev/null | tail -n 1
@@ -2023,13 +2008,14 @@ lb_df_fstype() {
 
 		macOS)
 			# get mountpoint
-			lb_dffstype_mountpoint=$(lb_df_mountpoint "$*")
+			local mount_point
+			mount_point=$(lb_df_mountpoint "$*")
 			if [ $? != 0 ] ; then
 				return 3
 			fi
 
 			# get filesystem type
-			diskutil info "$lb_dffstype_mountpoint" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
+			diskutil info "$mount_point" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
 			;;
 
 		*) # Windows and other
@@ -2118,24 +2104,25 @@ lb_df_uuid() {
 	case $lb_current_os in
 		macOS)
 			# get mountpoint
-			lb_dfuuid_mountpoint=$(lb_df_mountpoint "$*")
+			local mount_point
+			mount_point=$(lb_df_mountpoint "$*")
 			if [ $? != 0 ] ; then
 				return 3
 			fi
 
 			# get filesystem type
-			diskutil info "$lb_dfuuid_mountpoint" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
+			diskutil info "$mount_point" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
 			;;
 
 		Linux)
 			# get device
-			lb_dfuuid_dev=$(df --output=source "$*" 2> /dev/null | tail -n 1)
-			if [ -z "$lb_dfuuid_dev" ] ; then
+			local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
+			if [ -z "$device" ] ; then
 				return 3
 			fi
 
 			# get disk UUID
-			lsblk --output=UUID "$lb_dfuuid_dev" 2> /dev/null | tail -n 1
+			lsblk --output=UUID "$device" 2> /dev/null | tail -n 1
 			;;
 
 		*) # other OS not supported
@@ -2158,16 +2145,18 @@ lb_df_uuid() {
 # Usage: lb_get_home_directory [USER]
 lb_homepath() {
 
+	local path
+
 	# get ~user value
-	eval lb_homedir=~$1
+	eval path=~$1
 
 	# if directory does not exists, error
-	if ! [ -d "$lb_homedir" ] ; then
+	if ! [ -d "$path" ] ; then
 		return 1
 	fi
 
 	# return path
-	echo "$lb_homedir"
+	echo "$path"
 }
 
 
@@ -2181,14 +2170,15 @@ lb_dir_is_empty() {
 	fi
 
 	# test if directory is empty
-	lb_dir_is_empty_res=$(ls -A "$*" 2> /dev/null)
+	local content
+	content=$(ls -A "$*" 2> /dev/null)
 	if [ $? != 0 ] ; then
 		# ls error means an access rights error
 		return 2
 	fi
 
 	# directory is not empty
-	if [ "$lb_dir_is_empty_res" ] ; then
+	if [ "$content" ] ; then
 		return 3
 	fi
 }
@@ -2204,15 +2194,14 @@ lb_abspath() {
 	fi
 
 	# get directory and file names
-	local lb_abspath_dir=$(dirname "$*")
-	local lb_abspath_file=$(basename "$*")
+	local path directory=$(dirname "$*") file=$(basename "$*")
 
 	# root directory is always ok
-	if [ "$lb_abspath_dir" == "/" ] ; then
-		lb_abspath_path="/"
+	if [ "$directory" == "/" ] ; then
+		path="/"
 	else
 		# get absolute path of the parent directory
-		lb_abspath_path=$(cd "$lb_abspath_dir" &> /dev/null && pwd)
+		path=$(cd "$directory" &> /dev/null && pwd)
 
 		# if path does not exists, error
 		if [ $? != 0 ] ; then
@@ -2221,23 +2210,23 @@ lb_abspath() {
 	fi
 
 	# case of root path (basename=/)
-	if [ "$lb_abspath_file" == "/" ] ; then
+	if [ "$file" == "/" ] ; then
 		echo /
 	else
 		# return absolute path
 
 		# case of the current directory (do not put /path/to/./)
-		if [ "$lb_abspath_file" != "." ] ; then
+		if [ "$file" != "." ] ; then
 
 			# do not put //file if parent directory is root
-			if [ "$lb_abspath_dir" != "/" ] ; then
-				lb_abspath_path+="/"
+			if [ "$directory" != "/" ] ; then
+				path+="/"
 			fi
 
-			lb_abspath_path+=$lb_abspath_file
+			path+=$file
 		fi
 
-		echo "$lb_abspath_path"
+		echo "$path"
 	fi
 }
 
@@ -2256,17 +2245,18 @@ lb_realpath() {
 		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1"
 	else
 		# Linux & Windows
+		local path
 
 		if [ "$lb_current_os" == Windows ] ; then
 			# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
 			# then we will find real path
-			lb_realpath_path=$(cygpath "$1")
+			path=$(cygpath "$1")
 		else
-			lb_realpath_path=$1
+			path=$1
 		fi
 
 		# find real path
-		readlink -f "$lb_realpath_path" 2> /dev/null
+		readlink -f "$path" 2> /dev/null
 	fi
 
 	# error
@@ -2363,21 +2353,21 @@ lb_in_group() {
 	fi
 
 	# get current user if not defined
-	local lb_ingroup_user=$2
+	local user=$2
 
 	# get current user
-	if [ -z "$lb_ingroup_user" ] ; then
-		lb_ingroup_user=$(whoami)
+	if [ -z "$user" ] ; then
+		user=$(whoami)
 	fi
 
 	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
-	local lb_ingroup_groups=($(groups $lb_ingroup_user 2> /dev/null | cut -d: -f2))
-	if [ ${#lb_ingroup_groups[@]} == 0 ] ; then
+	local groups=($(groups $user 2> /dev/null | cut -d: -f2))
+	if [ ${#groups[@]} == 0 ] ; then
 		return 3
 	fi
 
 	# find if user is in group
-	lb_array_contains "$1" "${lb_ingroup_groups[@]}"
+	lb_array_contains "$1" "${groups[@]}"
 }
 
 
@@ -2396,14 +2386,14 @@ lb_group_members() {
 	fi
 
 	# get line of group file
-	local lb_grpmem_line=$(grep -E "^$1:.*:" /etc/group 2> /dev/null)
+	local groups=$(grep -E "^$1:.*:" /etc/group 2> /dev/null)
 
 	# if error (group not found), exit
-	if [ -z "$lb_grpmem_line" ] ; then
+	if [ -z "$groups" ] ; then
 		return 2
 	fi
 
-	echo "$lb_grpmem_line" | sed "s/^$1:.*://; s/,/ /g"
+	echo "$groups" | sed "s/^$1:.*://; s/,/ /g"
 }
 
 
@@ -2412,7 +2402,7 @@ lb_group_members() {
 lb_generate_password() {
 
 	# default options
-	local lb_genpwd_size=16
+	local password size=16
 
 	# get size option
 	if [ -n "$1" ] ; then
@@ -2422,8 +2412,8 @@ lb_generate_password() {
 		fi
 
 		# size must be between 1 and 32
-		if [ $lb_genpwd_size -ge 1 ] && [ $lb_genpwd_size -le 32 ] ; then
-			lb_genpwd_size=$1
+		if [ $size -ge 1 ] && [ $size -le 32 ] ; then
+			size=$1
 		else
 			return 1
 		fi
@@ -2432,14 +2422,14 @@ lb_generate_password() {
 	# generate password
 	if lb_command_exists openssl ; then
 		# with openssl random command
-		lb_genpwd_pwd=$(openssl rand -base64 32 2> /dev/null)
+		password=$(openssl rand -base64 32 2> /dev/null)
 	else
 		# print date timestamp + nanoseconds then generate md5 checksum
 		# then encode in base64
 		if [ "$lb_current_os" == macOS ] ; then
-			lb_genpwd_pwd=$(date +%s%N | shasum -a 256 | base64)
+			password=$(date +%s%N | shasum -a 256 | base64)
 		else
-			lb_genpwd_pwd=$(date +%s%N | sha256sum | base64)
+			password=$(date +%s%N | sha256sum | base64)
 		fi
 	fi
 
@@ -2449,7 +2439,7 @@ lb_generate_password() {
 	fi
 
 	# return password at the right size
-	echo "${lb_genpwd_pwd:0:$lb_genpwd_size}"
+	echo "${password:0:$size}"
 }
 
 
@@ -2463,20 +2453,12 @@ lb_email() {
 	fi
 
 	# default options and local variables
-	local lb_email_subject=""
-	local lb_email_sender=""
-	local lb_email_replyto=""
-	local lb_email_cc=""
-	local lb_email_bcc=""
-	local lb_email_command=""
-	local lb_email_message=""
-	local lb_email_message_html=""
-	local lb_email_multipart=false
-	local lb_email_separator="_----------=_MailPart_118845H_15_62347"
-	local lb_email_attachments=()
+	local subject sender replyto cc bcc message message_html
+	local multipart=false separator="_----------=_MailPart_118845H_15_62347"
+	local attachments=()
 
 	# email commands
-	local lb_email_commands=(/usr/sbin/sendmail)
+	local cmd email_commands=(/usr/sbin/sendmail)
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -2485,50 +2467,50 @@ lb_email() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_subject=$2
+				subject=$2
 				shift
 				;;
 			-r|--reply-to)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_replyto=$2
+				replyto=$2
 				shift
 				;;
 			-c|--cc)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_cc=$2
+				cc=$2
 				shift
 				;;
 			-b|--bcc)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_bcc=$2
+				bcc=$2
 				shift
 				;;
 			-a|--attachment)
 				if ! [ -f "$2" ] ; then
 					return 1
 				fi
-				lb_email_attachments+=("$2")
+				attachments+=("$2")
 				shift
 				;;
 			--sender)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_sender=$2
+				sender=$2
 				shift
 				;;
 			--html)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_email_message_html=$2
-				lb_email_multipart=true
+				message_html=$2
+				multipart=true
 				shift
 				;;
 			*)
@@ -2543,7 +2525,7 @@ lb_email() {
 		return 1
 	fi
 
-	local lb_email_recipients=$1
+	local recipients=$1
 	shift
 
 	# usage error if missing message
@@ -2553,112 +2535,111 @@ lb_email() {
 	fi
 
 	# search compatible command to send email
-	for lb_email_c in ${lb_email_commands[@]} ; do
-		if lb_command_exists "$lb_email_c" ; then
-			lb_email_command=$lb_email_c
+	local c
+	for c in ${email_commands[@]} ; do
+		if lb_command_exists "$c" ; then
+			cmd=$c
 			break
 		fi
 	done
 
 	# if no command to send email, error
-	if [ -z "$lb_email_command" ] ; then
+	if [ -z "$cmd" ] ; then
 		return 2
 	fi
 
 	# set email header
 
-	if [ -n "$lb_email_sender" ] ; then
-		lb_email_message+="From: $lb_email_sender
+	if [ -n "$sender" ] ; then
+		message+="From: $sender
 "
 	fi
 
-	lb_email_message+="To: $lb_email_recipients
+	message+="To: $recipients
 "
 
-	if [ -n "$lb_email_cc" ] ; then
-		lb_email_message+="Cc: $lb_email_cc
-"
-	fi
-
-	if [ -n "$lb_email_bcc" ] ; then
-		lb_email_message+="Bcc: $lb_email_bcc
+	if [ -n "$cc" ] ; then
+		message+="Cc: $cc
 "
 	fi
 
-	if [ -n "$lb_email_replyto" ] ; then
-		lb_email_message+="Reply-To: $lb_email_replyto
+	if [ -n "$bcc" ] ; then
+		message+="Bcc: $bcc
 "
 	fi
 
-	if [ -n "$lb_email_subject" ] ; then
-		lb_email_message+="Subject: $lb_email_subject
+	if [ -n "$replyto" ] ; then
+		message+="Reply-To: $replyto
 "
 	fi
 
-	lb_email_message+="MIME-Version: 1.0
+	if [ -n "$subject" ] ; then
+		message+="Subject: $subject
+"
+	fi
+
+	message+="MIME-Version: 1.0
 "
 
 	# mixed definition (if attachments)
-	if [ ${#lb_email_attachments[@]} -gt 0 ] ; then
-		lb_email_message+="Content-Type: multipart/mixed; boundary=\"${lb_email_separator}_mixed\"
+	if [ ${#attachments[@]} -gt 0 ] ; then
+		message+="Content-Type: multipart/mixed; boundary=\"${separator}_mixed\"
 
---${lb_email_separator}_mixed
+--${separator}_mixed
 "
 	fi
 
 	# multipart definition (if HTML + TXT)
-	if $lb_email_multipart ; then
-		lb_email_message+="Content-Type: multipart/alternative; boundary=\"$lb_email_separator\"
+	if $multipart ; then
+		message+="Content-Type: multipart/alternative; boundary=\"$separator\"
 
---$lb_email_separator
+--$separator
 "
 	fi
 
 	# mail in TXT
-	lb_email_message+="Content-Type: text/plain; charset=\"utf-8\"
+	message+="Content-Type: text/plain; charset=\"utf-8\"
 
 $*
 "
 
 	# mail in HTML + close multipart
-	if $lb_email_multipart ; then
-		lb_email_message+="
---$lb_email_separator
+	if $multipart ; then
+		message+="
+--$separator
 Content-Type: text/html; charset=\"utf-8\"
 
-$lb_email_message_html
---$lb_email_separator--"
+$message_html
+--$separator--"
 	fi
 
 	# add attachments
-	if [ ${#lb_email_attachments[@]} -gt 0 ] ; then
-		local lb_email_attachment=""
-		local lb_email_filename=""
-		local lb_email_filetype=""
+	if [ ${#attachments[@]} -gt 0 ] ; then
+		local i attachment filename filetype
 
-		for ((lb_email_i=0; lb_email_i<${#lb_email_attachments[@]}; lb_email_i++)) ; do
-			lb_email_attachment=${lb_email_attachments[lb_email_i]}
-			lb_email_filename=$(basename "$lb_email_attachment")
-			lb_email_filetype=$(file --mime-type "$lb_email_attachment" 2> /dev/null | sed 's/.*: //')
+		for ((i=0; i < ${#attachments[@]}; i++)) ; do
+			attachment=${attachments[i]}
+			filename=$(basename "$attachment")
+			filetype=$(file --mime-type "$attachment" 2> /dev/null | sed 's/.*: //')
 
-			lb_email_message+="
---${lb_email_separator}_mixed
-Content-Type: $lb_email_filetype
+			message+="
+--${separator}_mixed
+Content-Type: $filetype
 Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=\"$lb_email_filename\"
+Content-Disposition: attachment; filename=\"$filename\"
 
-$(base64 "$lb_email_attachment")
+$(base64 "$attachment")
 "
 		done
 
 		# close mixed section
-		lb_email_message+="--${lb_email_separator}_mixed--"
+		message+="--${separator}_mixed--"
 fi
 
 	# send email
-	case $lb_email_command in
+	case $cmd in
 		/usr/sbin/sendmail)
-			echo "$lb_email_message" | /usr/sbin/sendmail -t
+			echo "$message" | /usr/sbin/sendmail -t
 			# if unknown error
 			if [ $? != 0 ] ; then
 				return 3
@@ -2681,40 +2662,37 @@ fi
 lb_yesno() {
 
 	# default options
-	local lb_yn_defaultyes=false
-	local lb_yn_cancel=false
-	local lb_yn_yeslbl=$lb_default_yes_shortlabel
-	local lb_yn_nolbl=$lb_default_no_shortlabel
-	local lb_yn_cancellbl=$lb_default_cancel_shortlabel
+	local yes_default=false cancel_mode=false
+	local yes_label=$lb_default_yes_shortlabel no_label=$lb_default_no_shortlabel cancel_label=$lb_default_cancel_shortlabel
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-y|--yes)
-				lb_yn_defaultyes=true
+				yes_default=true
 				;;
 			-c|--cancel)
-				lb_yn_cancel=true
+				cancel_mode=true
 				;;
 			--yes-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_yn_yeslbl=$2
+				yes_label=$2
 				shift
 				;;
 			--no-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_yn_nolbl=$2
+				no_label=$2
 				shift
 				;;
 			--cancel-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_yn_cancellbl=$2
+				cancel_label=$2
 				shift
 				;;
 			*)
@@ -2729,47 +2707,50 @@ lb_yesno() {
 		return 1
 	fi
 
-	# defines choice question
-	if $lb_yn_defaultyes ; then
-		lb_yn_choice="($(echo "$lb_yn_yeslbl" | tr '[:lower:]' '[:upper:]')/$(echo "$lb_yn_nolbl" | tr '[:upper:]' '[:lower:]')"
+	# defines question
+	local question="("
+	if $yes_default ; then
+		question+="$(echo "$yes_label" | tr '[:lower:]' '[:upper:]')/$(echo "$no_label" | tr '[:upper:]' '[:lower:]')"
 	else
-		lb_yn_choice="($(echo "$lb_yn_yeslbl" | tr '[:upper:]' '[:lower:]')/$(echo "$lb_yn_nolbl" | tr '[:lower:]' '[:upper:]')"
+		question+="$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')/$(echo "$no_label" | tr '[:lower:]' '[:upper:]')"
 	fi
 
 	# add cancel choice
-	if $lb_yn_cancel ; then
-		lb_yn_choice+="/$(echo "$lb_yn_cancellbl" | tr '[:upper:]' '[:lower:]')"
+	if $cancel_mode ; then
+		question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
 	fi
 
 	# ends question
-	lb_yn_choice+=")"
+	question+=")"
 
 	# print question
-	echo -e -n "$* $lb_yn_choice: "
+	echo -e -n "$* $question: "
 
 	# read user input
-	read lb_yn_confirm
+	local choice
+	read choice
 
 	# defaut behaviour if input is empty
-	if [ -z "$lb_yn_confirm" ] ; then
-		# if yes is not by default, answer is no
-		if ! $lb_yn_defaultyes ; then
+	if [ -z "$choice" ] ; then
+		if $yes_default ; then
+			return 0
+		else
 			return 2
 		fi
-	else
-		# compare to confirmation string
-		if [ "$(echo "$lb_yn_confirm" | tr '[:upper:]' '[:lower:]')" != "$(echo "$lb_yn_yeslbl" | tr '[:upper:]' '[:lower:]')" ] ; then
+	fi
 
-			# cancel case
-			if $lb_yn_cancel ; then
-				if [ "$(echo "$lb_yn_confirm" | tr '[:upper:]' '[:lower:]')" == "$(echo "$lb_yn_cancellbl" | tr '[:upper:]' '[:lower:]')" ] ; then
-					return 3
-				fi
+	# compare to confirmation string
+	if [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')" ] ; then
+
+		# cancel case
+		if $cancel_mode ; then
+			if [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" == "$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')" ] ; then
+				return 3
 			fi
-
-			# answer is no
-			return 2
 		fi
+
+		# answer is no
+		return 2
 	fi
 }
 
@@ -2782,13 +2763,9 @@ lb_choose_option() {
 	# reset result
 	lb_choose_option=()
 
-	# default options and local variables
-	local lb_chop_default=()
-	local lb_chop_multiple=false
-	local lb_chop_label=$lb_default_chopt_label
-	local lb_chop_cancel_label=$lb_default_cancel_shortlabel
-	# options: initialize with an empty first value (option ID starts to 1, not 0)
-	local lb_chop_options=("")
+	# default options
+	local default=() multiple_choices=false
+	local label=$lb_default_chopt_label cancel_label=$lb_default_cancel_shortlabel
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -2798,24 +2775,25 @@ lb_choose_option() {
 					return 1
 				fi
 				# transform option1,option2,... to array
-				lb_chop_default=($(echo $2 | sed 's/,/ /g'))
+				lb_split , $2
+				default=(${lb_split[@]})
 				shift
 				;;
 			-l|--label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_chop_label=$2
+				label=$2
 				shift
 				;;
 			-m|--multiple)
-				lb_chop_multiple=true
+				multiple_choices=true
 				;;
 			-c|--cancel-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_chop_cancel_label=$2
+				cancel_label=$2
 				shift
 				;;
 			*)
@@ -2830,91 +2808,95 @@ lb_choose_option() {
 		return 1
 	fi
 
+	# options: initialize with an empty first value (option ID starts to 1, not 0)
+	local options=("")
+
 	# prepare choice options
-	while [ -n "$1" ] ; do
-		lb_chop_options+=("$1")
+	while [ $# -gt 0 ] ; do
+		options+=("$1")
 		shift
 	done
 
-	# verify if default option(s) is valid
-	if [ ${#lb_chop_default[@]} -gt 0 ] ; then
-		for lb_chop_d in ${lb_chop_default[@]} ; do
-			if [ $lb_chop_d -lt 1 ] || [ $lb_chop_d -ge ${#lb_chop_options[@]} ] ; then
+	# verify if default options are valid
+	if [ ${#default[@]} -gt 0 ] ; then
+		local d
+		for d in ${default[@]} ; do
+			if ! lb_is_integer $d ; then
+				return 1
+			fi
+			if [ $d -lt 1 ] || [ $d -ge ${#options[@]} ] ; then
 				return 1
 			fi
 		done
 	fi
 
 	# print question
-	echo -e "$lb_chop_label"
+	echo -e "$label"
 
 	# print options
-	for ((lb_chop_i=1 ; lb_chop_i < ${#lb_chop_options[@]} ; lb_chop_i++)) ; do
-		echo "  $lb_chop_i. ${lb_chop_options[lb_chop_i]}"
+	local i
+	for ((i=1; i < ${#options[@]}; i++)) ; do
+		echo "  $i. ${options[i]}"
 	done
 
 	echo
 
 	# print default option
-	if [ ${#lb_chop_default[@]} -gt 0 ] ; then
-		echo -n "[$(echo ${lb_chop_default[@]} | sed 's/ /,/g')]: "
+	if [ ${#default[@]} -gt 0 ] ; then
+		echo -n "[$(lb_join , ${default[@]})]: "
 	else
-		echo -n "[$lb_chop_cancel_label]: "
+		echo -n "[$cancel_label]: "
 	fi
 
 	# read user input
-	read lb_chop_choice
+	local choices
+	read choices
 
 	# defaut behaviour if input is empty
-	if [ -z "$lb_chop_choice" ] ; then
-		if [ ${#lb_chop_default[@]} -gt 0 ] ; then
+	if [ -z "$choices" ] ; then
+		if [ ${#default[@]} -gt 0 ] ; then
 			# default option
-			lb_choose_option=(${lb_chop_default[@]})
+			lb_choose_option=(${default[@]})
 		else
 			# cancel code
 			return 2
 		fi
-	else
-		# if user made a choice
+	fi
 
-		# export choices to an array
-		if $lb_chop_multiple ; then
-			lb_chop_choices=($(echo $lb_chop_choice | sed 's/,/ /g'))
-		else
-			# if multiple results without --multiple option, return error
-			echo $lb_chop_choice | grep -q ','
-			if [ $? == 0 ] ; then
-				return 3
-			fi
-			lb_chop_choices=$lb_chop_choice
+	# if user made a choice
+
+	# convert choices to an array
+	if $multiple_choices ; then
+		lb_split , $choices
+		choices=(${lb_split[@]})
+	fi
+
+	# parsing choices
+	local c
+	for c in ${choices[@]} ; do
+		# check cancel option
+		if [ "$c" == "$cancel_label" ] ; then
+			lb_choose_option=()
+			return 2
 		fi
 
-		# parsing choices
-		for lb_chop_c in ${lb_chop_choices[@]} ; do
-			# check cancel option
-			if [ "$lb_chop_c" == "$lb_chop_cancel_label" ] ; then
-				lb_choose_option=()
-				return 2
-			fi
+		# strict check type
+		if ! lb_is_integer "$c" ; then
+			lb_choose_option=()
+			return 3
+		fi
 
-			# check type
-			if ! lb_is_integer "$lb_chop_c" ; then
-				lb_choose_option=()
-				return 3
-			fi
+		# check if user choice is valid
+		if [ $c -lt 1 ] || [ $c -ge ${#options[@]} ] ; then
+			lb_choose_option=()
+			return 3
+		fi
 
-			# check if user choice is valid
-			if [ $lb_chop_c -lt 1 ] || [ $lb_chop_c -ge ${#lb_chop_options[@]} ] ; then
-				lb_choose_option=()
-				return 3
-			fi
-
-			# save choice if not already done
-			if ! lb_array_contains $lb_chop_c "${lb_choose_option[@]}" ; then
-				lb_choose_option+=($lb_chop_c)
-			fi
-		done
-	fi
+		# save choice if not already done
+		if ! lb_array_contains $c ${lb_choose_option[@]} ; then
+			lb_choose_option+=($c)
+		fi
+	done
 }
 
 
@@ -2927,8 +2909,7 @@ lb_input_text() {
 	lb_input_text=""
 
 	# default options
-	local lb_inp_default=""
-	local lb_inp_opts=""
+	local default opts
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -2937,11 +2918,11 @@ lb_input_text() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_inp_default=$2
+				default=$2
 				shift
 				;;
 			-n)
-				lb_inp_opts="-n "
+				opts="-n "
 				;;
 			*)
 				break
@@ -2958,12 +2939,12 @@ lb_input_text() {
 	# print question
 	echo -n -e "$*"
 
-	if [ -n "$lb_inp_default" ] ; then
-		echo -n -e " [$lb_inp_default]"
+	if [ -n "$default" ] ; then
+		echo -n -e " [$default]"
 	fi
 
 	# add separator
-	echo $lb_inp_opts " "
+	echo $opts " "
 
 	# read user input without ignoring backslashes
 	read -r lb_input_text
@@ -2971,8 +2952,8 @@ lb_input_text() {
 	# if empty
 	if [ -z "$lb_input_text" ] ; then
 		# default value if set
-		if [ -n "$lb_inp_default" ] ; then
-			lb_input_text=$lb_inp_default
+		if [ -n "$default" ] ; then
+			lb_input_text=$default
 		else
 			return 2
 		fi
@@ -2989,10 +2970,8 @@ lb_input_password() {
 	lb_input_password=""
 
 	# default options
-	local lb_inpw_label=$lb_default_pwd_label
-	local lb_inpw_confirm=false
-	local lb_inpw_confirm_label=$lb_default_pwd_confirm_label
-	local lb_inpw_minsize=0
+	local label=$lb_default_pwd_label confirm_label=$lb_default_pwd_confirm_label
+	local confirm=false min_size=0
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -3001,17 +2980,17 @@ lb_input_password() {
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_inpw_label=$2
+				label=$2
 				shift
 				;;
 			-c|--confirm)
-				lb_inpw_confirm=true
+				confirm=true
 				;;
 			--confirm-label)
 				if [ -z "$2" ] ; then
 					return 1
 				fi
-				lb_inpw_confirm_label=$2
+				confirm_label=$2
 				shift
 				;;
 			-m|--min-size)
@@ -3021,7 +3000,7 @@ lb_input_password() {
 				if [ $2 -lt 1 ] ; then
 					return 1
 				fi
-				lb_inpw_minsize=$2
+				min_size=$2
 				shift
 				;;
 			*)
@@ -3033,11 +3012,11 @@ lb_input_password() {
 
 	# text label
 	if [ $# -gt 0 ] ; then
-		lb_inpw_label=$*
+		label=$*
 	fi
 
 	# print question
-	echo -n -e "$lb_inpw_label "
+	echo -n -e "$label "
 	# prompt user for password
 	read -s -r lb_input_password
 	# line return
@@ -3049,30 +3028,30 @@ lb_input_password() {
 	fi
 
 	# check password size (if --min-size option is set)
-	if [ $lb_inpw_minsize -gt 0 ] ; then
-		if [ $(echo -n "$lb_input_password" | wc -m) -lt $lb_inpw_minsize ] ; then
+	if [ $min_size -gt 0 ] ; then
+		if [ $(echo -n "$lb_input_password" | wc -m) -lt $min_size ] ; then
 			lb_input_password=""
 			return 4
 		fi
 	fi
 
 	# if no confirmation, return OK
-	if ! $lb_inpw_confirm ; then
+	if ! $confirm ; then
 		return 0
 	fi
 
 	# if confirmation, save current password
-	lb_inpw_password_confirm=$lb_input_password
+	local password_confirm=$lb_input_password
 
 	# print confirmation
-	echo -n -e "$lb_inpw_confirm_label "
+	echo -n -e "$confirm_label "
 	# prompt password confirmation
-	read -s -r lb_inpw_password_confirm
+	read -s -r password_confirm
 	# line return
 	echo
 
 	# if passwords mismatch, return error
-	if [ "$lb_input_password" != "$lb_inpw_password_confirm" ] ; then
+	if [ "$lb_input_password" != "$password_confirm" ] ; then
 		lb_input_password=""
 		return 3
 	fi

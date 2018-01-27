@@ -910,11 +910,11 @@ done < "config.sh"
 ---------------------------------------------------------------
 <a name="lb_trim"></a>
 ### lb_trim
-Deletes spaces before and after a text.
+Deletes spaces before and after a string.
 
 #### Usage
 ```bash
-lb_trim TEXT
+lb_trim STRING
 ```
 
 #### Exit codes
