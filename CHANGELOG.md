@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.0 (2018-01-26)
+### New features
+- New function: `lb_split()` to split a string into array
+- New function: `lb_join()` to join array into string
+
+### Changes
+- `lb_command_exists()` now returns only error code 1 and accepts multiple arguments
+- `lb_function_exists()` accepts multiple arguments
+- `lb_user_exists()` now returns only error code 1 and accepts multiple arguments
+- More strict results in `lb_is_number()`, `lb_is_integer()` and `lb_is_boolean()`: all arguments are verified
+- `lb_array_contains()` now returns 2 if no array is provided
+- Major code refactoring to improve local variables use and readability
+
 ## 1.7.2 (2017-12-16)
 - Improve loading and add new return codes for libbash loading status
 
