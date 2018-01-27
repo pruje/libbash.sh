@@ -87,6 +87,8 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_is_email](#lb_is_email)
 	* [lb_is_comment](#lb_is_comment)
 	* [lb_trim](#lb_trim)
+	* [lb_split](#lb_split)
+	* [lb_join](#lb_join)
 	* [lb_array_contains](#lb_array_contains)
 	* [lb_date2timestamp](#lb_date2timestamp)
 	* [lb_timestamp2date](#lb_timestamp2date)
@@ -925,6 +927,52 @@ Exit code of the `echo` command.
 # get config line without spaces before and after text
 config_line="    param='value with spaces'  "
 config=$(lb_trim "$config_line")
+```
+
+---------------------------------------------------------------
+<a name="lb_split"></a>
+### lb_split
+Split a string into array.
+
+#### Usage
+```bash
+lb_split DELIMITER STRING
+```
+
+#### Exit codes
+- 0: Split OK
+- 1: Usage error
+
+#### Example
+```bash
+users="darthvader,obiwan"
+
+lb_split , "$users"
+
+for u in ${lb_split[@]} ; do
+	echo "User $u exists"
+done
+```
+
+---------------------------------------------------------------
+<a name="lb_join"></a>
+### lb_join
+Join an array into string.
+
+#### Usage
+```bash
+lb_join DELIMITER "${ARRAY[@]}"
+```
+**Warning**: put your array between quotes or search will fail if you have spaces in values.
+
+#### Exit codes
+- 0: Join OK
+- 1: Usage error
+
+#### Example
+```bash
+users=(darthvader obiwan)
+echo "Users: $(lb_join ", " "${users[@]}")"
 ```
 
 ---------------------------------------------------------------

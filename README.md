@@ -25,6 +25,8 @@ See documentation for more info.
 libbash.sh is compatible with Linux and macOS systems and works partially on Windows with [Cygwin](https://www.cygwin.com).
 See documentation to know which functions are not supported yet.
 
+Read our [wiki](https://github.com/pruje/libbash.sh/wiki) for some tips and tricks and other resources.
+
 ## Usage
 Add `libbash.sh` to your script:
 ```bash
