@@ -1476,55 +1476,28 @@ lb_set_config() {
 # Test if a value is a number
 # Usage: lb_is_number VALUE
 lb_is_number() {
-
-	# if empty, is not a number (not an usage error)
-	if [ -z "$1" ] ; then
-		return 1
-	fi
-
-	# test if is a number (also works for negative numbers)
-	if ! [[ $* =~ ^-?[0-9]+([.][0-9]+)?$ ]] ; then
-		return 1
-	fi
+	[[ $* =~ ^-?[0-9]+([.][0-9]+)?$ ]]
 }
 
 
 # Test if a value is integer
 # Usage: lb_is_integer VALUE
 lb_is_integer() {
-
-	# if empty, is not an integer (not an usage error)
-	# DO NOT USE lb_test_arguments here or it will do an infinite loop
-	# because lb_test_arguments uses this function
-	if [ -z "$1" ] ; then
-		return 1
-	fi
-
-	# test if is an integer (also works for negative numbers)
-	if ! [[ $* =~ ^-?[0-9]+$ ]] ; then
-		return 1
-	fi
+	[[ $* =~ ^-?[0-9]+$ ]]
 }
 
 
 # Test if a value is a boolean
 # Usage: lb_is_boolean VALUE
 lb_is_boolean() {
-	case $* in
-		true|false)
-			return 0
-			;;
-		*)
-			return 1
-			;;
-	esac
+	[[ $* =~ ^(true|false)$ ]]
 }
 
 
 # Test if a string is a valid email address
 # Usage: lb_is_email STRING
 lb_is_email() {
-	echo -n "$*" | grep -qE "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$"
+	[[ $* =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$ ]]
 }
 
 
