@@ -132,10 +132,8 @@ lbg_dialog_size() {
 # Usage: lbg_get_gui
 lbg_get_gui() {
 
-	# if no GUI tool defined
-	if [ -z "$lbg_gui" ] ; then
-		return 1
-	fi
+	# no GUI tool defined
+	[ -z "$lbg_gui" ] && return 1
 
 	# return current GUI tool
 	echo $lbg_gui
@@ -245,9 +243,7 @@ lbg_display_info() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -264,7 +260,7 @@ lbg_display_info() {
 	fi
 
 	# prepare command
-	local cmd
+	local cmd result
 	case $lbg_gui in
 		kdialog)
 			cmd=(kdialog --title "$title" --msgbox "$*")
@@ -279,12 +275,9 @@ lbg_display_info() {
 			osascript &> /dev/null << EOF
 display dialog "$*" with title "$title" with icon note buttons {"$lb_default_ok_label"} default button 1
 EOF
-			# if command error
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			# command error
+			[ $? != 0 ] && return 2
 
-			# quit
 			return 0
 			;;
 
@@ -296,26 +289,21 @@ EOF
 			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
 			return 0
 			;;
 
 		dialog)
 			dialog --title "$title" --clear --msgbox "$*" $(lbg_dialog_size 50 10) 2> /dev/null
-			local result=$?
+			result=$?
 
 			# clear console
 			clear
 
 			# command error
-			if [ $result != 0 ] ; then
-				return 2
-			fi
+			[ $result != 0 ] && return 2
 
-			# quit
 			return 0
 			;;
 
@@ -346,9 +334,7 @@ lbg_display_warning() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -381,11 +367,8 @@ lbg_display_warning() {
 display dialog "$*" with title "$title" with icon caution buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# command error
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
-			# quit
 			return 0
 			;;
 
@@ -397,9 +380,7 @@ EOF
 			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
 			return 0
 			;;
@@ -436,9 +417,7 @@ lbg_display_error() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -471,11 +450,8 @@ lbg_display_error() {
 display dialog "$*" with title "$title" with icon stop buttons {"$lb_default_ok_label"} default button 1
 EOF
 			# command error
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
-			# quit
 			return 0
 			;;
 
@@ -487,9 +463,7 @@ EOF
 			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
 			return 0
 			;;
@@ -526,16 +500,12 @@ lbg_notify() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
 			--timeout)
-				if ! lb_is_integer $2 ; then
-					return 1
-				fi
+				lb_is_integer $2 || return 1
 				timeout=$2
 				shift
 				;;
@@ -638,17 +608,17 @@ lbg_yesno() {
 				yes_default=true
 				;;
 			--yes-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				yes_label=$2
 				shift
 				;;
 			--no-label)
+				[ -z "$2" ] && return 1
 				no_label=$2
 				shift
 				;;
 			-t|--title)
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -664,7 +634,7 @@ lbg_yesno() {
 		return 1
 	fi
 
-	local cmd=() result
+	local cmd result
 
 	# prepare command
 	case $lbg_gui in
@@ -725,9 +695,7 @@ EOF)
 			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# command failed or response is no
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
 			return 0
 			;;
@@ -809,25 +777,19 @@ lbg_choose_option() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				# transform option1,option2,... to array
 				lb_split , $2
 				default=(${lb_split[@]})
 				shift
 				;;
 			-l|--label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				label=$2
 				shift
 				;;
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -844,13 +806,7 @@ lbg_choose_option() {
 	fi
 
 	# options: initialize with an empty first value (option ID starts to 1, not 0)
-	local options=("")
-
-	# prepare choice options
-	while [ -n "$1" ] ; do
-		options+=("$1")
-		shift
-	done
+	local options=("" "$@")
 
 	# verify if default options are valid
 	if [ ${#default[@]} -gt 0 ] ; then
@@ -929,9 +885,7 @@ lbg_choose_option() {
 set answer to (choose from list $opts with prompt "$label" default items "$default_option" with title "$title")
 EOF)
 			# if empty, error
-			if [ -z "$choice" ] ; then
-				return 2
-			fi
+			[ -z "$choice" ] && return 2
 
 			# macOS case: find result
 			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
@@ -961,9 +915,7 @@ EOF)
 			lbg_choose_option=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# cancelled
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
 			# remove \r ending character
 			lbg_choose_option=${lbg_choose_option:0:${#lbg_choose_option}-1}
@@ -1016,9 +968,7 @@ EOF)
 	esac
 
 	# if empty, cancelled
-	if [ -z "$lbg_choose_option" ] ; then
-		return 2
-	fi
+	[ -z "$lbg_choose_option" ] && return 2
 
 	# check if user choice is an integer
 	if ! lb_is_integer $lbg_choose_option ; then
@@ -1051,16 +1001,12 @@ lbg_input_text() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				default=$2
 				shift
 				;;
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -1105,9 +1051,7 @@ EOF)
 			lbg_input_text=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# cancelled
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
 			# remove \r ending character
 			lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
@@ -1156,19 +1100,14 @@ lbg_input_password() {
 	lbg_input_password=""
 
 	# default options
-	local label=$lb_default_pwd_label
-	local confirm=false
-	local confirm_label=$lb_default_pwd_confirm_label
-	local title=$lb_current_script_name
-	local min_size=0
+	local label=$lb_default_pwd_label confirm_label=$lb_default_pwd_confirm_label
+	local title=$lb_current_script_name confirm=false min_size=0
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-l|--label) # old option kept for compatibility
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				label=$2
 				shift
 				;;
@@ -1176,26 +1115,18 @@ lbg_input_password() {
 				confirm=true
 				;;
 			--confirm-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				confirm_label=$2
 				shift
 				;;
 			-m|--min-size)
-				if ! lb_is_integer $2 ; then
-					return 1
-				fi
-				if [ $2 -lt 1 ] ; then
-					return 1
-				fi
+				lb_is_integer $2 || return 1
+				[ $2 -lt 1 ] && return 1
 				min_size=$2
 				shift
 				;;
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -1293,7 +1224,6 @@ EOF)
 				return 3
 			fi
 
-			# quit
 			return 0
 		fi
 	done
@@ -1324,9 +1254,7 @@ lbg_choose_directory() {
 				absolute_path=true
 				;;
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -1344,10 +1272,8 @@ lbg_choose_directory() {
 		path=$*
 	fi
 
-	# if path is not a directory, usage error
-	if ! [ -d "$path" ] ; then
-		return 1
-	fi
+	# path is not a directory
+	[ -d "$path" ] || return 1
 
 	# run command
 	local cmd choice
@@ -1384,9 +1310,7 @@ EOF)
 			choice=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
 
 			# cancelled
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			[ $? != 0 ] && return 2
 
 			# remove \r ending character
 			choice=${choice:0:${#choice}-1}
@@ -1423,22 +1347,16 @@ EOF)
 	esac
 
 	# if empty, cancelled
-	if [ -z "$choice" ] ; then
-		return 2
-	fi
+	[ -z "$choice" ] && return 2
 
 	# return windows paths
 	if [ "$lb_current_os" == "Windows" ] ; then
 		choice=$(lb_realpath "$choice")
-		if [ $? != 0 ] ; then
-			return 3
-		fi
+		[ $? != 0 ] && return 3
 	fi
 
 	# if not a directory, return error
-	if ! [ -d "$choice" ] ; then
-		return 3
-	fi
+	[ -d "$choice" ] || return 3
 
 	# save path
 	lbg_choose_directory=$choice
@@ -1463,9 +1381,8 @@ lbg_choose_file() {
 	lbg_choose_file=""
 
 	# default options
-	local absolute_path=false save_mode=false
+	local path filters=() absolute_path=false save_mode=false
 	local title=$lb_current_script_name filename=$lb_default_newfile_name
-	local path filters=()
 
 	# catch options
 	while [ $# -gt 0 ] ; do
@@ -1474,9 +1391,7 @@ lbg_choose_file() {
 				save_mode=true
 				;;
 			-f|--filter)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				filters+=("$2")
 				shift
 				;;
@@ -1484,9 +1399,7 @@ lbg_choose_file() {
 				absolute_path=true
 				;;
 			-t|--title)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				title=$2
 				shift
 				;;
@@ -1504,16 +1417,12 @@ lbg_choose_file() {
 		path=$*
 	fi
 
-	# if directory does not exists (save mode), error
 	if $save_mode ; then
-		if ! [ -d "$(dirname "$path")" ] ; then
-			return 1
-		fi
+		# if directory does not exists (save mode), error
+		[ -d "$(dirname "$path")" ] || return 1
 	else
 		# if path does not exists (open mode), error
-		if ! [ -e "$path" ] ; then
-			return 1
-		fi
+		[ -e "$path" ] || return 1
 	fi
 
 	# display dialog
@@ -1616,9 +1525,7 @@ EOF)
 	esac
 
 	# if empty, cancelled
-	if [ -z "$choice" ] ; then
-		return 2
-	fi
+	[ -z "$choice" ] && return 2
 
 	# return windows paths
 	if [ "$lb_current_os" == "Windows" ] ; then
@@ -1629,30 +1536,22 @@ EOF)
 		else
 			choice=$(lb_realpath "$choice")
 		fi
-		if [ $? != 0 ] ; then
-			return 3
-		fi
+		[ $? != 0 ] && return 3
 	fi
 
 	# if save mode,
 	if $save_mode ; then
-		# if directory parent does not exists, reset variable and return error
-		if ! [ -d "$(dirname "$choice")" ] ; then
-			return 3
-		fi
+		# if parent directory does not exists, return error
+		[ -d "$(dirname "$choice")" ] || return 3
 
 		# if exists but is not a file, return error
 		if [ -e "$choice" ] ; then
-			if ! [ -f "$choice" ] ; then
-				return 3
-			fi
+			[ -f "$choice" ] || return 3
 		fi
 	else
 		# open mode
 		# if file does not exists, reset variable and return error
-		if ! [ -f "$choice" ] ; then
-			return 3
-		fi
+		[ -f "$choice" ] || return 3
 	fi
 
 	# return absolute path if option set
@@ -1680,9 +1579,7 @@ lbg_open_directory() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-e|--explorer)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				explorer="$2"
 				shift
 				;;
@@ -1710,9 +1607,7 @@ lbg_open_directory() {
 	done
 
 	# if no existing directory, usage error
-	if [ ${#paths[@]} == 0 ] ; then
-		return 1
-	fi
+	[ ${#paths[@]} == 0 ] && return 1
 
 	# set OS explorer if not specified
 	if [ -z "$explorer" ] ; then
@@ -1730,9 +1625,7 @@ lbg_open_directory() {
 	fi
 
 	# test explorer command
-	if ! lb_command_exists "$explorer" ; then
-		return 2
-	fi
+	lb_command_exists "$explorer" || return 2
 
 	# open directories one by one
 	local i path
@@ -1751,9 +1644,7 @@ lbg_open_directory() {
 
 		# open file explorer
 		"$explorer" "$path" 2> /dev/null
-		if [ $? != 0 ] ; then
-			result=3
-		fi
+		[ $? != 0 ] && result=3
 	done
 
 	return $result
@@ -1767,104 +1658,34 @@ lbg_open_directory() {
 # Display a critical dialog
 # See lbg_display_error for usage
 lbg_display_critical() {
-	# basic command
-	local cmd=(lbg_display_error)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lbg_display_error "$@"
 }
 
 lbg_critical() {
-	# basic command
-	local cmd=(lbg_display_error)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lbg_display_error "$@"
 }
 
 # Display a debug dialog
 # See lbg_display_info for usage
 lbg_display_debug() {
-	# basic command
-	local cmd=(lbg_display_info)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lbg_display_info "$@"
 }
 
 lbg_debug() {
-	# basic command
-	local cmd=(lbg_display_info)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lbg_display_info "$@"
 }
 
 # Aliases for dialogs
 lbg_info() {
-	# basic command
-	local cmd=(lbg_display_info)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lbg_display_info "$@"
 }
 
 lbg_warning() {
-	# basic command
-	local cmd=(lbg_display_warning)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lbg_display_warning "$@"
 }
 
 lbg_error() {
-	# basic command
-	local cmd=(lbg_display_error)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lbg_display_error "$@"
 }
 
 

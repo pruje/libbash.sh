@@ -146,16 +146,7 @@ lb_exit_cmd=()
 # Check if command(s) exists
 # Usage: lb_command_exists COMMAND [COMMAND...]
 lb_command_exists() {
-
-	# prepare which command (support spaces in arguments)
-	local cmd=(which)
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run which command
-	"${cmd[@]}" &> /dev/null
+	which "$@" &> /dev/null
 }
 
 
@@ -164,26 +155,21 @@ lb_command_exists() {
 lb_function_exists() {
 
 	# usage error
-	if [ $# == 0 ] ; then
-		return 1
-	fi
+	[ $# == 0 ] && return 1
 
-	local type
+	local arg type
 
-	while [ $# -gt 0 ] ; do
+	for arg in "$@" ; do
 		# get type of argument
-		type=$(type -t $1)
+		type=$(type -t $arg)
 
 		# if failed to get type, it does not exists
-		if [ $? != 0 ] ; then
-			return 2
-		fi
+		[ $? != 0 ] && return 2
 
 		# test if is not a function
-		if [ "$type" != "function" ] ; then
+		if [ "$type" != function ] ; then
 			return 3
 		fi
-		shift
 	done
 }
 
@@ -196,9 +182,7 @@ lb_test_arguments() {
 	# third-party functions which are using this function to avoid infinite loops
 
 	# we wait for at least an operator and a number
-	if [ $# -lt 2 ] ; then
-		return 1
-	fi
+	[ $# -lt 2 ] && return 1
 
 	# arg 2 should be an integer
 	if ! lb_is_integer $2 ; then
@@ -350,9 +334,7 @@ lb_get_display_level() {
 lb_set_display_level() {
 
 	# usage error: must be non empty
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# search if level exists
 	local id
@@ -442,9 +424,7 @@ lb_display() {
 				opts+="-n "
 				;;
 			-l|--level)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				display_level=$2
 				shift
 				;;
@@ -538,9 +518,7 @@ lb_display() {
 
 	# print text
 	lb_print $opts"$prefix$*"
-	if [ $? != 0 ] ; then
-		return 3
-	fi
+	[ $? != 0 ] && return 3
 
 	return $result
 }
@@ -562,23 +540,17 @@ lb_result() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			--ok-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				ok_label=$2
 				shift
 				;;
 			--failed-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				failed_label=$2
 				shift
 				;;
 			-l|--log-level)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				display_cmd+=(-l "$2")
 				shift
 				;;
@@ -671,9 +643,7 @@ lb_short_result() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-l|--log-level)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				display_cmd+=(-l "$2")
 				shift
 				;;
@@ -759,10 +729,8 @@ lb_short_result() {
 # Usage: lb_get_logfile
 lb_get_logfile() {
 
-	# if no log file defined
-	if [ -z "$lb_logfile" ] ; then
-		return 1
-	fi
+	# if no log file defined, error
+	[ -z "$lb_logfile" ] && return 1
 
 	# test if log file is writable
 	if ! lb_is_writable "$lb_logfile" ; then
@@ -800,10 +768,8 @@ lb_set_logfile() {
 		shift # load next argument
 	done
 
-	# test arguments
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# usage error
+	[ -z "$1" ] && return 1
 
 	# cancel if path exists but is not a regular file
 	if [ -e "$*" ] ; then
@@ -910,10 +876,8 @@ lb_get_log_level() {
 # Usage: lb_set_log_level LEVEL_NAME
 lb_set_log_level() {
 
-	# usage error: must be non empty
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# usage error
+	[ -z "$1" ] && return 1
 
 	# search if level exists
 	local id
@@ -935,9 +899,7 @@ lb_set_log_level() {
 lb_log() {
 
 	# exit if log file is not set
-	if [ -z "$lb_logfile" ] ; then
-		return 1
-	fi
+	[ -z "$lb_logfile" ] && return 1
 
 	# default options
 	local echo_opts level
@@ -950,9 +912,7 @@ lb_log() {
 				echo_opts="-n "
 				;;
 			-l|--level)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				level=$2
 				shift
 				;;
@@ -1045,9 +1005,7 @@ lb_read_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				sections+=("[$2]")
 				shift
 				;;
@@ -1129,9 +1087,7 @@ lb_import_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				sections+=("[$2]")
 				shift
 				;;
@@ -1246,9 +1202,7 @@ lb_get_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				section=$2
 				shift
 				;;
@@ -1260,9 +1214,7 @@ lb_get_config() {
 	done
 
 	# usage error
-	if [ $# -lt 2 ] ; then
-		return 1
-	fi
+	[ $# -lt 2 ] && return 1
 
 	# test config file
 	if ! [ -f "$1" ] ; then
@@ -1324,9 +1276,7 @@ lb_set_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				section=$2
 				shift
 				;;
@@ -1341,9 +1291,7 @@ lb_set_config() {
 	done
 
 	# usage error
-	if [ $# -lt 2 ] ; then
-		return 1
-	fi
+	[ $# -lt 2 ] && return 1
 
 	# test config file
 	if ! [ -f "$1" ] ; then
@@ -1454,9 +1402,7 @@ lb_set_config() {
 			fi
 
 			echo -e "$config_line" >> "$config_file"
-			if [ $? != 0 ] ; then
-				return 4
-			fi
+			[ $? != 0 ] && return 4
 		fi
 	fi
 
@@ -1512,9 +1458,7 @@ lb_is_comment() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--symbol)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				symbols+=("$2")
 				shift
 				;;
@@ -1565,9 +1509,7 @@ lb_is_comment() {
 lb_trim() {
 
 	# empty text: do nothing
-	if [ $# == 0 ] ; then
-		return 0
-	fi
+	[ $# == 0 ] && return 0
 
 	local string=$*
 
@@ -1591,9 +1533,7 @@ lb_split() {
 	lb_split=()
 
 	# usage error
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# define delimiter
 	local i IFS=$1
@@ -1611,9 +1551,7 @@ lb_split() {
 lb_join() {
 
 	# usage error
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# define delimiter
 	local IFS=$1
@@ -1628,29 +1566,19 @@ lb_join() {
 # Usage: lb_array_contains VALUE "${ARRAY[@]}"
 lb_array_contains() {
 
-	# get usage errors
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# usage error
+	[ -z "$1" ] && return 1
 
-	# first arg is the value to search
-	local search=$1
+	# get search value
+	local value search=$1
 	shift
 
 	# if array is empty, return not found
-	if [ $# == 0 ] ; then
-		return 2
-	fi
-
-	# get array to search in
-	local i array=("$@")
+	[ $# == 0 ] && return 2
 
 	# parse array to find value
-	for ((i=0 ; i < ${#array[@]} ; i++)) ; do
-		# if found, exit
-		if [ "${array[i]}" == "$search" ] ; then
-			return 0
-		fi
+	for value in "$@" ; do
+		[ "$value" == "$search" ] && return 0
 	done
 
 	# not found
@@ -1679,9 +1607,7 @@ lb_date2timestamp() {
 	done
 
 	# usage error
-	if [ -z "$*" ] ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# return timestamp
 	if [ "$lb_current_os" == macOS ] ; then
@@ -1707,9 +1633,7 @@ lb_timestamp2date() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-f|--format)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				format="+$2"
 				shift
 				;;
@@ -1754,9 +1678,7 @@ lb_timestamp2date() {
 lb_compare_versions() {
 
 	# we wait for at least an operator and 2 versions
-	if [ $# -lt 3 ] ; then
-		return 1
-	fi
+	[ $# -lt 3 ] && return 1
 
 	# get operator
 	local operator=$2
@@ -1952,10 +1874,8 @@ lb_compare_versions() {
 # Usage: lb_df_fstype PATH
 lb_df_fstype() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
+	# usage error
+	[ $# == 0 ] && return 1
 
 	# if path does not exists, error
 	if ! [ -e "$*" ] ; then
@@ -1967,9 +1887,7 @@ lb_df_fstype() {
 			if lb_command_exists lsblk ; then
 				# get device
 				local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
-				if [ -z "$device" ] ; then
-					return 3
-				fi
+				[ -z "$device" ] && return 3
 
 				# get "real" fs type
 				lsblk --output=FSTYPE "$device" 2> /dev/null | tail -n 1
@@ -1983,9 +1901,7 @@ lb_df_fstype() {
 			# get mountpoint
 			local mount_point
 			mount_point=$(lb_df_mountpoint "$*")
-			if [ $? != 0 ] ; then
-				return 3
-			fi
+			[ $? != 0 ] && return 3
 
 			# get filesystem type
 			diskutil info "$mount_point" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
@@ -2007,10 +1923,8 @@ lb_df_fstype() {
 # Usage: lb_df_space_left PATH
 lb_df_space_left() {
 
-	# if path does not exists, error
-	if [ $# == 0 ] ; then
-		return 1
-	fi
+	# usage error
+	[ $# == 0 ] && return 1
 
 	# if path does not exists, error
 	if ! [ -e "$*" ] ; then
@@ -2035,10 +1949,8 @@ lb_df_space_left() {
 # Usage: lb_df_mountpoint PATH
 lb_df_mountpoint() {
 
-	# usage errors
-	if [ $# == 0 ] ; then
-		return 1
-	fi
+	# usage error
+	[ $# == 0 ] && return 1
 
 	# if path does not exists, error
 	if ! [ -e "$*" ] ; then
@@ -2064,10 +1976,8 @@ lb_df_mountpoint() {
 # NOT SUPPORTED ON WINDOWS
 lb_df_uuid() {
 
-	# if path does not exists, error
-	if [ $# == 0 ] ; then
-		return 1
-	fi
+	# usage error
+	[ $# == 0 ] && return 1
 
 	# if path does not exists, error
 	if ! [ -e "$*" ] ; then
@@ -2079,9 +1989,7 @@ lb_df_uuid() {
 			# get mountpoint
 			local mount_point
 			mount_point=$(lb_df_mountpoint "$*")
-			if [ $? != 0 ] ; then
-				return 3
-			fi
+			[ $? != 0 ] && return 3
 
 			# get filesystem type
 			diskutil info "$mount_point" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
@@ -2090,9 +1998,7 @@ lb_df_uuid() {
 		Linux)
 			# get device
 			local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
-			if [ -z "$device" ] ; then
-				return 3
-			fi
+			[ -z "$device" ] && return 3
 
 			# get disk UUID
 			lsblk --output=UUID "$device" 2> /dev/null | tail -n 1
@@ -2145,10 +2051,8 @@ lb_dir_is_empty() {
 	# test if directory is empty
 	local content
 	content=$(ls -A "$*" 2> /dev/null)
-	if [ $? != 0 ] ; then
-		# ls error means an access rights error
-		return 2
-	fi
+	# ls error means an access rights error
+	[ $? != 0 ] && return 2
 
 	# directory is not empty
 	if [ "$content" ] ; then
@@ -2162,9 +2066,7 @@ lb_dir_is_empty() {
 lb_abspath() {
 
 	# usage error
-	if [ $# == 0 ] ; then
-		return 1
-	fi
+	[ $# == 0 ] && return 1
 
 	# get directory and file names
 	local path directory=$(dirname "$*") file=$(basename "$*")
@@ -2177,9 +2079,7 @@ lb_abspath() {
 		path=$(cd "$directory" &> /dev/null && pwd)
 
 		# if path does not exists, error
-		if [ $? != 0 ] ; then
-			return 2
-		fi
+		[ $? != 0 ] && return 2
 	fi
 
 	# case of root path (basename=/)
@@ -2243,10 +2143,8 @@ lb_realpath() {
 # Usage: lb_is_writable PATH
 lb_is_writable() {
 
-	# usage errors
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# usage error
+	[ -z "$1" ] && return 1
 
 	# if file/folder exists
 	if [ -e "$*" ] ; then
@@ -2277,8 +2175,6 @@ lb_is_writable() {
 # Detect current OS family
 # Usage: lb_current_os
 lb_current_os() {
-
-	# get uname result
 	case $(uname) in
 		Darwin)
 			echo macOS
@@ -2298,20 +2194,15 @@ lb_current_os() {
 lb_user_exists() {
 
 	# usage error
-	if [ $# == 0 ] ; then
-		return 1
-	fi
+	[ $# == 0 ] && return 1
 
-	# for each user
-	while [ $# -gt 0 ] ; do
-		if [ -z "$1" ] ; then
-			return 1
-		fi
+	local user
+	for user in "$@" ; do
+		[ -z "$user" ] && return 1
 		# check groups of the user
-		if ! groups $1 &> /dev/null ; then
+		if ! groups $user &> /dev/null ; then
 			return 1
 		fi
-		shift
 	done
 }
 
@@ -2320,10 +2211,8 @@ lb_user_exists() {
 # Usage: lb_in_group GROUP [USER]
 lb_in_group() {
 
-	# usage errors
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# usage error
+	[ -z "$1" ] && return 1
 
 	# get current user if not defined
 	local user=$2
@@ -2335,9 +2224,9 @@ lb_in_group() {
 
 	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
 	local groups=($(groups $user 2> /dev/null | cut -d: -f2))
-	if [ ${#groups[@]} == 0 ] ; then
-		return 3
-	fi
+
+	# no groups found
+	[ ${#groups[@]} == 0 ] && return 3
 
 	# find if user is in group
 	lb_array_contains "$1" "${groups[@]}"
@@ -2348,23 +2237,17 @@ lb_in_group() {
 # Usage: lb_group_members GROUP
 lb_group_members() {
 
-	# usage errors
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# usage error
+	[ -z "$1" ] && return 1
 
 	# not compatible with macOS and Windows
-	if [ "$lb_current_os" != Linux ] ; then
-		return 3
-	fi
+	[ "$lb_current_os" != Linux ] && return 3
 
 	# get line of group file
 	local groups=$(grep -E "^$1:.*:" /etc/group 2> /dev/null)
 
-	# if error (group not found), exit
-	if [ -z "$groups" ] ; then
-		return 2
-	fi
+	# groups not found
+	[ -z "$groups" ] && return 2
 
 	echo "$groups" | sed "s/^$1:.*://; s/,/ /g"
 }
@@ -2407,9 +2290,7 @@ lb_generate_password() {
 	fi
 
 	# return error if command failed
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	[ $? != 0 ] && return 2
 
 	# return password at the right size
 	echo "${password:0:$size}"
@@ -2420,10 +2301,8 @@ lb_generate_password() {
 # Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 lb_email() {
 
-	# usage errors
-	if [ $# -lt 2 ] ; then
-		return 1
-	fi
+	# usage error
+	[ $# -lt 2 ] && return 1
 
 	# default options and local variables
 	local subject sender replyto cc bcc message message_html
@@ -2437,51 +2316,37 @@ lb_email() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--subject)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				subject=$2
 				shift
 				;;
 			-r|--reply-to)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				replyto=$2
 				shift
 				;;
 			-c|--cc)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				cc=$2
 				shift
 				;;
 			-b|--bcc)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				bcc=$2
 				shift
 				;;
 			-a|--attachment)
-				if ! [ -f "$2" ] ; then
-					return 1
-				fi
+				[ -f "$2" ] || return 1
 				attachments+=("$2")
 				shift
 				;;
 			--sender)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				sender=$2
 				shift
 				;;
 			--html)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				message_html=$2
 				multipart=true
 				shift
@@ -2494,18 +2359,14 @@ lb_email() {
 	done
 
 	# usage error if missing text and at least one option
-	if [ $# -lt 2 ] ; then
-		return 1
-	fi
+	[ $# -lt 2 ] && return 1
 
 	local recipients=$1
 	shift
 
 	# usage error if missing message
 	# could be not detected by test above if recipents field has some spaces
-	if [ -z "$*" ] ; then
-		return 1
-	fi
+	[ -z "$*" ] && return 1
 
 	# search compatible command to send email
 	local c
@@ -2517,9 +2378,7 @@ lb_email() {
 	done
 
 	# if no command to send email, error
-	if [ -z "$cmd" ] ; then
-		return 2
-	fi
+	[ -z "$cmd" ] && return 2
 
 	# set email header
 
@@ -2648,23 +2507,17 @@ lb_yesno() {
 				cancel_mode=true
 				;;
 			--yes-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				yes_label=$2
 				shift
 				;;
 			--no-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				no_label=$2
 				shift
 				;;
 			--cancel-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				cancel_label=$2
 				shift
 				;;
@@ -2675,10 +2528,8 @@ lb_yesno() {
 		shift # load next argument
 	done
 
-	# usage error if question is missing
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# question is missing
+	[ -z "$1" ] && return 1
 
 	# defines question
 	local question="("
@@ -2744,18 +2595,14 @@ lb_choose_option() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				# transform option1,option2,... to array
 				lb_split , $2
 				default=(${lb_split[@]})
 				shift
 				;;
 			-l|--label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				label=$2
 				shift
 				;;
@@ -2763,9 +2610,7 @@ lb_choose_option() {
 				multiple_choices=true
 				;;
 			-c|--cancel-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				cancel_label=$2
 				shift
 				;;
@@ -2776,19 +2621,14 @@ lb_choose_option() {
 		shift # load next argument
 	done
 
-	# usage error if missing at least 1 choice option
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# missing at least 1 choice option
+	[ -z "$1" ] && return 1
 
 	# options: initialize with an empty first value (option ID starts to 1, not 0)
 	local options=("")
 
 	# prepare choice options
-	while [ $# -gt 0 ] ; do
-		options+=("$1")
-		shift
-	done
+	options+=("$@")
 
 	# verify if default options are valid
 	if [ ${#default[@]} -gt 0 ] ; then
@@ -2888,9 +2728,7 @@ lb_input_text() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				default=$2
 				shift
 				;;
@@ -2904,10 +2742,8 @@ lb_input_text() {
 		shift # load next argument
 	done
 
-	# usage error if text is not defined
-	if [ -z "$1" ] ; then
-		return 1
-	fi
+	# text is not defined
+	[ -z "$1" ] && return 1
 
 	# print question
 	echo -n -e "$*"
@@ -2950,9 +2786,7 @@ lb_input_password() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-l|--label) # old option kept for compatibility
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				label=$2
 				shift
 				;;
@@ -2960,19 +2794,13 @@ lb_input_password() {
 				confirm=true
 				;;
 			--confirm-label)
-				if [ -z "$2" ] ; then
-					return 1
-				fi
+				[ -z "$2" ] && return 1
 				confirm_label=$2
 				shift
 				;;
 			-m|--min-size)
-				if ! lb_is_integer $2 ; then
-					return 1
-				fi
-				if [ $2 -lt 1 ] ; then
-					return 1
-				fi
+				lb_is_integer $2 || return 1
+				[ $2 -lt 1 ] && return 1
 				min_size=$2
 				shift
 				;;
@@ -2996,9 +2824,7 @@ lb_input_password() {
 	echo
 
 	# if empty, exit with error
-	if [ -z "$lb_input_password" ] ; then
-		return 2
-	fi
+	[ -z "$lb_input_password" ] && return 2
 
 	# check password size (if --min-size option is set)
 	if [ $min_size -gt 0 ] ; then
@@ -3038,256 +2864,86 @@ lb_input_password() {
 # Print a message
 # See lb_print for usage
 lb_echo() {
-	# basic command
-	local cmd=(lb_print)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_print "$@"
 }
 
 
 # Print a message to stderr
 # See lb_print for usage
 lb_error() {
-	# basic command
-	local cmd=(lb_print)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	>&2 "${cmd[@]}"
+	>&2 lb_print "$@"
 }
 
 
 # Get log level
 # See lb_get_log_level for usage
 lb_get_loglevel() {
-	# basic command
-	local cmd=(lb_get_log_level)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_get_log_level "$@"
 }
 
 
 # Set log level
 # See lb_set_log_level for usage
 lb_set_loglevel() {
-	# basic command
-	local cmd=(lb_set_log_level)
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_set_log_level "$@"
 }
 
 
 # Common display levels functions
 # See lb_display for usage
 lb_display_critical() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_critical_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display -p -l "$lb_default_critical_label" "$@"
 }
 
 lb_display_error() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_error_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display -p -l "$lb_default_error_label" "$@"
 }
 
 lb_display_warning() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_warning_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display -p -l "$lb_default_warning_label" "$@"
 }
 
 lb_warning() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_warning_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display_warning "$@"
 }
 
 lb_display_info() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_info_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display -p -l "$lb_default_info_label" "$@"
 }
 
 lb_info() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_info_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display_info "$@"
 }
 
 lb_display_debug() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_debug_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display -p -l "$lb_default_debug_label" "$@"
 }
 
 lb_debug() {
-	# basic command
-	local cmd=(lb_display -p -l "$lb_default_debug_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_display_debug "$@"
 }
 
 # Common log functions
 # Usage: lb_log_* [OPTIONS] TEXT
 # See lb_log for options usage
 lb_log_critical() {
-	# basic command
-	local cmd=(lb_log -p -l "$lb_default_critical_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_log -p -l "$lb_default_critical_label" "$@"
 }
 
 lb_log_error() {
-	# basic command
-	local cmd=(lb_log -p -l "$lb_default_error_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_log -p -l "$lb_default_error_label" "$@"
 }
 
 lb_log_warning() {
-	# basic command
-	local cmd=(lb_log -p -l "$lb_default_warning_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_log -p -l "$lb_default_warning_label" "$@"
 }
 
 lb_log_info() {
-	# basic command
-	local cmd=(lb_log -p -l "$lb_default_info_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_log -p -l "$lb_default_info_label" "$@"
 }
 
 lb_log_debug() {
-	# basic command
-	local cmd=(lb_log -p -l "$lb_default_debug_label")
-
-	# parse arguments
-	while [ $# -gt 0 ] ; do
-		cmd+=("$1")
-		shift
-	done
-
-	# run command
-	"${cmd[@]}"
+	lb_log -p -l "$lb_default_debug_label" "$@"
 }
 
 
