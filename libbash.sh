@@ -7,11 +7,11 @@
 #  Copyright (c) 2017-2018 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.8.0 (2018-01-27)                          #
+#  Version 1.9.0 (2018-05-12)                          #
 #                                                      #
 ########################################################
 
-lb_version=1.8.0
+lb_version=1.9.0-beta.1
 
 # Index
 #
@@ -48,7 +48,7 @@ lb_version=1.8.0
 #       lb_trim
 #       lb_split
 #       lb_join
-#       lb_array_contains
+#       lb_in_array
 #       lb_date2timestamp
 #       lb_timestamp2date
 #       lb_compare_versions
@@ -94,6 +94,7 @@ lb_version=1.8.0
 #       lb_log_info
 #       lb_log_debug
 #       lb_detect_os
+#       lb_array_contains
 #   * Initialization
 
 
@@ -1045,7 +1046,7 @@ lb_read_config() {
 			# if line is a section definition
 			if [ -n "$section" ] ; then
 				# if section is valid, mark it
-				if lb_array_contains $section ${sections[@]} ; then
+				if lb_in_array "$section" "${sections[@]}" ; then
 					good_section=true
 					section_found=true
 				else
@@ -1133,7 +1134,7 @@ lb_import_config() {
 			# if line is a section definition
 			if [ -n "$section" ] ; then
 				# if section is valid, mark it
-				if lb_array_contains $section ${sections[@]} ; then
+				if lb_in_array "$section" "${sections[@]}" ; then
 					good_section=true
 					section_found=true
 				else
@@ -1563,8 +1564,8 @@ lb_join() {
 
 
 # Check if an array contains a value
-# Usage: lb_array_contains VALUE "${ARRAY[@]}"
-lb_array_contains() {
+# Usage: lb_in_array VALUE "${ARRAY[@]}"
+lb_in_array() {
 
 	# usage error
 	[ -z "$1" ] && return 1
@@ -2229,7 +2230,7 @@ lb_in_group() {
 	[ ${#groups[@]} == 0 ] && return 3
 
 	# find if user is in group
-	lb_array_contains "$1" "${groups[@]}"
+	lb_in_array "$1" "${groups[@]}"
 }
 
 
@@ -2706,8 +2707,8 @@ lb_choose_option() {
 		fi
 
 		# save choice if not already done
-		if ! lb_array_contains $c ${lb_choose_option[@]} ; then
-			lb_choose_option+=($c)
+		if ! lb_in_array "$c" "${lb_choose_option[@]}" ; then
+			lb_choose_option+=("$c")
 		fi
 	done
 }
@@ -2950,6 +2951,9 @@ lb_log_debug() {
 # Aliases for old functions compatibility
 lb_detect_os() {
 	lb_current_os
+}
+lb_array_contains() {
+	lb_in_array "$@"
 }
 
 

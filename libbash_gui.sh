@@ -163,7 +163,7 @@ lbg_set_gui() {
 		fi
 
 		# test if GUI is supported
-		if ! lb_array_contains $gui "${lbg_supported_gui[@]}" ; then
+		if ! lb_in_array "$gui" "${lbg_supported_gui[@]}" ; then
 			result=1
 			continue
 		fi
@@ -533,7 +533,7 @@ lbg_notify() {
 		if $use_notifysend ; then
 			# do not override kdialog because it has the best integration to KDE desktop
 			# do not use it on macOS nor in console mode
-			if ! lb_array_contains "$lbg_gui" kdialog osascript console ; then
+			if ! lb_in_array "$lbg_gui" kdialog osascript console ; then
 				# execute command with timeout in milliseconds
 				if [ -n "$timeout" ] ; then
 					opts="-t $(($timeout * 1000)) "
@@ -833,7 +833,7 @@ lbg_choose_option() {
 			# add options
 			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
 				cmd+=($i "${options[i]}")
-				if lb_array_contains $i ${default[@]} ; then
+				if lb_in_array "$i" "${default[@]}" ; then
 					cmd+=(on)
 				else
 					cmd+=(off)
@@ -849,7 +849,7 @@ lbg_choose_option() {
 
 			# add options
 			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
-				if lb_array_contains $i ${default[@]} ; then
+				if lb_in_array "$i" "${default[@]}" ; then
 					cmd+=(TRUE)
 				else
 					cmd+=(FALSE)
@@ -871,7 +871,7 @@ lbg_choose_option() {
 
 				# set default option
 				if [ ${#default[@]} -gt 0 ] ; then
-					if lb_array_contains $i ${default[@]} ; then
+					if lb_in_array "$i" "${default[@]}" ; then
 						default_option=${options[i]}
 					fi
 				fi
@@ -927,7 +927,7 @@ EOF)
 			# add options
 			for ((i=1 ; i <= ${#options[@]}-1 ; i++)) ; do
 				cmd+=($i "${options[i]}")
-				if lb_array_contains $i ${default[@]} ; then
+				if lb_in_array "$i" "${default[@]}" ; then
 					cmd+=(on)
 				else
 					cmd+=(off)

@@ -89,7 +89,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_trim](#lb_trim)
 	* [lb_split](#lb_split)
 	* [lb_join](#lb_join)
-	* [lb_array_contains](#lb_array_contains)
+	* [lb_in_array](#lb_in_array)
 	* [lb_date2timestamp](#lb_date2timestamp)
 	* [lb_timestamp2date](#lb_timestamp2date)
 	* [lb_compare_versions](#lb_compare_versions)
@@ -963,7 +963,8 @@ Join an array into string.
 ```bash
 lb_join DELIMITER "${ARRAY[@]}"
 ```
-**Warning**: put your array between quotes or search will fail if you have spaces in values.
+**Warning**: put your array between quotes or search will fail if you have
+spaces in values.
 
 #### Exit codes
 - 0: Join OK
@@ -976,15 +977,20 @@ echo "Users: $(lb_join ", " "${users[@]}")"
 ```
 
 ---------------------------------------------------------------
-<a name="lb_array_contains"></a>
-### lb_array_contains
+<a name="lb_in_array"></a>
+### lb_in_array
 Check if an array contains a value.
+
+Note: This function was called `lb_array_contains()` and has been renamed in
+version 1.9.0. You can still use the old name because there is an alias for
+compatibility, but it is no longer recommended.
 
 #### Usage
 ```bash
-lb_array_contains VALUE "${ARRAY[@]}"
+lb_in_array VALUE "${ARRAY[@]}"
 ```
-**Warning**: put your array between quotes or search will fail if you have spaces in values.
+**Warning**: put your array between quotes or search will fail if you have
+spaces in values.
 
 #### Exit codes
 - 0: Value is in array
@@ -994,7 +1000,7 @@ lb_array_contains VALUE "${ARRAY[@]}"
 #### Example
 ```bash
 array=(one two three)
-if lb_array_contains "one" "${array[@]}" ; then
+if lb_in_array one "${array[@]}" ; then
     echo "one is in array"
 fi
 ```
@@ -1042,7 +1048,8 @@ lb_timestamp2date [OPTIONS] TIMESTAMP
 -u, --utc            Timestamp and date are using UTC
 ```
 
-Date formats: see the `date` command help for available formats; do not put the `+` at the beginning.
+Date formats: see the `date` command help for available formats; do not put the
+`+` at the beginning.
 
 #### Exit codes
 - 0: Timestamp converted
