@@ -95,6 +95,7 @@ lb_version=1.9.0-beta.1
 #       lb_log_debug
 #       lb_detect_os
 #       lb_array_contains
+#       lb_dir_is_empty
 #   * Initialization
 
 
@@ -2954,6 +2955,9 @@ lb_detect_os() {
 }
 lb_array_contains() {
 	lb_in_array "$@"
+}
+lb_dir_is_empty() {
+	lb_is_dir_empty "$@"
 }
 
 
