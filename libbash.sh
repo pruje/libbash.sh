@@ -59,7 +59,7 @@ lb_version=1.9.0-beta.1
 #       lb_df_uuid
 #   * Files and directories
 #       lb_homepath
-#       lb_dir_is_empty
+#       lb_is_dir_empty
 #       lb_abspath
 #       lb_realpath
 #       lb_is_writable
@@ -2041,8 +2041,8 @@ lb_homepath() {
 
 
 # Test if a directory is empty
-# Usage: lb_dir_is_empty PATH
-lb_dir_is_empty() {
+# Usage: lb_is_dir_empty PATH
+lb_is_dir_empty() {
 
 	# test if directory exists
 	if ! [ -d "$*" ] ; then

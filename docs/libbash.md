@@ -100,7 +100,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_df_uuid](#lb_df_uuid)*
 * Files and directories
 	* [lb_homepath](#lb_homepath)
-	* [lb_dir_is_empty](#lb_dir_is_empty)
+	* [lb_is_dir_empty](#lb_is_dir_empty)
 	* [lb_abspath](#lb_abspath)
 	* [lb_realpath](#lb_realpath)
 	* [lb_is_writable](#lb_is_writable)
@@ -1231,13 +1231,17 @@ home=$(lb_homepath)
 ```
 
 ---------------------------------------------------------------
-<a name="lb_dir_is_empty"></a>
-### lb_dir_is_empty
+<a name="lb_is_dir_empty"></a>
+### lb_is_dir_empty
 Test if a directory is empty.
+
+Note: This function was called `lb_dir_is_empty()` and has been renamed in
+version 1.9.0. You can still use the old name because there is an alias for
+compatibility, but it is no longer recommended.
 
 #### Usage
 ```bash
-lb_dir_is_empty PATH
+lb_is_dir_empty PATH
 ```
 
 #### Exit codes
@@ -1249,7 +1253,7 @@ lb_dir_is_empty PATH
 #### Example
 ```bash
 # if directory is empty, delete it
-if lb_dir_is_empty /empty/directory/ ; then
+if lb_is_dir_empty /empty/directory/ ; then
     rmdir /empty/directory/
 fi
 ```
