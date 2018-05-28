@@ -255,12 +255,10 @@ lbg_display_info() {
 	done
 
 	# usage error if no text to display
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# prepare command
-	local cmd result
+	local cmd
 	case $lbg_gui in
 		kdialog)
 			cmd=(kdialog --title "$title" --msgbox "$*")
@@ -286,24 +284,20 @@ EOF
 			cmd+=(lbg_display_info "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
-
-			# command failed
-			[ $? != 0 ] && return 2
-
+			# and quit
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
 		dialog)
-			dialog --title "$title" --clear --msgbox "$*" $(lbg_dialog_size 50 10) 2> /dev/null
-			result=$?
+			local result=0
+			dialog --title "$title" --clear --msgbox "$*" $(lbg_dialog_size 50 10) 2> /dev/null || result=$?
 
 			# clear console
 			clear
 
 			# command error
 			[ $result != 0 ] && return 2
-
 			return 0
 			;;
 
@@ -314,12 +308,7 @@ EOF
 	esac
 
 	# run command
-	"${cmd[@]}" 2> /dev/null
-
-	# command error
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	"${cmd[@]}" 2> /dev/null || return 2
 }
 
 
@@ -346,9 +335,7 @@ lbg_display_warning() {
 	done
 
 	# usage error if no text to display
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# prepare command
 	local cmd
@@ -377,11 +364,7 @@ EOF
 			cmd+=(lbg_display_warning "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
-
-			# command failed
-			[ $? != 0 ] && return 2
-
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
@@ -397,12 +380,7 @@ EOF
 	esac
 
 	# run command
-	"${cmd[@]}" 2> /dev/null
-
-	# command error
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	"${cmd[@]}" 2> /dev/null || return 2
 }
 
 
@@ -429,9 +407,7 @@ lbg_display_error() {
 	done
 
 	# usage error if no text to display
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# prepare command
 	local cmd
@@ -460,11 +436,7 @@ EOF
 			cmd+=(lbg_display_error "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
-
-			# command failed
-			[ $? != 0 ] && return 2
-
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
@@ -480,12 +452,7 @@ EOF
 	esac
 
 	# run command
-	"${cmd[@]}" 2> /dev/null
-
-	# command error
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	"${cmd[@]}" 2> /dev/null || return 2
 }
 
 
@@ -521,9 +488,7 @@ lbg_notify() {
 	done
 
 	# usage error if no text
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	local opts
 
@@ -540,12 +505,8 @@ lbg_notify() {
 				fi
 
 				# push notification and return
-				notify-send $opts"$title" "$*"
-				if [ $? == 0 ] ; then
-					return 0
-				else
-					return 2
-				fi
+				notify-send $opts"$title" "$*" || return 2
+				return 0
 			fi
 		fi
 	fi
@@ -553,7 +514,7 @@ lbg_notify() {
 	# run command
 	case $lbg_gui in
 		kdialog)
-			kdialog --title "$title" --passivepopup "$*" $timeout 2> /dev/null
+			kdialog --title "$title" --passivepopup "$*" $timeout 2> /dev/null || return 2
 			;;
 
 		zenity)
@@ -565,27 +526,23 @@ lbg_notify() {
 			fi
 
 			# run command
-			zenity --notification $opts --text "$*" 2> /dev/null
+			zenity --notification $opts --text "$*" 2> /dev/null || return 2
 			;;
 
 		osascript)
 			osascript &> /dev/null << EOF
 display notification "$*" with title "$title"
 EOF
+			[ $? == 0 ] || return 2
 			;;
 
 		# no dialog command, because it doesn't make sense in console
 
 		*)
 			# print in console mode
-			lb_display "[$lb_default_info_label]  $*"
+			lb_display "[$lb_default_info_label]  $*" || return 2
 			;;
 	esac
-
-	# command error
-	if [ $? != 0 ] ; then
-		return 2
-	fi
 }
 
 
@@ -630,11 +587,9 @@ lbg_yesno() {
 	done
 
 	# usage error if no text to display
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
-	local cmd result
+	local cmd result=0
 
 	# prepare command
 	case $lbg_gui in
@@ -692,11 +647,7 @@ EOF)
 			fi
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
-
-			# command failed or response is no
-			[ $? != 0 ] && return 2
-
+			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
@@ -714,8 +665,7 @@ EOF)
 			cmd+=(--clear --yesno "$*" $(lbg_dialog_size 100 10))
 
 			# run command
-			"${cmd[@]}"
-			result=$?
+			"${cmd[@]}" || result=$?
 
 			# clear console
 			clear
@@ -752,12 +702,7 @@ EOF)
 	esac
 
 	# run command
-	"${cmd[@]}" 2> /dev/null
-
-	# command error
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	"${cmd[@]}" 2> /dev/null || return 2
 }
 
 
@@ -801,9 +746,7 @@ lbg_choose_option() {
 	done
 
 	# usage error if missing at least 1 choice option
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# options: initialize with an empty first value (option ID starts to 1, not 0)
 	local options=("" "$@")
@@ -912,10 +855,8 @@ EOF)
 			done
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			lbg_choose_option=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
-
-			# cancelled
-			[ $? != 0 ] && return 2
+			# error => cancelled
+			lbg_choose_option=$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			lbg_choose_option=${lbg_choose_option:0:${#lbg_choose_option}-1}
@@ -959,8 +900,7 @@ EOF)
 			done
 
 			# execute console function
-			"${cmd[@]}"
-			if [ $? == 0 ] ; then
+			if "${cmd[@]}" ; then
 				# forward result
 				lbg_choose_option=$lb_choose_option
 			fi
@@ -1018,9 +958,7 @@ lbg_input_text() {
 	done
 
 	# usage error if no text to display
-	if lb_test_arguments -eq 0 $* ; then
-		return 1
-	fi
+	[ -z "$1" ] && return 1
 
 	# run command
 	local cmd
@@ -1048,10 +986,8 @@ EOF)
 			fi
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			lbg_input_text=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
-
-			# cancelled
-			[ $? != 0 ] && return 2
+			# error => cancelled
+			lbg_input_text=$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
@@ -1076,8 +1012,7 @@ EOF)
 			cmd+=("$*")
 
 			# execute console function
-			"${cmd[@]}"
-			if [ $? == 0 ] ; then
+			if "${cmd[@]}" ; then
 				# forward result
 				lbg_input_text=$lb_input_text
 			fi
@@ -1143,7 +1078,7 @@ lbg_input_password() {
 	fi
 
 	# display dialog
-	local i
+	local i result=0
 	for i in 1 2 ; do
 
 		# run command
@@ -1180,13 +1115,14 @@ EOF)
 				if [ $min_size -gt 0 ] ; then
 					cmd+=(--min-size $min_size)
 				fi
-				"${cmd[@]}"
-				lbg_inpw_res=$?
-				if [ $lbg_inpw_res == 0 ] ; then
+
+				result=0
+				"${cmd[@]}" || result=$?
+				if [ $result == 0 ] ; then
 					# forward result
 					lbg_input_password=$lb_input_password
 				else
-					return $lbg_inpw_res
+					return $result
 				fi
 				;;
 		esac
@@ -1266,7 +1202,7 @@ lbg_choose_directory() {
 	done
 
 	# if no path specified, use current
-	if lb_test_arguments -eq 0 $* ; then
+	if [ -z "$1" ] ; then
 		path=$lb_current_path
 	else
 		path=$*
@@ -1307,10 +1243,8 @@ EOF)
 			fi
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			choice=$(cd "$lbg_vbscript_directory" && "${cmd[@]}")
-
-			# cancelled
-			[ $? != 0 ] && return 2
+			# error => cancelled
+			choice=$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			choice=${choice:0:${#choice}-1}
@@ -1338,8 +1272,7 @@ EOF)
 			fi
 
 			# execute console function
-			"${cmd[@]}"
-			if [ $? == 0 ] ; then
+			if "${cmd[@]}" ; then
 				# forward result
 				choice=$lb_input_text
 			fi
@@ -1351,8 +1284,7 @@ EOF)
 
 	# return windows paths
 	if [ "$lb_current_os" == "Windows" ] ; then
-		choice=$(lb_realpath "$choice")
-		[ $? != 0 ] && return 3
+		choice=$(lb_realpath "$choice") || return 3
 	fi
 
 	# if not a directory, return error
@@ -1363,11 +1295,8 @@ EOF)
 
 	# return absolute path if option set
 	if $absolute_path ; then
-		lbg_choose_directory=$(lb_abspath "$lbg_choose_directory")
-		if [ $? != 0 ] ; then
-			# in case of error, user can get returned path
-			return 4
-		fi
+		# in case of error, user can get returned path
+		lbg_choose_directory=$(lb_abspath "$lbg_choose_directory") || return 4
 	fi
 }
 
@@ -1411,7 +1340,7 @@ lbg_choose_file() {
 	done
 
 	# if no path specified, use current directory
-	if lb_test_arguments -eq 0 $* ; then
+	if [ -z "$1" ] ; then
 		path=$lb_current_path
 	else
 		path=$*
@@ -1516,8 +1445,7 @@ EOF)
 			fi
 
 			# execute console function
-			"${cmd[@]}"
-			if [ $? == 0 ] ; then
+			if "${cmd[@]}" ; then
 				# forward result
 				choice=$lb_input_text
 			fi
@@ -1532,11 +1460,10 @@ EOF)
 
 		# beware the save mode where file does not exists!
 		if $save_mode ; then
-			choice="$(lb_realpath "$(dirname "$choice")")/$(basename "$choice")"
+			choice="$(lb_realpath "$(dirname "$choice")")/$(basename "$choice")" || return 3
 		else
-			choice=$(lb_realpath "$choice")
+			choice=$(lb_realpath "$choice") || return 3
 		fi
-		[ $? != 0 ] && return 3
 	fi
 
 	# if save mode,
@@ -1556,11 +1483,8 @@ EOF)
 
 	# return absolute path if option set
 	if $absolute_path ; then
-		lbg_choose_file=$(lb_abspath "$choice")
-		if [ $? != 0 ] ; then
-			# in case of error, user can get returned path
-			return 4
-		fi
+		# in case of error, user can get returned path
+		lbg_choose_file=$(lb_abspath "$choice") || return 4
 	else
 		# return choice
 		lbg_choose_file=$choice
@@ -1643,8 +1567,7 @@ lbg_open_directory() {
 		fi
 
 		# open file explorer
-		"$explorer" "$path" 2> /dev/null
-		[ $? != 0 ] && result=3
+		"$explorer" "$path" 2> /dev/null || result=3
 	done
 
 	return $result
