@@ -163,12 +163,11 @@ lb_function_exists() {
 
 	for arg in "$@" ; do
 		# get type of argument
-		type=$(type -t $arg)
-
 		# if failed to get type, it does not exists
-		[ $? != 0 ] && return 2
+		type=$(type -t $arg) || return 2
 
 		# test if is not a function
+		# Note: do not use && here to avoid returning 1
 		if [ "$type" != function ] ; then
 			return 3
 		fi
@@ -187,9 +186,7 @@ lb_test_arguments() {
 	[ $# -lt 2 ] && return 1
 
 	# arg 2 should be an integer
-	if ! lb_is_integer $2 ; then
-		return 1
-	fi
+	lb_is_integer $2 || return 1
 
 	local operator=$1 value=$2
 	shift 2
@@ -198,18 +195,13 @@ lb_test_arguments() {
 	case $operator in
 		-eq|-ne|-lt|-le|-gt|-ge)
 			# execute test on arguments number
-			[ $# $operator $value ]
+			[ $# $operator $value ] || return 2
 			;;
 		*)
 			# syntax error
 			return 1
 			;;
 	esac
-
-	# if test not OK
-	if [ $? != 0 ] ; then
-		return 2
-	fi
 }
 
 
@@ -250,20 +242,17 @@ lb_exit() {
 	# if an exit command is defined,
 	if [ ${#lb_exit_cmd[@]} -gt 0 ] ; then
 
+		local result=0
+
 		# run command
 		if $quiet_mode ; then
-			"${lb_exit_cmd[@]}" &> /dev/null
+			"${lb_exit_cmd[@]}" &> /dev/null || result=$?
 		else
-			"${lb_exit_cmd[@]}"
+			"${lb_exit_cmd[@]}" || result=$?
 		fi
-
-		# get command result
-		local result=$?
 
 		# forward exit code option
-		if $forward_code ; then
-			exit $result
-		fi
+		$forward_code && exit $result
 	fi
 
 	# exit with exitcode variable
@@ -452,10 +441,9 @@ lb_display() {
 		if [ -n "$lb_display_level" ] ; then
 			# get display level ID
 			local level_id
-			level_id=$(lb_get_display_level --id "$display_level")
 
 			# Note: if level is unknown, message will be displayed
-			if [ $? == 0 ] ; then
+			if level_id=$(lb_get_display_level --id "$display_level") ; then
 				# if display level is higher than default, will not display (but can log)
 				if [ $level_id -gt $lb_display_level ] ; then
 					display=false
@@ -483,16 +471,11 @@ lb_display() {
 		log_cmd+=("$prefix$*")
 
 		# execute lb_log
-		"${log_cmd[@]}"
-		if [ $? != 0 ] ; then
-			result=2
-		fi
+		"${log_cmd[@]}" || result=2
 	fi
 
-	# if no need to display, return
-	if ! $display ; then
-		return $result
-	fi
+	# if no need to display, quit
+	$display || return $result
 
 	# enable coloured prefixes
 	if $display_prefix ; then
@@ -519,8 +502,7 @@ lb_display() {
 	fi
 
 	# print text
-	lb_print $opts"$prefix$*"
-	[ $? != 0 ] && return 3
+	lb_print $opts"$prefix$*" || return 3
 
 	return $result
 }
@@ -564,9 +546,7 @@ lb_result() {
 				;;
 			-e|--error-exitcode)
 				# check type and validity
-				if ! lb_is_integer $2 ; then
-					return 1
-				fi
+				lb_is_integer $2 || return 1
 				error_exitcode=$2
 				shift
 				;;
@@ -585,9 +565,8 @@ lb_result() {
 
 	# specified exit code
 	if [ -n "$1" ] ; then
-		if ! lb_is_integer $1 ; then
-			return 1
-		fi
+		# test type
+		lb_is_integer $1 || return 1
 		result=$1
 	fi
 
@@ -657,9 +636,7 @@ lb_short_result() {
 				;;
 			-e|--error-exitcode)
 				# check type and validity
-				if ! lb_is_integer $2 ; then
-					return 1
-				fi
+				lb_is_integer $2 || return 1
 				error_exitcode=$2
 				shift
 				;;
@@ -678,9 +655,8 @@ lb_short_result() {
 
 	# specified exit code
 	if [ -n "$1" ] ; then
-		if ! lb_is_integer $1 ; then
-			return 1
-		fi
+		# test type
+		lb_is_integer $1 || return 1
 		result=$1
 	fi
 
@@ -775,9 +751,7 @@ lb_set_logfile() {
 
 	# cancel if path exists but is not a regular file
 	if [ -e "$*" ] ; then
-		if ! [ -f "$*" ] ; then
-			return 4
-		fi
+		[ -f "$*" ] || return 4
 	fi
 
 	# cancel if file is not writable
@@ -792,17 +766,11 @@ lb_set_logfile() {
 	if [ -f "$*" ] ; then
 		# overwrite file
 		if $overwrite ; then
-			# empty file
-			> "$*"
-			# if error: file is not writable
-			if [ $? != 0 ] ; then
-				return 2
-			fi
+			# empty file; if error, file is not writable
+			> "$*" || return 2
 		else
 			# cancel if can not be append
-			if ! $append ; then
-				return 3
-			fi
+			$append || return 3
 		fi
 	fi
 
@@ -943,10 +911,9 @@ lb_log() {
 		# test current log level
 		if [ -n "$lb_log_level" ] ; then
 			local id_level
-			id_level=$(lb_get_log_level --id "$level")
 
 			# Note: if level unknown, message will be logged
-			if [ $? == 0 ] ; then
+			if id_level=$(lb_get_log_level --id "$level") ; then
 				# if log level is higher than default, do not log
 				if [ $id_level -gt $lb_log_level ] ; then
 					return 0
@@ -979,12 +946,7 @@ lb_log() {
 	fi
 
 	# print into log file; do not output text or errors
-	echo -e $echo_opts"$log_message" | tee $tee_opts"$lb_logfile" &> /dev/null
-
-	# unknown write error
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	echo -e $echo_opts"$log_message" | tee $tee_opts"$lb_logfile" &> /dev/null || return 2
 }
 
 
@@ -1176,10 +1138,7 @@ lb_import_config() {
 		fi
 
 		# run command to attribute value to variable
-		eval "$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')=$value" &> /dev/null
-		if [ $? != 0 ] ; then
-			result=2
-		fi
+		eval "$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')=$value" &> /dev/null || result=2
 	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
 
 	# if section was not found, return error
@@ -1362,22 +1321,15 @@ lb_set_config() {
 		if $section_ready ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			sed -i~ "${config_line[found-1]}s/\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file"
-
-			if [ $? == 0 ] ; then
-				return 0
-			else
-				return 4
-			fi
+			sed -i~ "${config_line[found-1]}s/\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file" || return 4
+			return 0
 		fi
 	fi
 
 	# if parameter not found (or not in the right section)
 
 	# if strict mode, quit
-	if $strict_mode ; then
-		return 3
-	fi
+	$strict_mode && return 3
 
 	# if filter by section,
 	if [ -n "$section" ] ; then
@@ -1388,12 +1340,8 @@ lb_set_config() {
 		# if section exists,
 		if [ -n "$config_line" ] ; then
 			# append parameter to section
-			sed -i~ "$((${config_line[0]}+1))i$param = $sed_value" "$config_file"
-			if [ $? == 0 ] ; then
-				return 0
-			else
-				return 4
-			fi
+			sed -i~ "$((${config_line[0]}+1))i$param = $sed_value" "$config_file" || return 4
+			return 0
 		else
 			# if section not found, append section to the end of file
 			config_line="[$section]"
@@ -1403,17 +1351,12 @@ lb_set_config() {
 				config_line+="\r"
 			fi
 
-			echo -e "$config_line" >> "$config_file"
-			[ $? != 0 ] && return 4
+			echo -e "$config_line" >> "$config_file" || return 4
 		fi
 	fi
 
 	# append line to file
-	echo -e "$param = $value" >> "$config_file"
-
-	if [ $? != 0 ] ; then
-		return 4
-	fi
+	echo -e "$param = $value" >> "$config_file" || return 4
 }
 
 
@@ -1593,13 +1536,13 @@ lb_in_array() {
 lb_date2timestamp() {
 
 	# default options
-	local date_opts
+	local cmd=(date)
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-u|--utc)
-				date_opts="-u"
+				cmd+=(-u)
 				;;
 			*)
 				break
@@ -1611,16 +1554,15 @@ lb_date2timestamp() {
 	# usage error
 	[ -z "$1" ] && return 1
 
-	# return timestamp
+	# prepare command
 	if [ "$lb_current_os" == macOS ] ; then
-		date $date_opts -j -f '%Y-%m-%d %H:%M:%S' "$*" +%s 2> /dev/null
+		cmd+=(-j -f '%Y-%m-%d %H:%M:%S' "$*" +%s)
 	else
-		date $date_opts -d "$*" +%s 2> /dev/null
+		cmd+=(-d "$*" +%s)
 	fi
 
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	# return timestamp
+	"${cmd[@]}" 2> /dev/null || return 2
 }
 
 
@@ -1629,7 +1571,7 @@ lb_date2timestamp() {
 lb_timestamp2date() {
 
 	# default options
-	local format date_opts
+	local format cmd=(date)
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1640,7 +1582,7 @@ lb_timestamp2date() {
 				shift
 				;;
 			-u|--utc)
-				date_opts="-u"
+				cmd+=(-u)
 				;;
 			*)
 				break
@@ -1650,28 +1592,25 @@ lb_timestamp2date() {
 	done
 
 	# usage error
-	if ! lb_is_integer $1 ; then
-		return 1
-	fi
+	lb_is_integer $1 || return 1
 
-	# return formatted date
+	# prepare command
 	if [ "$lb_current_os" == macOS ] ; then
 		if [ -z "$format" ] ; then
-			date $date_opts -j -f %s $1 2> /dev/null
+			cmd+=(-j -f %s $1)
 		else
-			date $date_opts -j -f %s $1 "$format" 2> /dev/null
+			cmd+=(-j -f %s $1 "$format")
 		fi
 	else
 		if [ -z "$format" ] ; then
-			date $date_opts -d @$1 2> /dev/null
+			cmd+=(-d @$1)
 		else
-			date $date_opts -d @$1 "$format" 2> /dev/null
+			cmd+=(-d @$1 "$format")
 		fi
 	fi
 
-	if [ $? != 0 ] ; then
-		return 2
-	fi
+	# return formatted date
+	"${cmd[@]}" 2> /dev/null || return 2
 }
 
 
@@ -1762,12 +1701,8 @@ lb_compare_versions() {
 
 			if lb_is_integer $version1_num && lb_is_integer $version2_num ; then
 				# compare versions and quit
-				[ "$version1_num" $operator "$version2_num" ]
-				if [ $? == 0 ] ; then
-					return 0
-				else
-					return 2
-				fi
+				[ "$version1_num" $operator "$version2_num" ] || return 2
+				return 0
 			else
 				# if not integer, error
 				return 1
@@ -1902,8 +1837,7 @@ lb_df_fstype() {
 		macOS)
 			# get mountpoint
 			local mount_point
-			mount_point=$(lb_df_mountpoint "$*")
-			[ $? != 0 ] && return 3
+			mount_point=$(lb_df_mountpoint "$*") || return 3
 
 			# get filesystem type
 			diskutil info "$mount_point" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
@@ -1990,8 +1924,7 @@ lb_df_uuid() {
 		macOS)
 			# get mountpoint
 			local mount_point
-			mount_point=$(lb_df_mountpoint "$*")
-			[ $? != 0 ] && return 3
+			mount_point=$(lb_df_mountpoint "$*") || return 3
 
 			# get filesystem type
 			diskutil info "$mount_point" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
@@ -2046,15 +1979,12 @@ lb_homepath() {
 lb_is_dir_empty() {
 
 	# test if directory exists
-	if ! [ -d "$*" ] ; then
-		return 1
-	fi
+	[ -d "$*" ] || return 1
 
 	# test if directory is empty
 	local content
-	content=$(ls -A "$*" 2> /dev/null)
 	# ls error means an access rights error
-	[ $? != 0 ] && return 2
+	content=$(ls -A "$*" 2> /dev/null) || return 2
 
 	# directory is not empty
 	if [ "$content" ] ; then
@@ -2078,10 +2008,8 @@ lb_abspath() {
 		path="/"
 	else
 		# get absolute path of the parent directory
-		path=$(cd "$directory" &> /dev/null && pwd)
-
 		# if path does not exists, error
-		[ $? != 0 ] && return 2
+		path=$(cd "$directory" &> /dev/null && pwd) || return 2
 	fi
 
 	# case of root path (basename=/)
@@ -2111,13 +2039,11 @@ lb_abspath() {
 lb_realpath() {
 
 	# test if path exists
-	if ! [ -e "$1" ] ; then
-		return 1
-	fi
+	[ -e "$1" ] || return 1
 
 	if [ "$lb_current_os" == macOS ] ; then
 		# macOS does not support readlink -f option
-		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1"
+		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1" || return 2
 	else
 		# Linux & Windows
 		local path
@@ -2131,12 +2057,7 @@ lb_realpath() {
 		fi
 
 		# find real path
-		readlink -f "$path" 2> /dev/null
-	fi
-
-	# error
-	if [ $? != 0 ] ; then
-		return 2
+		readlink -f "$path" 2> /dev/null || return 2
 	fi
 }
 
@@ -2151,21 +2072,15 @@ lb_is_writable() {
 	# if file/folder exists
 	if [ -e "$*" ] ; then
 		# cancel if not writable
-		if ! [ -w "$*" ] ; then
-			return 2
-		fi
+		[ -w "$*" ] || return 2
 	else
 		# if file/folder does not exists
 
 		# cancel if parent directory does not exists
-		if ! [ -d "$(dirname "$*")" ] ; then
-			return 4
-		fi
+		[ -d "$(dirname "$*")" ] || return 4
 
 		# cancel if parent directory is not writable
-		if ! [ -w "$(dirname "$*")" ] ; then
-			return 3
-		fi
+		[ -w "$(dirname "$*")" ] || return 3
 	fi
 }
 
@@ -2265,9 +2180,7 @@ lb_generate_password() {
 	# get size option
 	if [ -n "$1" ] ; then
 		# check if is integer
-		if ! lb_is_integer $1 ; then
-			return 1
-		fi
+		lb_is_integer $1 || return 1
 
 		# size must be between 1 and 32
 		if [ $size -ge 1 ] && [ $size -le 32 ] ; then
@@ -2285,14 +2198,11 @@ lb_generate_password() {
 		# print date timestamp + nanoseconds then generate md5 checksum
 		# then encode in base64
 		if [ "$lb_current_os" == macOS ] ; then
-			password=$(date +%s%N | shasum -a 256 | base64)
+			password=$(date +%s%N | shasum -a 256 | base64) || return 2
 		else
-			password=$(date +%s%N | sha256sum | base64)
+			password=$(date +%s%N | sha256sum | base64) || return 2
 		fi
 	fi
-
-	# return error if command failed
-	[ $? != 0 ] && return 2
 
 	# return password at the right size
 	echo "${password:0:$size}"
@@ -2473,9 +2383,7 @@ fi
 	# send email
 	case $cmd in
 		/usr/sbin/sendmail)
-			echo "$message" | /usr/sbin/sendmail -t
-			# if unknown error
-			if [ $? != 0 ] ; then
+			if ! echo "$message" | /usr/sbin/sendmail -t ; then
 				return 3
 			fi
 			;;
@@ -2974,8 +2882,7 @@ lb_current_path=$(pwd)
 lb_current_user=$(whoami)
 
 # get current OS
-lb_current_os=$(lb_current_os)
-if [ $? != 0 ] ; then
+if ! lb_current_os=$(lb_current_os) ; then
 	lb_error "libbash.sh: [WARNING] cannot get current OS"
 	lb_load_result=4
 fi
@@ -2986,16 +2893,14 @@ if [ "$lb_current_os" == macOS ] ; then
 fi
 
 # libbash context
-lb_path=$(lb_realpath "$BASH_SOURCE")
-if [ $? != 0 ] ; then
+if ! lb_path=$(lb_realpath "$BASH_SOURCE") ; then
 	lb_error "libbash.sh: [WARNING] cannot get libbash path"
 	lb_load_result=4
 fi
 lb_directory=$(dirname "$lb_path")
 
 # current script context
-lb_current_script=$(lb_realpath "$0")
-if [ $? != 0 ] ; then
+if ! lb_current_script=$(lb_realpath "$0") ; then
 	lb_error "libbash.sh: [WARNING] cannot get current script path"
 	lb_load_result=4
 fi
@@ -3009,15 +2914,18 @@ lb_lang=${LANG:0:2}
 while [ $# -gt 0 ] ; do
 	case $1 in
 		-g|--gui)
+			lb_load_gui=0
+
 			# load libbash GUI
-			source "$lb_directory/libbash_gui.sh" &> /dev/null
-			case $? in
+			source "$lb_directory/libbash_gui.sh" &> /dev/null || lb_load_gui=$?
+
+			case $lb_load_gui in
 				0)
 					# continue
 					;;
 				2)
 					lb_error "libbash.sh GUI: [ERROR] cannot set a GUI interface"
-					lb_load_result=2
+					lb_load_result=5
 					;;
 				*)
 					lb_error "libbash.sh: [ERROR] cannot load GUI part. Please verify the path $lb_directory."
@@ -3042,8 +2950,7 @@ done
 # load translations (do not exit if errors)
 case $lb_lang in
 	fr)
-		source "$lb_directory/locales/$lb_lang.sh" &> /dev/null
-		if [ $? != 0 ] ; then
+		if ! source "$lb_directory/locales/$lb_lang.sh" &> /dev/null ; then
 			lb_error "libbash.sh: [WARNING] cannot load translation: $lb_lang"
 			lb_load_result=3
 		fi

@@ -34,6 +34,7 @@ When you load libbash.sh, you can have the following return codes:
 - 2: cannot load libbash.sh GUI
 - 3: cannot load translation file
 - 4: some variables could not be initialized
+- 5: cannot set a GUI interface (if GUI loaded)
 
 ## Variables
 You can use the following variables that are initialized when you include libbash.sh in your scripts:
