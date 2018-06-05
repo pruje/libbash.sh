@@ -105,6 +105,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_abspath](#lb_abspath)
 	* [lb_realpath](#lb_realpath)
 	* [lb_is_writable](#lb_is_writable)
+	* [lb_edit](#lb_edit)
 * System utilities
 	* [lb_current_os](#lb_current_os)
 	* [lb_user_exists](#lb_user_exists)
@@ -1339,6 +1340,26 @@ lb_is_writable PATH
 if lb_is_writable /path/to/file ; then
     touch /path/to/file
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_edit"></a>
+### lb_edit
+Edit a file withe the `sed -i` command.
+
+#### Usage
+```bash
+lb_edit PATTERN PATH
+```
+
+#### Exit codes
+Exit codes are forwarded from the `sed` command.
+See the sed manual for more information about them.
+
+#### Example
+```bash
+# replace a by b in a file
+lb_edit 's/a/b/g' myfile.txt
 ```
 
 ---------------------------------------------------------------
