@@ -63,6 +63,7 @@ lb_version=1.9.0-beta.1
 #       lb_abspath
 #       lb_realpath
 #       lb_is_writable
+#       lb_edit
 #   * System utilities
 #       lb_current_os
 #       lb_user_exists
@@ -157,7 +158,7 @@ lb_command_exists() {
 lb_function_exists() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# -gt 0 ] || return 1
 
 	local arg type
 
@@ -183,7 +184,7 @@ lb_test_arguments() {
 	# third-party functions which are using this function to avoid infinite loops
 
 	# we wait for at least an operator and a number
-	[ $# -lt 2 ] && return 1
+	[ $# -ge 2 ] || return 1
 
 	# arg 2 should be an integer
 	lb_is_integer $2 || return 1
@@ -747,7 +748,7 @@ lb_set_logfile() {
 	done
 
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# cancel if path exists but is not a regular file
 	if [ -e "$*" ] ; then
@@ -2081,6 +2082,18 @@ lb_is_writable() {
 
 		# cancel if parent directory is not writable
 		[ -w "$(dirname "$*")" ] || return 3
+	fi
+}
+
+
+# Edit a file with sed command
+# Usage: lb_edit PATTERN FILE
+lb_edit() {
+	# run sed command
+	if [ "$lb_current_os" == macOS ] ; then
+		sed -i '' "$@"
+	else
+		sed -i "$@"
 	fi
 }
 
