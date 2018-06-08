@@ -1,4 +1,16 @@
 # Changelog
+This project adheres to [Semantic Versioning](http://semver.org/).
+
+## 1.9.0 (2018-06-08)
+### Added
+- New function: `lb_edit()` to edit a file properly with the `sed -i` command
+
+### Changes
+- `lb_array_contains()` renamed to `lb_in_array()` (old name kept for compatibility)
+- `lb_dir_is_empty()` renamed to `lb_is_dir_empty()` (old name kept for compatibility)
+- Improve error management to avoid crashes when using command `set -e`
+- Code quality improved by [ShellCheck](https://www.shellcheck.net/)
+- Various performance improvements
 
 ## 1.8.0 (2018-01-26)
 ### New features
