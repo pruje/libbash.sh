@@ -1320,7 +1320,7 @@ lb_set_config() {
 		if $section_ready ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			sed -i~ "${config_line[found-1]}s/\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file" || return 4
+			lb_edit "${config_line[found-1]}s/\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file" || return 4
 			return 0
 		fi
 	fi
@@ -1339,7 +1339,7 @@ lb_set_config() {
 		# if section exists,
 		if [ -n "$config_line" ] ; then
 			# append parameter to section
-			sed -i~ "$((${config_line[0]}+1))i$param = $sed_value" "$config_file" || return 4
+			lb_edit "$((${config_line[0]}+1))i$param = $sed_value" "$config_file" || return 4
 			return 0
 		else
 			# if section not found, append section to the end of file
