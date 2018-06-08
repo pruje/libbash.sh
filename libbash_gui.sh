@@ -125,15 +125,6 @@ lbg_dialog_size() {
 }
 
 
-# [INTERNAL] Run an osascript command
-# Usage: lbg_osascript COMMAND
-lbg_osascript() {
-	osascript <<EOF
-"$@"
-EOF
-}
-
-
 ###############
 #  GUI TOOLS  #
 ###############
@@ -280,11 +271,9 @@ lbg_display_info() {
 
 		osascript)
 			# run command
-			osascript &> /dev/null << EOF
+			$(osascript &> /dev/null << EOF
 display dialog "$*" with title "$title" with icon note buttons {"$lb_default_ok_label"} default button 1
-EOF
-			# command error
-			[ $? != 0 ] && return 2
+EOF) || return 2
 
 			return 0
 			;;
@@ -360,11 +349,9 @@ lbg_display_warning() {
 
 		osascript)
 			# run command
-			osascript &> /dev/null << EOF
+			$(osascript &> /dev/null << EOF
 display dialog "$*" with title "$title" with icon caution buttons {"$lb_default_ok_label"} default button 1
-EOF
-			# command error
-			[ $? != 0 ] && return 2
+EOF) || return 2
 
 			return 0
 			;;
@@ -432,11 +419,9 @@ lbg_display_error() {
 
 		osascript)
 			# run command
-			osascript &> /dev/null << EOF
+			$(osascript &> /dev/null << EOF
 display dialog "$*" with title "$title" with icon stop buttons {"$lb_default_ok_label"} default button 1
-EOF
-			# command error
-			[ $? != 0 ] && return 2
+EOF) || return 2
 
 			return 0
 			;;
@@ -540,10 +525,9 @@ lbg_notify() {
 			;;
 
 		osascript)
-			osascript &> /dev/null << EOF
+			$(osascript &> /dev/null << EOF
 display notification "$*" with title "$title"
-EOF
-			[ $? == 0 ] || return 2
+EOF) || return 2
 			;;
 
 		# no dialog command, because it doesn't make sense in console
