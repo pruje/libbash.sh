@@ -17,6 +17,7 @@
 #   * Internal functions
 #       lbg_get_console_size
 #       lbg_dialog_size
+#       lbg_osascript
 #   * GUI tools
 #       lbg_get_gui
 #       lbg_set_gui
@@ -121,6 +122,15 @@ lbg_dialog_size() {
 
 	# return height width
 	echo $dialog_height $dialog_width
+}
+
+
+# [INTERNAL] Run an osascript command
+# Usage: lbg_osascript COMMAND
+lbg_osascript() {
+	osascript <<EOF
+"$@"
+EOF
 }
 
 

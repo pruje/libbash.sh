@@ -916,9 +916,7 @@ lb_log() {
 			# Note: if level unknown, message will be logged
 			if id_level=$(lb_get_log_level --id "$level") ; then
 				# if log level is higher than default, do not log
-				if [ $id_level -gt $lb_log_level ] ; then
-					return 0
-				fi
+				[ $id_level -gt $lb_log_level ] && return 0
 			fi
 		fi
 	fi
