@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.9.1 (2018-07-06)
+- Use `lb_edit()` in `lb_set_config()` to avoid create backup files
+
 ## 1.9.0 (2018-06-08)
 ### Added
 - New function: `lb_edit()` to edit a file properly with the `sed -i` command
