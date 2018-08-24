@@ -27,7 +27,7 @@ Supported languages:
 **Note: DO NOT USE** variables or functions with `lb_` prefix in your scripts
 (nor `lbg_` if you use libbash.sh GUI) as you could override or broke some libbash.sh features.
 
-## Exit codes
+## Return codes
 When you load libbash.sh, you can have the following return codes:
 - 0: libbash.sh is loaded
 - 1: libbash.sh file does not exists (in most cases), or is corrupted
@@ -37,18 +37,20 @@ When you load libbash.sh, you can have the following return codes:
 - 5: cannot set a GUI interface (if GUI loaded)
 
 ## Variables
-You can use the following variables that are initialized when you include libbash.sh in your scripts:
+You can use the following variables that are initialized when you include libbash.sh in your scripts (read only):
 - `$lb_version`: the current libbash.sh version
-- `$lb_path`: path of libbash.sh
-- `$lb_directory`: libbash.sh directory
-- `$lb_current_script`: path of your current script (same as `$0`)
-- `$lb_current_script_name`: name of your current script (same as `basename "$0"`)
-- `$lb_current_script_directory`: directory of your current script (same as `dirname "$0"`)
-- `$lb_current_path`: your current path (same as `pwd`)
 - `$lb_current_os`: your current Operating System (result of `lb_current_os` function)
 - `$lb_current_hostname`: your current host name (result of `hostname` command)
 - `$lb_current_user`: your user name (result of `whoami` command)
-- `$lb_exitcode`: script exit code (0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
+- `$lb_current_path`: your current path (same as `pwd`)
+- `$lb_path`: real path of libbash.sh
+- `$lb_directory`: libbash.sh directory real path
+- `$lb_current_script`: real path of your current script
+- `$lb_current_script_name`: name of your current script
+- `$lb_current_script_directory`: real directory path of your current script
+
+You can use and modify the following variables in your scripts:
+- `$lb_exitcode`: script exit code (integer, 0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
 - `$lb_exit_cmd`: array that contains a command to execute when `lb_exit()` function is called (empty by default)
 
 ## Functions

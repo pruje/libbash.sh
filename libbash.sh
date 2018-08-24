@@ -11,7 +11,7 @@
 #                                                      #
 ########################################################
 
-lb_version=1.9.1
+declare -r lb_version=1.9.1
 
 # Index
 #
@@ -138,6 +138,11 @@ lb_display_level=""
 # print formatted strings in console
 lb_format_print=true
 
+# old sed command
+lb_oldsed=false
+
+# exit code
+lb_exitcode=0
 # command to execute when exit
 lb_exit_cmd=()
 
@@ -2102,7 +2107,7 @@ lb_edit() {
 # Detect current OS family
 # Usage: lb_current_os
 lb_current_os() {
-	case $(uname) in
+	case $(uname 2> /dev/null) in
 		Darwin)
 			echo macOS
 			;;
@@ -2884,44 +2889,31 @@ lb_dir_is_empty() {
 ####################
 
 lb_load_result=0
-lb_exitcode=0
 
 # context variables
-lb_current_hostname=$(hostname 2> /dev/null)
-lb_current_path=$(pwd)
-lb_current_user=$(whoami)
-
-# get current OS
-if ! lb_current_os=$(lb_current_os) ; then
-	lb_error "libbash.sh: [WARNING] cannot get current OS"
-	lb_load_result=4
-fi
-
-# if macOS, disable text formatting in console
-if [ "$lb_current_os" == macOS ] ; then
-	lb_format_print=false
-fi
-
-# detect old sed commands (mostly on macOS)
-lb_oldsed=false
-if ! sed --version &> /dev/null ; then
-	lb_oldsed=true
-fi
+declare -r lb_current_os=$(lb_current_os)
+declare -r lb_current_hostname=$(hostname 2> /dev/null)
+declare -r lb_current_user=$(whoami)
+declare -r lb_current_path=$(pwd)
 
 # libbash context
-if ! lb_path=$(lb_realpath "$BASH_SOURCE") ; then
-	lb_error "libbash.sh: [WARNING] cannot get libbash path"
-	lb_load_result=4
-fi
-lb_directory=$(dirname "$lb_path")
+declare -r lb_path=$(lb_realpath "$BASH_SOURCE")
+declare -r lb_directory=$(dirname "$lb_path")
 
 # current script context
-if ! lb_current_script=$(lb_realpath "$0") ; then
-	lb_error "libbash.sh: [WARNING] cannot get current script path"
-	lb_load_result=4
-fi
-lb_current_script_name=$(basename "$lb_current_script")
-lb_current_script_directory=$(dirname "$lb_current_script")
+declare -r lb_current_script=$(lb_realpath "$0")
+declare -r lb_current_script_name=$(basename "$lb_current_script")
+declare -r lb_current_script_directory=$(dirname "$lb_current_script")
+
+# verify variables
+for v in lb_current_os lb_current_hostname lb_current_user lb_current_path \
+         lb_path lb_directory \
+         lb_current_script lb_current_script_name lb_current_script_directory ; do
+	if [ -z "${!v}" ] ; then
+		lb_error "libbash.sh: [WARNING] variable \$$v could not be set"
+		lb_load_result=4
+	fi
+done
 
 # get current user language (e.g. fr, en, ...)
 lb_lang=${LANG:0:2}
@@ -2937,7 +2929,7 @@ while [ $# -gt 0 ] ; do
 
 			case $lb_load_gui in
 				0)
-					# continue
+					# GUI loaded; continue
 					;;
 				2)
 					lb_error "libbash.sh GUI: [ERROR] cannot set a GUI interface"
@@ -2972,5 +2964,15 @@ case $lb_lang in
 		fi
 		;;
 esac
+
+# if macOS, disable text formatting in console
+if [ "$lb_current_os" == macOS ] ; then
+	lb_format_print=false
+fi
+
+# detect old sed command (mostly on macOS)
+if ! sed --version &> /dev/null ; then
+	lb_oldsed=true
+fi
 
 return $lb_load_result
