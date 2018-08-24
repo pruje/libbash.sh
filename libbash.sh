@@ -2087,8 +2087,7 @@ lb_is_writable() {
 # Edit a file with sed command
 # Usage: lb_edit PATTERN FILE
 lb_edit() {
-	# run sed command
-	if [ "$lb_current_os" == macOS ] ; then
+	if $lb_oldsed ; then
 		sed -i '' "$@"
 	else
 		sed -i "$@"
@@ -2903,6 +2902,12 @@ if [ "$lb_current_os" == macOS ] ; then
 	lb_format_print=false
 fi
 
+# detect old sed commands (mostly on macOS)
+lb_oldsed=false
+if ! sed --version &> /dev/null ; then
+	lb_oldsed=true
+fi
+
 # libbash context
 if ! lb_path=$(lb_realpath "$BASH_SOURCE") ; then
 	lb_error "libbash.sh: [WARNING] cannot get libbash path"
@@ -2954,8 +2959,8 @@ while [ $# -gt 0 ] ; do
 		*)
 			break
 			;;
-   esac
-   shift # get next option
+	esac
+	shift # get next option
 done
 
 # load translations (do not exit if errors)
