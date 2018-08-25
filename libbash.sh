@@ -2902,10 +2902,10 @@ declare -r lb_directory=$(dirname "$lb_path")
 
 # current script context
 declare -r lb_current_script=$(lb_realpath "$0")
-declare -r lb_current_script_name=$(basename "$lb_current_script")
 declare -r lb_current_script_directory=$(dirname "$lb_current_script")
+lb_current_script_name=$(basename "$lb_current_script")
 
-# verify variables
+# verify if variables are set
 for v in lb_current_os lb_current_hostname lb_current_user lb_current_path \
          lb_path lb_directory \
          lb_current_script lb_current_script_name lb_current_script_directory ; do

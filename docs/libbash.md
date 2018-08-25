@@ -46,10 +46,10 @@ You can use the following variables that are initialized when you include libbas
 - `$lb_path`: real path of libbash.sh
 - `$lb_directory`: libbash.sh directory real path
 - `$lb_current_script`: real path of your current script
-- `$lb_current_script_name`: name of your current script
 - `$lb_current_script_directory`: real directory path of your current script
 
 You can use and modify the following variables in your scripts:
+- `$lb_current_script_name`: name of your current script (same as `basename $0` by default)
 - `$lb_exitcode`: script exit code (integer, 0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
 - `$lb_exit_cmd`: array that contains a command to execute when `lb_exit()` function is called (empty by default)
 
