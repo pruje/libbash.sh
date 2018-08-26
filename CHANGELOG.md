@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.9.2 (2018-08-26)
+- Detect `sed` version to make `lb_edit()` work on any system
+- Some context variables are now read-only
+
 ## 1.9.1 (2018-07-06)
 - Use `lb_edit()` in `lb_set_config()` to avoid create backup files
 
