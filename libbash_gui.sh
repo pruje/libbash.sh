@@ -4,10 +4,10 @@
 #  Functions to extend bash scripts to GUI tools       #
 #                                                      #
 #  MIT License                                         #
-#  Copyright (c) 2017-2018 Jean Prunneaux              #
+#  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.9.2 (2018-08-26)                          #
+#  Version 1.10.0 (2019-01-19)                         #
 #                                                      #
 ########################################################
 
@@ -1277,7 +1277,7 @@ EOF)
 	[ -z "$choice" ] && return 2
 
 	# return windows paths
-	if [ "$lb_current_os" == "Windows" ] ; then
+	if [ "$lb_current_os" == Windows ] ; then
 		choice=$(lb_realpath "$choice") || return 3
 	fi
 
@@ -1450,7 +1450,7 @@ EOF)
 	[ -z "$choice" ] && return 2
 
 	# return windows paths
-	if [ "$lb_current_os" == "Windows" ] ; then
+	if [ "$lb_current_os" == Windows ] ; then
 
 		# beware the save mode where file does not exists!
 		if $save_mode ; then

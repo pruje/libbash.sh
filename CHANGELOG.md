@@ -1,6 +1,11 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.10.0 (2019-01-19)
+- New functions: `lb_getargs` and `lb_getopt` to improve arguments parsing in scripts
+- New quiet mode to disable displays (+ editable variable `$lb_quietmode`)
+- Improve documentation and examples
+
 ## 1.9.2 (2018-08-26)
 - Detect `sed` version to make `lb_edit()` work on any system
 - Some context variables are now read-only
