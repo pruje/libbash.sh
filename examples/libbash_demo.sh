@@ -72,6 +72,9 @@ quit_demo() {
 log_level=INFO
 consolemode=false
 
+# get arguments
+lb_getargs "$@" && set -- "${lb_getargs[@]}"
+
 # get global options
 while [ $# -gt 0 ] ; do
 	case $1 in
@@ -79,11 +82,11 @@ while [ $# -gt 0 ] ; do
 			consolemode=true
 			;;
 		-l|--log-level)
-			if lb_test_arguments -eq 0 $2 ; then
+			log_level=$(lb_getopt "$@")
+			if [ $? != 0 ] ; then
 				usage
 				exit 1
 			fi
-			log_level=$2
 			shift
 			;;
 		-d|--debug)
