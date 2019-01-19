@@ -137,6 +137,9 @@ lb_logfile=""
 lb_log_level=""
 lb_display_level=""
 
+# quiet mode
+lb_quietmode=false
+
 # print formatted strings in console
 lb_format_print=true
 
@@ -392,6 +395,9 @@ lb_set_display_level() {
 # Usage: lb_print [OPTIONS] TEXT
 lb_print() {
 
+	# quiet mode: do not print anything
+	[ "$lb_quietmode" == true ] && return 0
+
 	local opts reset_color format=()
 
 	# get options
@@ -480,6 +486,9 @@ lb_display() {
 
 	# other options
 	local prefix display=true result=0
+
+	# quiet mode: do not print anything
+	[ "$lb_quietmode" == true ] && display=false
 
 	# if a display level is set,
 	if [ -n "$display_level" ] ; then
@@ -2496,24 +2505,27 @@ lb_yesno() {
 	# question is missing
 	[ -z "$1" ] && return 1
 
-	# defines question
-	local question="("
-	if $yes_default ; then
-		question+="$(echo "$yes_label" | tr '[:lower:]' '[:upper:]')/$(echo "$no_label" | tr '[:upper:]' '[:lower:]')"
-	else
-		question+="$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')/$(echo "$no_label" | tr '[:lower:]' '[:upper:]')"
+	# print question (if not quiet mode)
+	if [ "$lb_quietmode" != true ] ; then
+		# defines question
+		local question="("
+		if $yes_default ; then
+			question+="$(echo "$yes_label" | tr '[:lower:]' '[:upper:]')/$(echo "$no_label" | tr '[:upper:]' '[:lower:]')"
+		else
+			question+="$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')/$(echo "$no_label" | tr '[:lower:]' '[:upper:]')"
+		fi
+
+		# add cancel choice
+		if $cancel_mode ; then
+			question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
+		fi
+
+		# ends question
+		question+=")"
+
+		# print question
+		echo -e -n "$* $question: "
 	fi
-
-	# add cancel choice
-	if $cancel_mode ; then
-		question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
-	fi
-
-	# ends question
-	question+=")"
-
-	# print question
-	echo -e -n "$* $question: "
 
 	# read user input
 	local choice
@@ -2608,22 +2620,25 @@ lb_choose_option() {
 		done
 	fi
 
-	# print question
-	echo -e "$label"
+	# print question (if not quiet mode)
+	if [ "$lb_quietmode" != true ] ; then
+		# print question
+		echo -e "$label"
 
-	# print options
-	local i
-	for ((i=1; i < ${#options[@]}; i++)) ; do
-		echo "  $i. ${options[i]}"
-	done
+		# print options
+		local i
+		for ((i=1; i < ${#options[@]}; i++)) ; do
+			echo "  $i. ${options[i]}"
+		done
 
-	echo
+		echo
 
-	# print default option
-	if [ ${#default[@]} -gt 0 ] ; then
-		echo -n "[$(lb_join , ${default[@]})]: "
-	else
-		echo -n "[$cancel_label]: "
+		# print default option
+		if [ ${#default[@]} -gt 0 ] ; then
+			echo -n "[$(lb_join , ${default[@]})]: "
+		else
+			echo -n "[$cancel_label]: "
+		fi
 	fi
 
 	# read user input
@@ -2710,11 +2725,10 @@ lb_input_text() {
 	# text is not defined
 	[ -z "$1" ] && return 1
 
-	# print question
-	echo -n -e "$*"
-
-	if [ -n "$default" ] ; then
-		echo -n -e " [$default]"
+	# print question (if not quiet mode)
+	if [ "$lb_quietmode" != true ] ; then
+		echo -n -e "$*"
+		[ -n "$default" ] && echo -n -e " [$default]"
 	fi
 
 	# add separator
@@ -2781,8 +2795,9 @@ lb_input_password() {
 		label=$*
 	fi
 
-	# print question
-	echo -n -e "$label "
+	# print question (if not quiet mode)
+	[ "$lb_quietmode" != true ] && echo -n -e "$label "
+
 	# prompt user for password
 	read -s -r lb_input_password
 	# line return
@@ -2800,15 +2815,14 @@ lb_input_password() {
 	fi
 
 	# if no confirmation, return OK
-	if ! $confirm ; then
-		return 0
-	fi
+	$confirm || return 0
 
 	# if confirmation, save current password
 	local password_confirm=$lb_input_password
 
-	# print confirmation
-	echo -n -e "$confirm_label "
+	# print confirmation question (if not quiet mode)
+	[ "$lb_quietmode" != true ] && echo -n -e "$confirm_label "
+
 	# prompt password confirmation
 	read -s -r password_confirm
 	# line return
@@ -2987,6 +3001,10 @@ while [ $# -gt 0 ] ; do
 				lb_lang=$2
 				shift
 			fi
+			;;
+		-q|--quiet)
+			# activate quiet mode
+			lb_quietmode=true
 			;;
 		*)
 			break
