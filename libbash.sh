@@ -20,6 +20,8 @@ declare -r lb_version=1.9.2
 #       lb_command_exists
 #       lb_function_exists
 #       lb_test_arguments
+#       lb_getargs
+#       lb_getopt
 #       lb_exit
 #   * Display
 #       lb_get_display_level
@@ -208,6 +210,44 @@ lb_test_arguments() {
 			return 1
 			;;
 	esac
+}
+
+
+# Get command arguments
+# Usage: lb_getargs "$@"
+lb_getargs=()
+lb_getargs() {
+	# reset arguments
+	lb_getargs=()
+
+	# no arguments
+	[ $# == 0 ] && return 1
+
+	# parse arguments
+	local a
+	for a in "$@" ; do
+		# if multiple options combined, split them
+		if [[ $a =~ ^-[a-zA-Z0-9]+$ ]] ; then
+			lb_getargs+=($(echo "${a:1}" | grep -o . | sed 's/^/-/'))
+		else
+			# forward argument
+			lb_getargs+=("$a")
+		fi
+	done
+}
+
+
+# Get option
+# Usage: lb_getopt "$@"
+lb_getopt() {
+	# if no value, quit
+	[ $# -lt 2 ] && return 1
+
+	# if next option, quit
+	[ "${2:0:1}" == - ] && return 1
+
+	# return option value
+	echo "$2"
 }
 
 
