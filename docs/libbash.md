@@ -62,6 +62,8 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_command_exists](#lb_command_exists)
 	* [lb_function_exists](#lb_function_exists)
 	* [lb_test_arguments](#lb_test_arguments)
+	* [lb_getargs](#lb_getargs)
+	* [lb_getopt](#lb_getopt)
 	* [lb_exit](#lb_exit)
 * Display
 	* [lb_get_display_level](#lb_get_display_level)
@@ -176,7 +178,7 @@ fi
 ---------------------------------------------------------------
 <a name="lb_test_arguments"></a>
 ### lb_test_arguments
-Test number of arguments passed to a script/function.
+Test number of non-empty arguments passed to a script/function.
 
 Note: A common usage of this function would be `lb_test_arguments -ge 1 $*`
 to test if user has passed at least one argument to your script/function.
@@ -204,6 +206,83 @@ if lb_test_arguments -lt 2 $* ; then
     echo "You have to give at least 2 arguments to this script."
 fi
 ```
+
+---------------------------------------------------------------
+<a name="lb_getargs"></a>
+### lb_getargs
+Parse arguments and split concatenated options.
+Combined with [lb_getopt](#lb_getopt), you can create scripts with full options,
+better than with the `getopts` command.
+
+Note: A common usage of this function is `lb_getargs "$@"`
+to split arguments of your current script (see complete example below).
+
+#### Usage
+```bash
+lb_getargs "$@"
+```
+**Warning**: put quotes to support spaces in arguments.
+
+#### Exit codes
+- 0: Arguments parsed
+- 1: No arguments
+
+#### Example
+```bash
+# parse and get arguments
+lb_getargs "$@" && set -- "${lb_getargs[@]}"
+
+# if you called the current script with arguments:
+#   -rp /home
+# now arguments ($@) are:
+#   -r -p /home
+
+# get options
+while [ $# -gt 0 ] ; do
+    case $1 in
+        -p|--path)
+            path=$(lb_getopt "$@")
+            if [ $? != 0 ] ; then
+                echo "Usage error: missing path"
+                exit 1
+            fi
+            shift # remove the value
+            ;;
+        -r|--recursive)
+            recursive=true
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+        *)
+            # not an option: stop parsing
+            break
+            ;;
+    esac
+    shift # go the the next argument
+done
+
+# other arguments are available in $@ variable
+```
+
+---------------------------------------------------------------
+<a name="lb_getopt"></a>
+### lb_getopt
+Get value of an option.
+
+#### Usage
+```bash
+lb_getopt "$@"
+```
+**Warning**: put quotes to support spaces in arguments.
+
+#### Exit codes
+- 0: Value returned
+- 1: Option value is missing
+
+#### Example
+See the complete example of the [lb_getargs function](#lb_getargs) above.
 
 ---------------------------------------------------------------
 <a name="lb_exit"></a>
@@ -950,11 +1029,11 @@ lb_split DELIMITER STRING
 
 #### Example
 ```bash
-users="darthvader,obiwan"
+users="john,peter"
 
 lb_split , "$users"
 
-for u in ${lb_split[@]} ; do
+for u in "${lb_split[@]}" ; do
 	echo "User $u exists"
 done
 ```
@@ -977,7 +1056,7 @@ spaces in values.
 
 #### Example
 ```bash
-users=(darthvader obiwan)
+users=(john peter)
 echo "Users: $(lb_join ", " "${users[@]}")"
 ```
 

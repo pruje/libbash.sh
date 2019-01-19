@@ -216,7 +216,7 @@ lb_test_arguments() {
 }
 
 
-# Get command arguments
+# Get command arguments and split options in array
 # Usage: lb_getargs "$@"
 lb_getargs=()
 lb_getargs() {
@@ -240,7 +240,7 @@ lb_getargs() {
 }
 
 
-# Get option
+# Get value of an option (e.g. --tail 10 will return 10)
 # Usage: lb_getopt "$@"
 lb_getopt() {
 	# if no value, quit
