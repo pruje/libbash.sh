@@ -1,57 +1,43 @@
 #!/bin/bash
-
-########################################################
-#                                                      #
-#  libbash.sh complete demo                            #
-#                                                      #
-#  MIT License                                         #
-#  Copyright (c) 2017 Jean Prunneaux                   #
-#  Website: https://github.com/pruje/libbash.sh        #
-#                                                      #
-########################################################
+#
+#  libbash.sh complete demo
+#
+#  MIT License
+#  Copyright (c) 2017-2019 Jean Prunneaux
+#  Website: https://github.com/pruje/libbash.sh
+#
 
 
-####################
-#  INITIALIZATION  #
-####################
+#
+#  Initialization
+#
 
 # get real path of the script
-if [ "$(uname)" == "Darwin" ] ; then
+if [ "$(uname)" == Darwin ] ; then
 	# macOS which does not support readlink -f option
-	current_script="$(perl -e 'use Cwd "abs_path";print abs_path(shift)' "$0")"
+	current_script=$(perl -e 'use Cwd "abs_path";print abs_path(shift)' "$0")
 else
-	current_script="$(readlink -f "$0")"
+	current_script=$(readlink -f "$0")
 fi
 
 # get directory of the current script
-script_directory="$(dirname "$current_script")"
+script_directory=$(dirname "$current_script")
 
 # load libbash
 source "$script_directory/../libbash.sh" --gui > /dev/null
 if [ $? != 0 ] ; then
-	echo >&2 "Error: cannot load libbash. Please add it to the '$script_directory/../libbash.sh' directory."
+	echo >&2 "Error: cannot load libbash."
 	exit 1
 fi
 
-
-# load translations
-
-# get user language
-lang="${LANG:0:2}"
-# load translations (do not print errors if failed)
-case "$lang" in
-	fr)
-		source "$script_directory/../locales/$lang.sh" &> /dev/null
-		;;
-esac
 
 # change current script name
 lb_current_script_name="libbash.sh DEMO"
 
 
-###############
-#  FUNCTIONS  #
-###############
+#
+#  Functions
+#
 
 # print usage
 usage() {
@@ -79,31 +65,29 @@ quit_demo() {
 }
 
 
-##################
-#  MAIN PROGRAM  #
-##################
+#
+#  Main program
+#
 
-log_level="INFO"
+log_level=INFO
 consolemode=false
 
 # get global options
-while true ; do
-	case "$1" in
+while [ $# -gt 0 ] ; do
+	case $1 in
 		-c|--console)
 			consolemode=true
-			shift
 			;;
 		-l|--log-level)
 			if lb_test_arguments -eq 0 $2 ; then
 				usage
 				exit 1
 			fi
-			log_level="$2"
-			shift 2
+			log_level=$2
+			shift
 			;;
 		-d|--debug)
 			debugmode=true
-			shift
 			;;
 		-h|--help)
 			usage
@@ -117,6 +101,7 @@ while true ; do
 			break
 			;;
 	esac
+	shift
 done
 
 # disable dialogs if console mode
@@ -139,17 +124,20 @@ if ! lbg_yesno "Welcome to libbash.sh DEMO. Do you want to continue?"; then
 fi
 
 # choose your current OS
-if ! lbg_choose_option -l "Do you think you are running libbash.sh on:" "Linux" "macOS" ; then
+if ! lbg_choose_option -l "Do you think you are running libbash.sh on:" Linux macOS Windows ; then
 	ask_exit
 fi
 
 # get results
-case "$lbg_choose_option" in
+case $lbg_choose_option in
 	1)
-		chosen_os="Linux"
+		chosen_os=Linux
 		;;
 	2)
-		chosen_os="macOS"
+		chosen_os=macOS
+		;;
+	3)
+		chosen_os=Windows
 		;;
 esac
 
