@@ -87,6 +87,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_get_config](#lb_get_config)
 	* [lb_set_config](#lb_set_config)
 * Operations on variables
+	* [lb_istrue](#lb_istrue)
 	* [lb_is_number](#lb_is_number)
 	* [lb_is_integer](#lb_is_integer)
 	* [lb_is_boolean](#lb_is_boolean)
@@ -871,6 +872,36 @@ lb_set_config my_config.conf myoption "My value"
 
 ---------------------------------------------------------------
 ## Operations on variables
+---------------------------------------------------------------
+<a name="lb_istrue"></a>
+### lb_istrue
+Test if a value is boolean and true.
+Useful to test variables quickly and securely (see example below).
+
+#### Usage
+```bash
+lb_istrue VALUE
+```
+
+#### Exit codes
+- 0: Value is true
+- 1: Value is NOT true
+
+#### Example
+```bash
+# WITHOUT lb_istrue:
+x=youvebeenhacked
+if $x ; then
+	echo "yes, it's true, but a hack command might have been called"
+fi
+
+# WITH lb_istrue:
+x=true
+if lb_istrue $x ; then
+    echo "yes, it's true and not a hack"
+fi
+```
+
 ---------------------------------------------------------------
 <a name="lb_is_number"></a>
 ### lb_is_number

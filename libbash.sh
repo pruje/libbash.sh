@@ -42,6 +42,7 @@ declare -r lb_version=1.10.0
 #       lb_get_config
 #       lb_set_config
 #   * Operations on variables
+#       lb_istrue
 #       lb_is_number
 #       lb_is_integer
 #       lb_is_boolean
@@ -1416,6 +1417,13 @@ lb_set_config() {
 ############################
 #  OPERATIONS ON VARIABLES #
 ############################
+
+# Test if a boolean is true
+# Usage: lb_istrue VALUE
+lb_istrue() {
+	[ "$*" == true ]
+}
+
 
 # Test if a value is a number
 # Usage: lb_is_number VALUE
