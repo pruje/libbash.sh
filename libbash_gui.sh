@@ -762,10 +762,11 @@ lbg_choose_option() {
 
 		osascript)
 			# prepare options
-			local default_option opts
+			local default_option opts=()
 
 			for ((i=1 ; i<${#options[@]} ; i++)) ; do
-				options[i]=\"${options[i]}\"
+				# forward options WITHOUT the first
+				opts+=("\"${options[i]}\"")
 
 				# set default option
 				if [ ${#default[@]} -gt 0 ] && lb_in_array $i "${default[@]}" ; then
@@ -774,7 +775,7 @@ lbg_choose_option() {
 			done
 
 			# join values
-			opts=$(lb_join , "${options[@]}")
+			opts=$(lb_join , "${opts[@]}")
 
 			# execute command
 			local choice=$(osascript 2> /dev/null <<EOF
