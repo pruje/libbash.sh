@@ -839,8 +839,13 @@ EOF)
 			[ "$default" == 0 ] || cmd+=(-d $(lb_join , "${default[@]}"))
 			cmd+=(-l "$label")
 
+			# add options WITHOUT the first empty
+			for ((i=1; i<${#options[@]}; i++)) ; do
+				cmd+=("${options[i]}")
+			done
+
 			# execute console function and forward result
-			"${cmd[@]}" "${options[@]}" && lbg_choose_option=$lb_choose_option
+			"${cmd[@]}" && lbg_choose_option=$lb_choose_option
 			;;
 	esac
 
