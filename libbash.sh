@@ -133,19 +133,8 @@ lb_default_newfile_name="New file"
 # default log and display levels (CRITICAL ERROR WARNING INFO DEBUG)
 lb_log_levels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
-# initialize global variables
-lb_logfile=""
-lb_log_level=""
-lb_display_level=""
-
-# quiet mode
-lb_quietmode=false
-
 # print formatted strings in console
 lb_format_print=true
-
-# old sed command
-lb_oldsed=false
 
 # exit code
 lb_exitcode=0
@@ -179,10 +168,7 @@ lb_function_exists() {
 		type=$(type -t $arg) || return 2
 
 		# test if is not a function
-		# Note: do not use && here to avoid returning 1
-		if [ "$type" != function ] ; then
-			return 3
-		fi
+		[ "$type" == function ] || return 3
 	done
 }
 
@@ -397,7 +383,7 @@ lb_set_display_level() {
 lb_print() {
 
 	# quiet mode: do not print anything
-	[ "$lb_quietmode" == true ] && return 0
+	lb_istrue $lb_quietmode && return 0
 
 	local opts reset_color format=()
 
@@ -433,17 +419,15 @@ lb_print() {
 	done
 
 	# append formatting options
-	if $lb_format_print ; then
-		if [ ${#format[@]} -gt 0 ] ; then
-			opts+="\e["
-			local f
-			for f in ${format[@]} ; do
-				opts+=";$f"
-			done
-			opts+="m"
+	if lb_istrue $lb_format_print && [ ${#format[@]} -gt 0 ] ; then
+		opts+="\e["
+		local f
+		for f in ${format[@]} ; do
+			opts+=";$f"
+		done
+		opts+="m"
 
-			reset_color="\e[0m"
-		fi
+		reset_color="\e[0m"
 	fi
 
 	# print to the console
@@ -489,30 +473,23 @@ lb_display() {
 	local prefix display=true result=0
 
 	# quiet mode: do not print anything
-	[ "$lb_quietmode" == true ] && display=false
+	lb_istrue $lb_quietmode && display=false
 
-	# if a display level is set,
-	if [ -n "$display_level" ] ; then
-		# test current display level
-		if [ -n "$lb_display_level" ] ; then
-			# get display level ID
-			local level_id
+	# if a display level is set, test it
+	if [ -n "$display_level" ] && [ -n "$lb_display_level" ] ; then
+		# get display level ID
+		local level_id
 
-			# Note: if level is unknown, message will be displayed
-			if level_id=$(lb_get_display_level --id "$display_level") ; then
-				# if display level is higher than default, will not display (but can log)
-				if [ $level_id -gt $lb_display_level ] ; then
-					display=false
-				fi
-			fi
+		# Note: if level is unknown, message will be displayed
+		if level_id=$(lb_get_display_level --id "$display_level") ; then
+			# if display level is higher than default, will not display (but can log)
+			[ $level_id -gt $lb_display_level ] && display=false
 		fi
 	fi
 
 	# add level prefix
-	if [ -n "$display_level" ] ; then
-		if $display_prefix ; then
-			prefix="[$display_level]  "
-		fi
+	if $display_prefix && [ -n "$display_level" ] ; then
+		prefix="[$display_level]  "
 	fi
 
 	# print into logfile
@@ -520,14 +497,10 @@ lb_display() {
 		# prepare command to log
 		local log_cmd=(lb_log $opts)
 
-		if [ -n "$display_level" ] ; then
-			log_cmd+=(--level "$display_level")
-		fi
-
-		log_cmd+=("$prefix$*")
+		[ -n "$display_level" ] && log_cmd+=(--level "$display_level")
 
 		# execute lb_log
-		"${log_cmd[@]}" || result=2
+		"${log_cmd[@]}" "$prefix$*" || result=2
 	fi
 
 	# if no need to display, quit
@@ -550,9 +523,6 @@ lb_display() {
 				;;
 			$lb_default_debug_label)
 				prefix="[$(lb_print --cyan "$display_level")]  "
-				;;
-			*)
-				prefix="[$display_level]  "
 				;;
 		esac
 	fi
@@ -627,40 +597,24 @@ lb_result() {
 	fi
 
 	# save result to exit code
-	if $save_exitcode ; then
-		lb_exitcode=$result
-	fi
+	$save_exitcode && lb_exitcode=$result
 
 	# if result OK (code 0)
 	if [ $result == 0 ] ; then
-		if ! $quiet_mode ; then
-			# display result
-			display_cmd+=("$ok_label")
-			"${display_cmd[@]}"
-		fi
+		$quiet_mode || "${display_cmd[@]}" "$ok_label"
 	else
 		# if error (code 1-255)
-		if ! $quiet_mode ; then
-			# display result
-			display_cmd+=("$failed_label")
-			"${display_cmd[@]}"
-		fi
+		$quiet_mode || "${display_cmd[@]}" "$failed_label"
 
-		# if save exit code is not set,
-		if ! $save_exitcode ; then
-			# and error exitcode is specified, save it
-			if [ -n "$error_exitcode" ] ; then
-				lb_exitcode=$error_exitcode
-			fi
+		# if save exit code is not set and error exitcode is specified, save it
+		if ! $save_exitcode && [ -n "$error_exitcode" ] ; then
+			lb_exitcode=$error_exitcode
 		fi
 
 		# if exit on error, exit
-		if $exit_on_error ; then
-			lb_exit
-		fi
+		$exit_on_error && lb_exit
 	fi
 
-	# return result code
 	return $result
 }
 
@@ -717,40 +671,24 @@ lb_short_result() {
 	fi
 
 	# save result to exit code
-	if $save_exitcode ; then
-		lb_exitcode=$result
-	fi
+	$save_exitcode && lb_exitcode=$result
 
 	# if result OK (code 0)
 	if [ $result == 0 ] ; then
-		if ! $quiet_mode ; then
-			# display result
-			display_cmd+=("[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]")
-			"${display_cmd[@]}"
-		fi
+		$quiet_mode || "${display_cmd[@]}" "[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]"
 	else
 		# if error (code 1-255)
-		if ! $quiet_mode ; then
-			# display result
-			display_cmd+=("[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]")
-			"${display_cmd[@]}"
-		fi
+		$quiet_mode || "${display_cmd[@]}" "[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]"
 
-		# if save exit code is not set,
-		if ! $save_exitcode ; then
-			# and error exitcode is specified, save it
-			if [ -n "$error_exitcode" ] ; then
-				lb_exitcode=$error_exitcode
-			fi
+		# if save exit code is not set and error exitcode is specified, save it
+		if ! $save_exitcode && [ -n "$error_exitcode" ] ; then
+			lb_exitcode=$error_exitcode
 		fi
 
 		# if exit on error, exit
-		if $exit_on_error ; then
-			lb_exit
-		fi
+		$exit_on_error && lb_exit
 	fi
 
-	# return result code
 	return $result
 }
 
@@ -769,9 +707,7 @@ lb_get_logfile() {
 	# test if log file is writable
 	if ! lb_is_writable "$lb_logfile" ; then
 		# do not return error if samba share: cannot determine rights in some cases
-		if [ "$(lb_df_fstype "$(dirname "$lb_logfile")")" != smbfs ] ; then
-			return 2
-		fi
+		[ "$(lb_df_fstype "$(dirname "$lb_logfile")")" == smbfs ] || return 2
 	fi
 
 	# return log file path
@@ -813,9 +749,7 @@ lb_set_logfile() {
 	# cancel if file is not writable
 	if ! lb_is_writable "$*" ; then
 		# do not return error if samba share: cannot determine rights in some cases
-		if [ "$(lb_df_fstype "$(dirname "$*")")" != smbfs ] ; then
-			return 2
-		fi
+		[ "$(lb_df_fstype "$(dirname "$*")")" == smbfs ] || return 2
 	fi
 
 	# if file exists
@@ -834,10 +768,8 @@ lb_set_logfile() {
 	lb_logfile=$*
 
 	# if not set, set higher log level
-	if [ -z "$lb_log_level" ] ; then
-		if [ ${#lb_log_levels[@]} -gt 0 ] ; then
-			lb_log_level=$((${#lb_log_levels[@]} - 1))
-		fi
+	if [ -z "$lb_log_level" ] && [ ${#lb_log_levels[@]} -gt 0 ] ; then
+		lb_log_level=$((${#lb_log_levels[@]} - 1))
 	fi
 }
 
@@ -962,45 +894,36 @@ lb_log() {
 		shift # load next argument
 	done
 
-	# if a default log level is set,
-	if [ -n "$level" ] ; then
-		# test current log level
-		if [ -n "$lb_log_level" ] ; then
-			local id_level
+	# if a default log level is set, test it
+	if [ -n "$level" ] && [ -n "$lb_log_level" ] ; then
+		local id_level
 
-			# Note: if level unknown, message will be logged
-			if id_level=$(lb_get_log_level --id "$level") ; then
-				# if log level is higher than default, do not log
-				[ $id_level -gt $lb_log_level ] && return 0
-			fi
+		# Note: if level unknown, message will be logged
+		if id_level=$(lb_get_log_level --id "$level") ; then
+			# if log level is higher than default, do not log
+			[ $id_level -gt $lb_log_level ] && return 0
 		fi
 	fi
 
 	# initialize log text + tee options
-	local log_message tee_opts
+	local log_message tee_cmd=tee
 
 	# add date prefix
-	if $date_prefix ; then
-		log_message+="[$(date +"%d %b %Y %H:%M:%S %z")] "
-	fi
+	$date_prefix && log_message+="[$(date +"%d %b %Y %H:%M:%S %z")] "
 
 	# add level prefix
-	if [ -n "$level" ] ; then
-		if $prefix ; then
-			log_message+="[$level] "
-		fi
+	if $prefix && [ -n "$level" ] ; then
+		log_message+="[$level] "
 	fi
 
 	# prepare text
 	log_message+=$*
 
 	# if not erase, append to file with tee -a
-	if ! $overwrite ; then
-		tee_opts="-a "
-	fi
+	$overwrite || tee_cmd+=" -a"
 
 	# print into log file; do not output text or errors
-	echo -e $echo_opts"$log_message" | tee $tee_opts"$lb_logfile" &> /dev/null || return 2
+	echo -e $echo_opts"$log_message" | $tee_cmd "$lb_logfile" &> /dev/null || return 2
 }
 
 
@@ -1034,26 +957,19 @@ lb_read_config() {
 		shift # load next argument
 	done
 
-	# usage error
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
+	# test if file exists
+	[ -f "$1" ] || return 1
 
 	# test if file is readable
-	if ! [ -r "$1" ] ; then
-		return 2
-	fi
+	[ -r "$1" ] || return 2
 
 	local line section good_section=false section_found=false
 
 	# read config file line by line; backslashes are not escaped
 	while read -r line ; do
 
-		# testing if file has Windows format (\r at the end of line)
-		if [ "${line:${#line}-1}" == $'\r' ] ; then
-			# delete the last character \r
-			line=${line:0:${#line}-1}
-		fi
+		# delete the last character if file has Windows format (\r)
+		[ "${line:${#line}-1}" == $'\r' ] && line=${line:0:${#line}-1}
 
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
@@ -1074,9 +990,7 @@ lb_read_config() {
 			else
 				# if normal line,
 				# if we are not in a good section, continue to the next line
-				if ! $good_section ; then
-					continue
-				fi
+				$good_section || continue
 			fi
 		fi
 
@@ -1086,10 +1000,8 @@ lb_read_config() {
 	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
 
 	# if section was not found, error
-	if [ ${#sections[@]} -gt 0 ] ; then
-		if ! $section_found ; then
-			return 3
-		fi
+	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
+		return 3
 	fi
 }
 
@@ -1123,25 +1035,18 @@ lb_import_config() {
 	done
 
 	# test if file exists
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
+	[ -f "$1" ] || return 1
 
 	# test if file is readable
-	if ! [ -r "$1" ] ; then
-		return 5
-	fi
+	[ -r "$1" ] || return 5
 
 	local result=0 line section value good_section=false section_found=false
 
 	# read file line by line; backslashes are not escaped
 	while read -r line ; do
 
-		# testing if file has Windows format (\r at the end of line)
-		if [ "${line:${#line}-1}" == $'\r' ] ; then
-			# delete the last character \r
-			line=${line:0:${#line}-1}
-		fi
+		# delete the last character if file has Windows format (\r)
+		[ "${line:${#line}-1}" == $'\r' ] && line=${line:0:${#line}-1}
 
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
@@ -1160,9 +1065,7 @@ lb_import_config() {
 			else
 				# if normal line,
 				# if we are not in a good section, continue to the next line
-				if ! $good_section ; then
-					continue
-				fi
+				$good_section || continue
 			fi
 		fi
 
@@ -1170,9 +1073,7 @@ lb_import_config() {
 		if ! echo "$line" | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
 			# if section definition, do nothing (not error)
 			if ! echo "$line" | grep -Eq "^\[.*\]\s*$" ; then
-				if $return_errors ; then
-					result=3
-				fi
+				$return_errors && result=3
 			fi
 			continue
 		fi
@@ -1182,13 +1083,9 @@ lb_import_config() {
 		value=$(echo "$line" | sed "s/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//")
 
 		# secure config values with prevent bash injection
-		if $secure_mode ; then
-			if echo "$value" | grep -Eq '\$|`' ; then
-				if $return_errors ; then
-					result=4
-				fi
-				continue
-			fi
+		if $secure_mode && echo "$value" | grep -Eq '\$|`' ; then
+			$return_errors && result=4
+			continue
 		fi
 
 		# run command to attribute value to variable
@@ -1196,10 +1093,8 @@ lb_import_config() {
 	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
 
 	# if section was not found, return error
-	if [ ${#sections[@]} -gt 0 ] ; then
-		if ! $section_found ; then
-			return 2
-		fi
+	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
+		return 2
 	fi
 
 	return $result
@@ -1231,21 +1126,17 @@ lb_get_config() {
 	# usage error
 	[ $# -lt 2 ] && return 1
 
-	# test config file
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
-	if ! [ -r "$1" ] ; then
-		return 2
-	fi
+	# test is file exists
+	[ -f "$1" ] || return 1
+
+	# test if file is readable
+	[ -r "$1" ] || return 2
 
 	# search config line
 	local config_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
 
 	# if line not found, return error
-	if [ ${#config_line[@]} == 0 ] ; then
-		return 3
-	fi
+	[ ${#config_line[@]} == 0 ] && return 3
 
 	# if no filter by section, print the first found
 	if [ -z "$section" ] ; then
@@ -1257,9 +1148,7 @@ lb_get_config() {
 	local i j current_section
 	for i in ${config_line[@]} ; do
 		# if first line, cannot go up
-		if [ $i == 1 ] ; then
-			continue
-		fi
+		[ $i == 1 ] && continue
 
 		for ((j=$i-1; j>=1; j--)) ; do
 			current_section=$(sed "${j}q;d" "$1" | grep -Eo "^\[.*\]")
@@ -1308,13 +1197,11 @@ lb_set_config() {
 	# usage error
 	[ $# -lt 2 ] && return 1
 
-	# test config file
-	if ! [ -f "$1" ] ; then
-		return 1
-	fi
-	if ! [ -w "$1" ] ; then
-		return 2
-	fi
+	# test is file exists
+	[ -f "$1" ] || return 1
+
+	# test if file is writable
+	[ -w "$1" ] || return 2
 
 	local config_file=$1 param=$2
 	shift 2
@@ -1323,9 +1210,7 @@ lb_set_config() {
 	local value=$*
 
 	# Windows files: add \r at the end of line
-	if [ "$lb_current_os" == Windows ] ; then
-		value+="\r"
-	fi
+	[ "$lb_current_os" == Windows ] && value+="\r"
 
 	# prepare value for sed mode
 	local sed_value=$(echo "$value" | sed 's/\//\\\//g')
@@ -1347,9 +1232,7 @@ lb_set_config() {
 			# parse every results
 			for i in ${config_line[@]} ; do
 				# if first line, cannot go up
-				if [ $i == 1 ] ; then
-					continue
-				fi
+				[ $i == 1 ] && continue
 
 				for ((j=$i-1; j>=1; j--)) ; do
 					lb_setcf_current_section=$(sed "${j}q;d" "$config_file" | grep -Eo "^\[.*\]")
@@ -1397,14 +1280,13 @@ lb_set_config() {
 			lb_edit "$((${config_line[0]}+1))i$param = $sed_value" "$config_file" || return 4
 			return 0
 		else
-			# if section not found, append section to the end of file
+			# if section not found, append it
 			config_line="[$section]"
 
 			# Windows files: add \r at the end of line
-			if [ "$lb_current_os" == Windows ] ; then
-				config_line+="\r"
-			fi
+			[ "$lb_current_os" == Windows ] && config_line+="\r"
 
+			# append section to file
 			echo -e "$config_line" >> "$config_file" || return 4
 		fi
 	fi
@@ -1492,17 +1374,12 @@ lb_is_comment() {
 	fi
 
 	# set default comment symbol if none is set
-	if [ ${#symbols[@]} == 0 ] ; then
-		symbols+=("#")
-	fi
+	[ ${#symbols[@]} == 0 ] && symbols+=("#")
 
 	# test if text starts with comment symbol
 	local s
 	for s in ${symbols[@]} ; do
-		if [ "${line:0:${#s}}" == "$s" ] ; then
-			# is a comment: exit
-			return 0
-		fi
+		[ "${line:0:${#s}}" == "$s" ] && return 0
 	done
 
 	# symbol not found: not a comment
@@ -1738,12 +1615,8 @@ lb_compare_versions() {
 
 			# transform simple numbers to dotted numbers
 			# e.g. v3 => v3.0, v2.1 => v2.1.0
-			if [ -z "$version1_num" ] ; then
-				version1_num=0
-			fi
-			if [ -z "$version2_num" ] ; then
-				version2_num=0
-			fi
+			[ -z "$version1_num" ] && version1_num=0
+			[ -z "$version2_num" ] && version2_num=0
 
 			if [ "$version1_num" == "$version2_num" ] ; then
 
@@ -1762,8 +1635,11 @@ lb_compare_versions() {
 
 			if lb_is_integer $version1_num && lb_is_integer $version2_num ; then
 				# compare versions and quit
-				[ "$version1_num" $operator "$version2_num" ] || return 2
-				return 0
+				if [ "$version1_num" $operator "$version2_num" ] ; then
+					return 0
+				else
+					return 2
+				fi
 			else
 				# if not integer, error
 				return 1
@@ -1773,12 +1649,8 @@ lb_compare_versions() {
 
 	# get pre-release tags
 	local version1_tag version2_tag
-	if [[ "$version1" == *"-"* ]] ; then
-		version1_tag=$(echo "$version1" | tr -d '[:space:]' | cut -d- -f2)
-	fi
-	if [[ "$version2" == *"-"* ]] ; then
-		version2_tag=$(echo "$version2" | tr -d '[:space:]' | cut -d- -f2)
-	fi
+	[[ "$version1" == *"-"* ]] && version1_tag=$(echo "$version1" | tr -d '[:space:]' | cut -d- -f2)
+	[[ "$version2" == *"-"* ]] && version2_tag=$(echo "$version2" | tr -d '[:space:]' | cut -d- -f2)
 
 	# tags are equal
 	# this can happen if main versions are different
@@ -1875,10 +1747,8 @@ lb_df_fstype() {
 	# usage error
 	[ $# == 0 ] && return 1
 
-	# if path does not exists, error
-	if ! [ -e "$*" ] ; then
-		return 2
-	fi
+	# test if path exists
+	[ -e "$*" ] || return 2
 
 	case $lb_current_os in
 		Linux)
@@ -1909,10 +1779,7 @@ lb_df_fstype() {
 			;;
 	esac
 
-	# get other errors
-	if [ ${PIPESTATUS[0]} != 0 ] ; then
-		return 3
-	fi
+	[ ${PIPESTATUS[0]} == 0 ] || return 3
 }
 
 
@@ -1923,10 +1790,8 @@ lb_df_space_left() {
 	# usage error
 	[ $# == 0 ] && return 1
 
-	# if path does not exists, error
-	if ! [ -e "$*" ] ; then
-		return 2
-	fi
+	# test if path exists
+	[ -e "$*" ] || return 2
 
 	# get space available
 	if [ "$lb_current_os" == macOS ] ; then
@@ -1935,10 +1800,7 @@ lb_df_space_left() {
 		df -k --output=avail "$*" 2> /dev/null | tail -n 1
 	fi
 
-	# get df errors
-	if [ ${PIPESTATUS[0]} != 0 ] ; then
-		return 3
-	fi
+	[ ${PIPESTATUS[0]} == 0 ] || return 3
 }
 
 
@@ -1949,10 +1811,8 @@ lb_df_mountpoint() {
 	# usage error
 	[ $# == 0 ] && return 1
 
-	# if path does not exists, error
-	if ! [ -e "$*" ] ; then
-		return 2
-	fi
+	# test if path exists
+	[ -e "$*" ] || return 2
 
 	# get mountpoint
 	if [ "$lb_current_os" == macOS ] ; then
@@ -1961,10 +1821,7 @@ lb_df_mountpoint() {
 		df --output=target "$*" 2> /dev/null | tail -n 1
 	fi
 
-	# get df errors
-	if [ ${PIPESTATUS[0]} != 0 ] ; then
-		return 3
-	fi
+	[ ${PIPESTATUS[0]} == 0 ] || return 3
 }
 
 
@@ -1976,10 +1833,8 @@ lb_df_uuid() {
 	# usage error
 	[ $# == 0 ] && return 1
 
-	# if path does not exists, error
-	if ! [ -e "$*" ] ; then
-		return 2
-	fi
+	# test if path exists
+	[ -e "$*" ] || return 2
 
 	case $lb_current_os in
 		macOS)
@@ -2005,10 +1860,7 @@ lb_df_uuid() {
 			;;
 	esac
 
-	# get unknown errors
-	if [ ${PIPESTATUS[0]} != 0 ] ; then
-		return 3
-	fi
+	[ ${PIPESTATUS[0]} == 0 ] || return 3
 }
 
 
@@ -2025,10 +1877,8 @@ lb_homepath() {
 	# get ~user value
 	eval path=~$1
 
-	# if directory does not exists, error
-	if ! [ -d "$path" ] ; then
-		return 1
-	fi
+	# test if directory exists
+	[ -d "$path" ] || return 1
 
 	# return path
 	echo "$path"
@@ -2149,7 +1999,7 @@ lb_is_writable() {
 # Edit a file with sed command
 # Usage: lb_edit PATTERN FILE
 lb_edit() {
-	if $lb_oldsed ; then
+	if lb_istrue $lb_oldsed ; then
 		sed -i '' "$@"
 	else
 		sed -i "$@"
@@ -2189,9 +2039,7 @@ lb_user_exists() {
 	for user in "$@" ; do
 		[ -z "$user" ] && return 1
 		# check groups of the user
-		if ! groups $user &> /dev/null ; then
-			return 1
-		fi
+		groups $user &> /dev/null || return 1
 	done
 }
 
@@ -2203,13 +2051,10 @@ lb_in_group() {
 	# usage error
 	[ -z "$1" ] && return 1
 
-	# get current user if not defined
 	local user=$2
 
-	# get current user
-	if [ -z "$user" ] ; then
-		user=$(whoami)
-	fi
+	# get current user if not defined
+	[ -z "$user" ] && user=$(whoami)
 
 	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
 	local groups=($(groups $user 2> /dev/null | cut -d: -f2))
@@ -2455,9 +2300,7 @@ fi
 	# send email
 	case $cmd in
 		/usr/sbin/sendmail)
-			if ! echo "$message" | /usr/sbin/sendmail -t ; then
-				return 3
-			fi
+			echo "$message" | /usr/sbin/sendmail -t || return 3
 			;;
 		*)
 			# no program found to send email
@@ -2514,25 +2357,20 @@ lb_yesno() {
 	[ -z "$1" ] && return 1
 
 	# print question (if not quiet mode)
-	if [ "$lb_quietmode" != true ] ; then
+	if ! lb_istrue $lb_quietmode ; then
 		# defines question
-		local question="("
+		local question
 		if $yes_default ; then
-			question+="$(echo "$yes_label" | tr '[:lower:]' '[:upper:]')/$(echo "$no_label" | tr '[:upper:]' '[:lower:]')"
+			question="$(echo "$yes_label" | tr '[:lower:]' '[:upper:]')/$(echo "$no_label" | tr '[:upper:]' '[:lower:]')"
 		else
-			question+="$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')/$(echo "$no_label" | tr '[:lower:]' '[:upper:]')"
+			question="$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')/$(echo "$no_label" | tr '[:lower:]' '[:upper:]')"
 		fi
 
 		# add cancel choice
-		if $cancel_mode ; then
-			question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
-		fi
-
-		# ends question
-		question+=")"
+		$cancel_mode && question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
 
 		# print question
-		echo -e -n "$* $question: "
+		echo -e -n "$* ($question): "
 	fi
 
 	# read user input
@@ -2552,10 +2390,8 @@ lb_yesno() {
 	if [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')" ] ; then
 
 		# cancel case
-		if $cancel_mode ; then
-			if [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" == "$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')" ] ; then
-				return 3
-			fi
+		if $cancel_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" == "$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')" ] ; then
+			return 3
 		fi
 
 		# answer is no
@@ -2629,7 +2465,7 @@ lb_choose_option() {
 	fi
 
 	# print question (if not quiet mode)
-	if [ "$lb_quietmode" != true ] ; then
+	if ! lb_istrue $lb_quietmode ; then
 		# print question
 		echo -e "$label"
 
@@ -2694,9 +2530,7 @@ lb_choose_option() {
 		fi
 
 		# save choice if not already done
-		if ! lb_in_array "$c" "${lb_choose_option[@]}" ; then
-			lb_choose_option+=("$c")
-		fi
+		lb_in_array "$c" "${lb_choose_option[@]}" || lb_choose_option+=("$c")
 	done
 }
 
@@ -2734,7 +2568,7 @@ lb_input_text() {
 	[ -z "$1" ] && return 1
 
 	# print question (if not quiet mode)
-	if [ "$lb_quietmode" != true ] ; then
+	if ! lb_istrue $lb_quietmode ; then
 		echo -n -e "$*"
 		[ -n "$default" ] && echo -n -e " [$default]"
 	fi
@@ -2799,12 +2633,10 @@ lb_input_password() {
 	done
 
 	# text label
-	if [ $# -gt 0 ] ; then
-		label=$*
-	fi
+	[ $# -gt 0 ] && label=$*
 
 	# print question (if not quiet mode)
-	[ "$lb_quietmode" != true ] && echo -n -e "$label "
+	lb_istrue $lb_quietmode || echo -n -e "$label "
 
 	# prompt user for password
 	read -s -r lb_input_password
@@ -2815,11 +2647,9 @@ lb_input_password() {
 	[ -z "$lb_input_password" ] && return 2
 
 	# check password size (if --min-size option is set)
-	if [ $min_size -gt 0 ] ; then
-		if [ $(echo -n "$lb_input_password" | wc -m) -lt $min_size ] ; then
-			lb_input_password=""
-			return 4
-		fi
+	if [ $min_size -gt 0 ] && [ $(echo -n "$lb_input_password" | wc -m) -lt $min_size ] ; then
+		lb_input_password=""
+		return 4
 	fi
 
 	# if no confirmation, return OK
@@ -2829,7 +2659,7 @@ lb_input_password() {
 	local password_confirm=$lb_input_password
 
 	# print confirmation question (if not quiet mode)
-	[ "$lb_quietmode" != true ] && echo -n -e "$confirm_label "
+	lb_istrue $lb_quietmode || echo -n -e "$confirm_label "
 
 	# prompt password confirmation
 	read -s -r password_confirm
@@ -3032,13 +2862,9 @@ case $lb_lang in
 esac
 
 # if macOS, disable text formatting in console
-if [ "$lb_current_os" == macOS ] ; then
-	lb_format_print=false
-fi
+[ "$lb_current_os" == macOS ] && lb_format_print=false
 
 # detect old sed command (mostly on macOS)
-if ! sed --version &> /dev/null ; then
-	lb_oldsed=true
-fi
+sed --version &> /dev/null || lb_oldsed=true
 
 return $lb_load_result
