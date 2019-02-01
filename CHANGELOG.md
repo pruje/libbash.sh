@@ -1,6 +1,12 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.11.0 (2019-02-01)
+- New function: `lb_istrue` to test boolean values
+- Fixed a bug in `lbg_open_directory` for Windows
+- Many code optimizations
+- Improve documentation
+
 ## 1.10.0 (2019-01-19)
 - New functions: `lb_getargs` and `lb_getopt` to improve arguments parsing in scripts
 - New quiet mode to disable displays (+ editable variable `$lb_quietmode`)
