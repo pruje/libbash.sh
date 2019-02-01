@@ -6,26 +6,27 @@ libbash.sh is a library of functions to easely write bash scripts.
 ## Usage
 Add libbash.sh to your script before using functions:
 ```bash
-source "/path/to/libbash.sh"
+source "/path/to/libbash.sh" [OPTIONS]
 ```
 Then call the functions described below.
 
-If you want to use libbash.sh GUI, use the `--gui` option as argument when loading libbash:
-```bash
-source "/path/to/libbash.sh" --gui
+## Options
+```
+-g, --gui        Load libbash.sh GUI
+-l, --lang LANG  Load a specific translation (by default the current language)
+-q, --quiet      Disable any output in functions
 ```
 
-By default, libbash.sh translation is loaded in the user language. You can specify a language with the `--lang` option:
-```bash
-source "/path/to/libbash.sh" --lang fr
-```
+### libbash.sh GUI
+To use the GUI functions, you have to load libbash.sh with the `--gui` (or `-g`) option.
+See the [GUI documentation](libbash_gui.md) for more informations.
 
-Supported languages:
+### Locales
+By default, libbash.sh translation is loaded in the current terminal language.
+But you can specify a language by the `--lang` option.
+Currently supported languages:
 - `en`: English (default)
 - `fr`: French
-
-**Note: DO NOT USE** variables or functions with `lb_` prefix in your scripts
-(nor `lbg_` if you use libbash.sh GUI) as you could override or broke some libbash.sh features.
 
 ## Return codes
 When you load libbash.sh, you can have the following return codes:
@@ -53,6 +54,9 @@ You can use and modify the following variables in your scripts:
 - `$lb_quietmode`: (boolean, false by default) if set to `true`, it will disable any display in console (including questions in `lb_yesno` and `lb_choose_option`)
 - `$lb_exitcode`: script exit code (integer, 0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
 - `$lb_exit_cmd`: array that contains a command to execute when `lb_exit()` function is called (empty by default)
+
+**Warning: DO NOT CREATE** any other variable or function with `lb_` prefix in your scripts
+(nor `lbg_` if you use libbash.sh GUI) as you could override or broke some features.
 
 ## Functions
 Be careful with functions with short options (e.g. `lb_exit -q -f`): options must be called separately (e.g. `lb_exit -qf` will not work).
