@@ -203,7 +203,7 @@ lbg_set_gui() {
 				fi
 				;;
 			*)
-				# test if X server started (only for Linux and Windows)
+				# test if X server started (not for macOS)
 				if [ "$lb_current_os" != macOS ] && [ -z "$DISPLAY" ] ; then
 					result=4
 					continue
@@ -1443,14 +1443,14 @@ lbg_open_directory() {
 	# set OS explorer if not specified
 	if [ -z "$explorer" ] ; then
 		case $lb_current_os in
-			Linux)
-				explorer=xdg-open
-				;;
 			macOS)
 				explorer=open
 				;;
 			Windows)
 				explorer=explorer
+				;;
+			*)
+				explorer=xdg-open
 				;;
 		esac
 	fi

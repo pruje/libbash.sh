@@ -1493,14 +1493,17 @@ lb_date2timestamp() {
 	[ -z "$1" ] && return 1
 
 	# prepare command
-	if [ "$lb_current_os" == macOS ] ; then
-		cmd+=(-j -f '%Y-%m-%d %H:%M:%S' "$*" +%s)
-	else
-		cmd+=(-d "$*" +%s)
-	fi
+	case $lb_current_os in
+		BSD|macOS)
+			cmd+=(-j -f '%Y-%m-%d %H:%M:%S')
+			;;
+		*)
+			cmd+=(-d)
+			;;
+	esac
 
 	# return timestamp
-	"${cmd[@]}" 2> /dev/null || return 2
+	"${cmd[@]}" "$*" +%s 2> /dev/null || return 2
 }
 
 
@@ -1529,23 +1532,20 @@ lb_timestamp2date() {
 		shift # load next argument
 	done
 
-	# usage error
+	# first argument should be an integer
 	lb_is_integer $1 || return 1
 
 	# prepare command
-	if [ "$lb_current_os" == macOS ] ; then
-		if [ -z "$format" ] ; then
+	case $lb_current_os in
+		BSD|macOS)
 			cmd+=(-j -f %s $1)
-		else
-			cmd+=(-j -f %s $1 "$format")
-		fi
-	else
-		if [ -z "$format" ] ; then
+			;;
+		*)
 			cmd+=(-d @$1)
-		else
-			cmd+=(-d @$1 "$format")
-		fi
-	fi
+			;;
+	esac
+
+	[ -n "$format" ] && cmd+=("$format")
 
 	# return formatted date
 	"${cmd[@]}" 2> /dev/null || return 2
@@ -1751,7 +1751,16 @@ lb_df_fstype() {
 	[ -e "$*" ] || return 2
 
 	case $lb_current_os in
-		Linux)
+		macOS)
+			# get mountpoint
+			local mount_point
+			mount_point=$(lb_df_mountpoint "$*") || return 3
+
+			# get filesystem type
+			diskutil info "$mount_point" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
+			;;
+
+		*)
 			if lb_command_exists lsblk ; then
 				# get device
 				local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
@@ -1763,19 +1772,6 @@ lb_df_fstype() {
 				# no lsblk command: use df command
 				df --output=fstype "$*" 2> /dev/null | tail -n 1
 			fi
-			;;
-
-		macOS)
-			# get mountpoint
-			local mount_point
-			mount_point=$(lb_df_mountpoint "$*") || return 3
-
-			# get filesystem type
-			diskutil info "$mount_point" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
-			;;
-
-		*) # Windows and other
-			df --output=fstype "$*" 2> /dev/null | tail -n 1
 			;;
 	esac
 
@@ -1794,11 +1790,14 @@ lb_df_space_left() {
 	[ -e "$*" ] || return 2
 
 	# get space available
-	if [ "$lb_current_os" == macOS ] ; then
-		df -k "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
-	else
-		df -k --output=avail "$*" 2> /dev/null | tail -n 1
-	fi
+	case $lb_current_os in
+		BSD|macOS)
+			df -k "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
+			;;
+		*)
+			df -k --output=avail "$*" 2> /dev/null | tail -n 1
+			;;
+	esac
 
 	[ ${PIPESTATUS[0]} == 0 ] || return 3
 }
@@ -1815,11 +1814,17 @@ lb_df_mountpoint() {
 	[ -e "$*" ] || return 2
 
 	# get mountpoint
-	if [ "$lb_current_os" == macOS ] ; then
-		df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
-	else
-		df --output=target "$*" 2> /dev/null | tail -n 1
-	fi
+	case $lb_current_os in
+		BSD)
+			df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=6;i<=NF;++i) print $i}'
+			;;
+		macOS)
+			df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
+			;;
+		*)
+			df --output=target "$*" 2> /dev/null | tail -n 1
+			;;
+	esac
 
 	[ ${PIPESTATUS[0]} == 0 ] || return 3
 }
@@ -1855,7 +1860,8 @@ lb_df_uuid() {
 			lsblk --output=UUID "$device" 2> /dev/null | tail -n 1
 			;;
 
-		*) # other OS not supported
+		*)
+			# other OS not supported
 			return 4
 			;;
 	esac
@@ -1952,24 +1958,23 @@ lb_realpath() {
 	# test if path exists
 	[ -e "$1" ] || return 1
 
-	if [ "$lb_current_os" == macOS ] ; then
-		# macOS does not support readlink -f option
-		perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1" || return 2
-	else
-		# Linux & Windows
-		local path
+	case $lb_current_os in
+		macOS)
+			# macOS does not support readlink -f option
+			perl -e 'use Cwd "abs_path";print abs_path(shift)' "$1" || return 2
+			;;
 
-		if [ "$lb_current_os" == Windows ] ; then
+		*)
+			# other OS
+			local path=$1
+
 			# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
-			# then we will find real path
-			path=$(cygpath "$1")
-		else
-			path=$1
-		fi
+			[ "$lb_current_os" == Windows ] && path=$(cygpath "$1")
 
-		# find real path
-		readlink -f "$path" 2> /dev/null || return 2
-	fi
+			# find real path
+			readlink -f "$path" 2> /dev/null || return 2
+			;;
+	esac
 }
 
 
@@ -2017,6 +2022,9 @@ lb_current_os() {
 	case $(uname 2> /dev/null) in
 		Darwin)
 			echo macOS
+			;;
+		*BSD)
+			echo BSD
 			;;
 		CYGWIN*)
 			echo Windows
@@ -2074,16 +2082,21 @@ lb_group_members() {
 	# usage error
 	[ -z "$1" ] && return 1
 
-	# not compatible with macOS and Windows
-	[ "$lb_current_os" != Linux ] && return 3
+	case $lb_current_os in
+		macOS|Windows)
+			# OS not compatible
+			return 3
+			;;
+	esac
 
 	# get line of group file
-	local groups=$(grep -E "^$1:.*:" /etc/group 2> /dev/null)
+	local group=$(grep -E "^$1:" /etc/group 2> /dev/null)
 
-	# groups not found
-	[ -z "$groups" ] && return 2
+	# group not found
+	[ -z "$group" ] && return 2
 
-	echo "$groups" | sed "s/^$1:.*://; s/,/ /g"
+	# extract members and return users separated by spaces
+	echo "$group" | sed "s/^$1:.*://; s/,/ /g"
 }
 
 
@@ -2113,13 +2126,12 @@ lb_generate_password() {
 		password=$(openssl rand -base64 32 2> /dev/null)
 	else
 		# print date timestamp + nanoseconds then generate md5 checksum
-		# then encode in base64
-		if [ "$lb_current_os" == macOS ] ; then
-			password=$(date +%s%N | shasum -a 256 | base64) || return 2
-		else
-			password=$(date +%s%N | sha256sum | base64) || return 2
-		fi
+		# then encode in base64 and delete spaces
+		password=$(date +%s%N | shasum -a 256 | base64 2> /dev/null | tr -d '[:space:]')
 	fi
+
+	# test if password is not empty
+	[ -n "$password" ] || return 2
 
 	# return password at the right size
 	echo "${password:0:$size}"
