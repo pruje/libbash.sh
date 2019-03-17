@@ -1751,6 +1751,10 @@ lb_df_fstype() {
 	[ -e "$*" ] || return 2
 
 	case $lb_current_os in
+		BSD)
+			df -T "$*" 2> /dev/null | tail -n 1 | awk '{print $2}'
+			;;
+
 		macOS)
 			# get mountpoint
 			local mount_point
