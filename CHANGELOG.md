@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.0 (2019-03-18)
+- Add support for BSD systems
+
 ## 1.11.0 (2019-02-01)
 - New function: `lb_istrue` to test boolean values
 - Fixed a bug in `lbg_open_directory` for Windows
