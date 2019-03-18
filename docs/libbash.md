@@ -1493,6 +1493,7 @@ lb_current_os
 
 #### Results
 Available results:
+- BSD
 - Linux
 - macOS
 - Windows
@@ -1500,7 +1501,10 @@ Available results:
 #### Example
 ```bash
 case $(lb_current_os) in
-    macOS)
+		BSD)
+				echo "You are on a BSD system."
+				;;
+		macOS)
         echo "You are on a macOS system."
         ;;
     Windows)
