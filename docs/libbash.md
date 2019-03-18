@@ -1307,7 +1307,7 @@ mountpoint=$(lb_df_mountpoint /)
 ### lb_df_uuid
 Get the disk UUID for a given path.
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported on BSD and Windows systems.
 
 #### Usage
 ```bash
@@ -1563,7 +1563,7 @@ fi
 ### lb_group_members
 List users member of a group.
 
-**WARNING**: This function is supported only on Linux systems.
+**WARNING**: This function is not supported on macOS and Windows systems.
 
 #### Usage
 ```bash
@@ -1616,7 +1616,7 @@ Send an email.
 You must have sendmail installed and a proper SMTP server or relay configured.
 You can install the `ssmtp` program (on Linux) to easely send emails via an existing account (like GMail or else).
 
-**WARNING**: This function is not supported yet on Windows.
+**WARNING**: This function is not supported on Windows systems.
 
 #### Usage
 ```bash

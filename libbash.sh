@@ -974,7 +974,7 @@ lb_read_config() {
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
 
-			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo "^\[.*\]")
+			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo '^\[.*\]')
 
 			# if line is a section definition
 			if [ -n "$section" ] ; then
@@ -997,7 +997,8 @@ lb_read_config() {
 		# add line to the lb_read_config variable
 		lb_read_config+=("$line")
 
-	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
+	# read line by line except empty or commented lines
+	done < <(grep -Ev '^\s*(#|;|$)' "$1")
 
 	# if section was not found, error
 	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
@@ -1051,7 +1052,7 @@ lb_import_config() {
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
 
-			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo "^\[.*\]")
+			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo '^\[.*\]')
 
 			# if line is a section definition
 			if [ -n "$section" ] ; then
@@ -1070,9 +1071,9 @@ lb_import_config() {
 		fi
 
 		# check syntax of the line (param = value)
-		if ! echo "$line" | grep -Eq "^\s*[a-zA-Z0-9_]+\s*=.*" ; then
+		if ! echo "$line" | grep -Eq '^\s*[a-zA-Z0-9_]+\s*=.*' ; then
 			# if section definition, do nothing (not error)
-			if ! echo "$line" | grep -Eq "^\[.*\]\s*$" ; then
+			if ! echo "$line" | grep -Eq '^\[.*\]\s*$' ; then
 				$return_errors && result=3
 			fi
 			continue
@@ -1080,7 +1081,7 @@ lb_import_config() {
 
 		# get parameter and value
 		# Note: use [[:space:]] for macOS compatibility
-		value=$(echo "$line" | sed "s/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//")
+		value=$(echo "$line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//')
 
 		# secure config values with prevent bash injection
 		if $secure_mode && echo "$value" | grep -Eq '\$|`' ; then
@@ -1090,7 +1091,9 @@ lb_import_config() {
 
 		# run command to attribute value to variable
 		eval "$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')=$value" &> /dev/null || result=2
-	done < <(grep -Ev '^\s*((#|;)|$)' "$1")
+
+	# read line by line except empty or commented lines
+	done < <(grep -Ev '^\s*(#|;|$)' "$1")
 
 	# if section was not found, return error
 	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
@@ -1151,7 +1154,7 @@ lb_get_config() {
 		[ $i == 1 ] && continue
 
 		for ((j=$i-1; j>=1; j--)) ; do
-			current_section=$(sed "${j}q;d" "$1" | grep -Eo "^\[.*\]")
+			current_section=$(sed "${j}q;d" "$1" | grep -Eo '^\[.*\]')
 
 			if [ -n "$current_section" ] ; then
 				if [ "$current_section" == "[$section]" ] ; then
@@ -1235,7 +1238,7 @@ lb_set_config() {
 				[ $i == 1 ] && continue
 
 				for ((j=$i-1; j>=1; j--)) ; do
-					lb_setcf_current_section=$(sed "${j}q;d" "$config_file" | grep -Eo "^\[.*\]")
+					lb_setcf_current_section=$(sed "${j}q;d" "$config_file" | grep -Eo '^\[.*\]')
 
 					if [ -n "$lb_setcf_current_section" ] ; then
 						if [ "$lb_setcf_current_section" == "[$section]" ] ; then
@@ -1761,7 +1764,7 @@ lb_df_fstype() {
 			mount_point=$(lb_df_mountpoint "$*") || return 3
 
 			# get filesystem type
-			diskutil info "$mount_point" | grep "Type (Bundle):" | cut -d: -f2 | awk '{print $1}'
+			diskutil info "$mount_point" | grep 'Type (Bundle):' | cut -d: -f2 | awk '{print $1}'
 			;;
 
 		*)
@@ -1852,7 +1855,7 @@ lb_df_uuid() {
 			mount_point=$(lb_df_mountpoint "$*") || return 3
 
 			# get filesystem type
-			diskutil info "$mount_point" | grep "Volume UUID:" | cut -d: -f2 | awk '{print $1}'
+			diskutil info "$mount_point" | grep 'Volume UUID:' | cut -d: -f2 | awk '{print $1}'
 			;;
 
 		Linux)
