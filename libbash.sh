@@ -1230,7 +1230,7 @@ lb_set_config() {
 		# if filter by section,
 		if [ -n "$section" ] ; then
 
-			local i j section_found=false section_ready=false
+			local i j current_section section_found=false section_ready=false
 
 			# parse every results
 			for i in ${config_line[@]} ; do
@@ -1238,10 +1238,10 @@ lb_set_config() {
 				[ $i == 1 ] && continue
 
 				for ((j=$i-1; j>=1; j--)) ; do
-					lb_setcf_current_section=$(sed "${j}q;d" "$config_file" | grep -Eo '^\[.*\]')
+					current_section=$(sed "${j}q;d" "$config_file" | grep -Eo '^\[.*\]')
 
-					if [ -n "$lb_setcf_current_section" ] ; then
-						if [ "$lb_setcf_current_section" == "[$section]" ] ; then
+					if [ -n "$current_section" ] ; then
+						if [ "$current_section" == "[$section]" ] ; then
 							config_line=($i)
 							found=1
 							section_found=true

@@ -60,7 +60,7 @@ fi
 ####################
 
 # libbash GUI path
-lbg_path=$BASH_SOURCE
+declare -r lbg_path=$BASH_SOURCE
 
 # set supported GUIs
 lbg_supported_gui=(kdialog zenity osascript cscript dialog console)
@@ -73,8 +73,8 @@ lbg_console_width=""
 lbg_console_height=""
 
 # VB script and cscript command for Windows
-lbg_vbscript_directory="$lb_directory/inc"
-lbg_vbscript="libbash_gui.vbs"
+declare -r lbg_vbscript_directory=$lb_directory/inc
+declare -r lbg_vbscript=libbash_gui.vbs
 lbg_cscript=(cscript /NoLogo "$lbg_vbscript")
 
 

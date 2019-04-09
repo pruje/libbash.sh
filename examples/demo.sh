@@ -52,9 +52,7 @@ usage() {
 
 # ask before exit
 ask_exit() {
-	if lbg_yesno -y "Do you want to quit libbash.sh DEMO?" ; then
-		quit_demo
-	fi
+	lbg_yesno -y "Do you want to quit libbash.sh DEMO?" && quit_demo
 }
 
 
@@ -70,7 +68,6 @@ quit_demo() {
 #
 
 log_level=INFO
-consolemode=false
 
 # get arguments
 lb_getargs "$@" && set -- "${lb_getargs[@]}"
@@ -108,9 +105,7 @@ while [ $# -gt 0 ] ; do
 done
 
 # disable dialogs if console mode
-if $consolemode ; then
-	lbg_set_gui console
-fi
+lb_istrue $consolemode && lbg_set_gui console
 
 # set log level
 if ! $debugmode ; then
@@ -122,14 +117,10 @@ fi
 lb_display_debug "libbash.sh DEMO running in DEBUG mode...\n"
 
 # welcome dialog
-if ! lbg_yesno "Welcome to libbash.sh DEMO. Do you want to continue?"; then
-	quit_demo
-fi
+lbg_yesno "Welcome to libbash.sh DEMO. Do you want to continue?" || quit_demo
 
 # choose your current OS
-if ! lbg_choose_option -l "Do you think you are running libbash.sh on:" Linux macOS Windows ; then
-	ask_exit
-fi
+lbg_choose_option -l "Do you think you are running libbash.sh on:" Linux macOS Windows || ask_exit
 
 # get results
 case $lbg_choose_option in
