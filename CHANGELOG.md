@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.1 (2019-04-09)
+- Minor improvements for variables
+- Update documentation for BSD support
+
 ## 1.12.0 (2019-03-18)
 - Add support for BSD systems
 
