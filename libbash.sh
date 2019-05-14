@@ -1284,6 +1284,16 @@ lb_set_config() {
 			return 0
 		else
 			# if section not found, append it
+
+			# append empty line above new section
+			if tail -1 "$config_file" | grep -Evq '^\s*$' ; then
+				if [ "$lb_current_os" == Windows ] ; then
+					echo -e "\r" >> "$config_file" || return 4
+				else
+					echo >> "$config_file" || return 4
+				fi
+			fi
+
 			config_line="[$section]"
 
 			# Windows files: add \r at the end of line
