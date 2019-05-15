@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.12.2 (2019-05-15)
+- Append an empty line above a new section in `lb_set_config`
+
 ## 1.12.1 (2019-04-09)
 - Minor improvements for variables
 - Update documentation for BSD support
