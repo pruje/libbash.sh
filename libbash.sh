@@ -454,16 +454,13 @@ lb_print() {
 lb_display() {
 
 	# default options
-	local opts display_level display_prefix=false log_message=false
+	local opts=() display_level display_prefix=false log_message=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
-			-e)
-				opts+="-e "
-				;;
-			-n)
-				opts+="-n "
+			-e|-n)
+				opts+=($1)
 				;;
 			-l|--level)
 				[ -z "$2" ] && return 1
@@ -482,6 +479,20 @@ lb_display() {
 		esac
 		shift # load next argument
 	done
+	
+	local text=$*
+	
+	# get text from stdin
+	if [ ${#text} == 0 ] ; then
+		if ! [ -t 0 ] ; then
+			local t
+			while read -r t ; do
+				text+="$t\n"
+			done
+			# delete last line jump
+			text=${text:0:${#text}-2}
+		fi
+	fi
 
 	# other options
 	local prefix display=true result=0
@@ -509,12 +520,12 @@ lb_display() {
 	# print into logfile
 	if $log_message ; then
 		# prepare command to log
-		local log_cmd=(lb_log $opts)
+		local log_cmd=(lb_log "${opts[@]}")
 
 		[ -n "$display_level" ] && log_cmd+=(--level "$display_level")
 
 		# execute lb_log
-		"${log_cmd[@]}" "$prefix$*" || result=2
+		"${log_cmd[@]}" "$prefix$text" || result=2
 	fi
 
 	# if no need to display, quit
@@ -542,7 +553,7 @@ lb_display() {
 	fi
 
 	# print text
-	lb_print $opts"$prefix$*" || return 3
+	lb_print "${opts[@]}" "$prefix$text" || return 3
 
 	return $result
 }
