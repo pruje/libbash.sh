@@ -17,6 +17,7 @@
 #   * Internal functions
 #       lbg__get_console_size
 #       lbg__dialog_size
+#       lbg__display_msgbox
 #   * GUI tools
 #       lbg_get_gui
 #       lbg_set_gui
@@ -121,6 +122,140 @@ lbg__dialog_size() {
 
 	# return height width
 	echo $dialog_height $dialog_width
+}
+
+
+# Display message box
+# Usage: lbg__display_msgbox TYPE [OPTIONS] TEXT
+lbg__display_msgbox() {
+
+	# default options
+	local type=$1 title=$lb_current_script_name
+	shift
+
+	# get options
+	while [ $# -gt 0 ] ; do
+		case $1 in
+			-t|--title)
+				[ -z "$2" ] && return 1
+				title=$2
+				shift
+				;;
+			*)
+				break
+				;;
+		esac
+		shift # load next argument
+	done
+
+	# usage error if no text to display
+	[ -z "$1" ] && return 1
+
+	local text=$*
+
+	# prepare command
+	local cmd
+	case $lbg__gui in
+		kdialog)
+			cmd=(kdialog --title "$title")
+
+			case $type in
+				error)
+					cmd+=(--error)
+					;;
+				warning)
+					cmd+=(--sorry)
+					;;
+				*)
+					# default: info
+					cmd+=(--msgbox)
+					;;
+			esac
+
+			cmd+=("$text")
+			;;
+
+		zenity)
+			cmd=(zenity --title "$title")
+
+			case $type in
+				error)
+					cmd+=(--error)
+					;;
+				warning)
+					cmd+=(--warning)
+					;;
+				*)
+					# default: info
+					cmd+=(--info)
+					;;
+			esac
+
+			cmd+=(--text "$text")
+			;;
+
+		osascript)
+			local icon
+			case $type in
+				error)
+					icon=stop
+					;;
+				warning)
+					icon=caution
+					;;
+				*)
+					# default: info
+					icon=note
+					;;
+			esac
+
+			# run command
+			$(osascript &> /dev/null << EOF
+display dialog "$text" with title "$title" with icon $icon buttons {"$lb_default_ok_label"} default button 1
+EOF) || return 2
+
+			return 0
+			;;
+
+		cscript)
+			cmd=("${lbg__cscript[@]}")
+			cmd+=(lbg_display_$type "$(echo -e "$text")" "$title")
+
+			# run VBscript into a context (cscript does not work with absolute paths)
+			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
+			return 0
+			;;
+
+		dialog)
+			local result=0 prefix
+
+			case $type in
+				error)
+					prefix="$lb_default_error_label: "
+					;;
+				warning)
+					prefix="$lb_default_warning_label: "
+					;;
+			esac
+
+			dialog --title "$title" --clear --msgbox "$prefix$text" $(lbg__dialog_size 50 10) 2> /dev/null || result=$?
+
+			# clear console
+			clear
+
+			# command error
+			[ $result != 0 ] && return 2
+			return 0
+			;;
+
+		*)
+			# console mode
+			cmd=(lb_display_$type "$text")
+			;;
+	esac
+
+	# run command
+	"${cmd[@]}" 2> /dev/null || return 2
 }
 
 
@@ -229,218 +364,21 @@ lbg_set_gui() {
 # Display an info dialog
 # Usage: lbg_display_info [OPTIONS] TEXT
 lbg_display_info() {
-
-	# default options
-	local title=$lb_current_script_name
-
-	# get options
-	while [ $# -gt 0 ] ; do
-		case $1 in
-			-t|--title)
-				[ -z "$2" ] && return 1
-				title=$2
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next argument
-	done
-
-	# usage error if no text to display
-	[ -z "$1" ] && return 1
-
-	# prepare command
-	local cmd
-	case $lbg__gui in
-		kdialog)
-			cmd=(kdialog --title "$title" --msgbox "$*")
-			;;
-
-		zenity)
-			cmd=(zenity --title "$title" --info --text "$*")
-			;;
-
-		osascript)
-			# run command
-			$(osascript &> /dev/null << EOF
-display dialog "$*" with title "$title" with icon note buttons {"$lb_default_ok_label"} default button 1
-EOF) || return 2
-
-			return 0
-			;;
-
-		cscript)
-			cmd=("${lbg__cscript[@]}")
-			cmd+=(lbg_display_info "$(echo -e "$*")" "$title")
-
-			# run VBscript into a context (cscript does not work with absolute paths)
-			# and quit
-			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
-			return 0
-			;;
-
-		dialog)
-			local result=0
-			dialog --title "$title" --clear --msgbox "$*" $(lbg__dialog_size 50 10) 2> /dev/null || result=$?
-
-			# clear console
-			clear
-
-			# command error
-			[ $result != 0 ] && return 2
-			return 0
-			;;
-
-		*)
-			# console mode
-			cmd=(lb_display_info "$*")
-			;;
-	esac
-
-	# run command
-	"${cmd[@]}" 2> /dev/null || return 2
+	lbg__display_msgbox info "$@"
 }
 
 
 # Display a warning message
 # Usage: lbg_display_warning [OPTIONS] TEXT
 lbg_display_warning() {
-
-	# default options
-	local title=$lb_current_script_name
-
-	# get options
-	while [ $# -gt 0 ] ; do
-		case $1 in
-			-t|--title)
-				[ -z "$2" ] && return 1
-				title=$2
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next argument
-	done
-
-	# usage error if no text to display
-	[ -z "$1" ] && return 1
-
-	# prepare command
-	local cmd
-	case $lbg__gui in
-		kdialog)
-			cmd=(kdialog --title "$title" --sorry "$*")
-			;;
-
-		zenity)
-			cmd=(zenity --title "$title" --warning --text "$*")
-			;;
-
-		osascript)
-			# run command
-			$(osascript &> /dev/null << EOF
-display dialog "$*" with title "$title" with icon caution buttons {"$lb_default_ok_label"} default button 1
-EOF) || return 2
-
-			return 0
-			;;
-
-		cscript)
-			cmd=("${lbg__cscript[@]}")
-			cmd+=(lbg_display_warning "$(echo -e "$*")" "$title")
-
-			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
-			return 0
-			;;
-
-		dialog)
-			# same command as lbg_display_info, but we add warning prefix
-			cmd=(lbg_display_info "$lb_default_warning_label: $*")
-			;;
-
-		*)
-			# console mode
-			cmd=(lb_display_warning "$*")
-			;;
-	esac
-
-	# run command
-	"${cmd[@]}" 2> /dev/null || return 2
+	lbg__display_msgbox warning "$@"
 }
 
 
 # Display an error message
 # Usage: lbg_display_error [OPTIONS] TEXT
 lbg_display_error() {
-
-	# default options
-	local title=$lb_current_script_name
-
-	# get options
-	while [ $# -gt 0 ] ; do
-		case $1 in
-			-t|--title)
-				[ -z "$2" ] && return 1
-				title=$2
-				shift
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next argument
-	done
-
-	# usage error if no text to display
-	[ -z "$1" ] && return 1
-
-	# prepare command
-	local cmd
-	case $lbg__gui in
-		kdialog)
-			cmd=(kdialog --title "$title" --error "$*")
-			;;
-
-		zenity)
-			cmd=(zenity --title "$title" --error --text "$*")
-			;;
-
-		osascript)
-			# run command
-			$(osascript &> /dev/null << EOF
-display dialog "$*" with title "$title" with icon stop buttons {"$lb_default_ok_label"} default button 1
-EOF) || return 2
-
-			return 0
-			;;
-
-		cscript)
-			cmd=("${lbg__cscript[@]}")
-			cmd+=(lbg_display_error "$(echo -e "$*")" "$title")
-
-			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
-			return 0
-			;;
-
-		dialog)
-			# same command as lbg_display_info, but we add error prefix
-			cmd=(lbg_display_info "$lb_default_error_label: $*")
-			;;
-
-		*)
-			# console mode
-			cmd=(lb_display_error $*)
-			;;
-	esac
-
-	# run command
-	"${cmd[@]}" 2> /dev/null || return 2
+	lbg__display_msgbox error "$@"
 }
 
 
