@@ -134,7 +134,7 @@ lb_default_newfile_name="New file"
 lb_log_levels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
 
 # print formatted strings in console
-lb_format_print=true
+lb__format_print=true
 
 # exit code
 lb_exitcode=0
@@ -305,7 +305,7 @@ lb_exit() {
 lb_get_display_level() {
 
 	# default options
-	local i get_id=false level=$lb_display_level
+	local i get_id=false level=$lb__display_level
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -322,14 +322,14 @@ lb_get_display_level() {
 
 	# if not specified, get actual log level
 	if [ -z "$1" ] ; then
-		if [ -z "$lb_display_level" ] ; then
+		if [ -z "$lb__display_level" ] ; then
 			return 1
 		else
 			# print actual and exit
 			if $get_id ; then
-				echo $lb_display_level
+				echo $lb__display_level
 			else
-				echo "${lb_log_levels[lb_display_level]}"
+				echo "${lb_log_levels[lb__display_level]}"
 			fi
 			return 0
 		fi
@@ -368,7 +368,7 @@ lb_set_display_level() {
 	for ((id=0 ; id < ${#lb_log_levels[@]} ; id++)) ; do
 		# search by name and set level id
 		if [ "${lb_log_levels[id]}" == $1 ] ; then
-			lb_display_level=$id
+			lb__display_level=$id
 			return 0
 		fi
 	done
@@ -419,7 +419,7 @@ lb_print() {
 	done
 
 	# append formatting options
-	if lb_istrue $lb_format_print && [ ${#format[@]} -gt 0 ] ; then
+	if lb_istrue $lb__format_print && [ ${#format[@]} -gt 0 ] ; then
 		opts+="\e["
 		local f
 		for f in ${format[@]} ; do
@@ -476,14 +476,14 @@ lb_display() {
 	lb_istrue $lb_quietmode && display=false
 
 	# if a display level is set, test it
-	if [ -n "$display_level" ] && [ -n "$lb_display_level" ] ; then
+	if [ -n "$display_level" ] && [ -n "$lb__display_level" ] ; then
 		# get display level ID
 		local level_id
 
 		# Note: if level is unknown, message will be displayed
 		if level_id=$(lb_get_display_level --id "$display_level") ; then
 			# if display level is higher than default, will not display (but can log)
-			[ $level_id -gt $lb_display_level ] && display=false
+			[ $level_id -gt $lb__display_level ] && display=false
 		fi
 	fi
 
@@ -768,8 +768,8 @@ lb_set_logfile() {
 	lb_logfile=$*
 
 	# if not set, set higher log level
-	if [ -z "$lb_log_level" ] && [ ${#lb_log_levels[@]} -gt 0 ] ; then
-		lb_log_level=$((${#lb_log_levels[@]} - 1))
+	if [ -z "$lb__log_level" ] && [ ${#lb_log_levels[@]} -gt 0 ] ; then
+		lb__log_level=$((${#lb_log_levels[@]} - 1))
 	fi
 }
 
@@ -779,7 +779,7 @@ lb_set_logfile() {
 lb_get_log_level() {
 
 	# default options
-	local i get_id=false level=$lb_log_level
+	local i get_id=false level=$lb__log_level
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -796,14 +796,14 @@ lb_get_log_level() {
 
 	# if not specified, get actual log level
 	if [ -z "$1" ] ; then
-		if [ -z "$lb_log_level" ] ; then
+		if [ -z "$lb__log_level" ] ; then
 			return 1
 		else
 			# print actual and exit
 			if $get_id ; then
-				echo $lb_log_level
+				echo $lb__log_level
 			else
-				echo "${lb_log_levels[lb_log_level]}"
+				echo "${lb_log_levels[lb__log_level]}"
 			fi
 			return 0
 		fi
@@ -842,7 +842,7 @@ lb_set_log_level() {
 	for ((id=0 ; id < ${#lb_log_levels[@]} ; id++)) ; do
 		# search by name and set level id
 		if [ "${lb_log_levels[id]}" == $1 ] ; then
-			lb_log_level=$id
+			lb__log_level=$id
 			return 0
 		fi
 	done
@@ -895,13 +895,13 @@ lb_log() {
 	done
 
 	# if a default log level is set, test it
-	if [ -n "$level" ] && [ -n "$lb_log_level" ] ; then
+	if [ -n "$level" ] && [ -n "$lb__log_level" ] ; then
 		local id_level
 
 		# Note: if level unknown, message will be logged
 		if id_level=$(lb_get_log_level --id "$level") ; then
 			# if log level is higher than default, do not log
-			[ $id_level -gt $lb_log_level ] && return 0
+			[ $id_level -gt $lb__log_level ] && return 0
 		fi
 	fi
 
@@ -2021,7 +2021,7 @@ lb_is_writable() {
 # Edit a file with sed command
 # Usage: lb_edit PATTERN FILE
 lb_edit() {
-	if lb_istrue $lb_oldsed ; then
+	if lb_istrue $lb__oldsed ; then
 		sed -i '' "$@"
 	else
 		sed -i "$@"
@@ -2809,7 +2809,7 @@ lb_dir_is_empty() {
 #  INITIALIZATION  #
 ####################
 
-lb_load_result=0
+lb__load_result=0
 
 # context variables
 declare -r lb_current_os=$(lb_current_os)
@@ -2832,40 +2832,38 @@ for v in lb_current_os lb_current_hostname lb_current_user lb_current_path \
          lb_current_script lb_current_script_name lb_current_script_directory ; do
 	if [ -z "${!v}" ] ; then
 		lb_error "libbash.sh: [WARNING] variable \$$v could not be set"
-		lb_load_result=4
+		lb__load_result=4
 	fi
 done
 
 # get current user language (e.g. fr, en, ...)
-lb_lang=${LANG:0:2}
+lb__lang=${LANG:0:2}
 
 # get options
 while [ $# -gt 0 ] ; do
 	case $1 in
 		-g|--gui)
-			lb_load_gui=0
-
-			# load libbash GUI
-			source "$lb_directory/libbash_gui.sh" &> /dev/null || lb_load_gui=$?
-
-			case $lb_load_gui in
+			# load libbash GUI + prevent crash if running bash with -e option
+			lb__load_gui=0
+			source "$lb_directory/libbash_gui.sh" &> /dev/null || lb__load_gui=$?
+			case $lb__load_gui in
 				0)
 					# GUI loaded; continue
 					;;
 				2)
 					lb_error "libbash.sh GUI: [ERROR] cannot set a GUI interface"
-					lb_load_result=5
+					lb__load_result=5
 					;;
 				*)
 					lb_error "libbash.sh: [ERROR] cannot load GUI part. Please verify the path $lb_directory."
-					lb_load_result=2
+					lb__load_result=2
 					;;
 			esac
 			;;
 		-l|--lang)
 			# no errors if bad options
 			if [ -n "$2" ] ; then
-				lb_lang=$2
+				lb__lang=$2
 				shift
 			fi
 			;;
@@ -2881,19 +2879,19 @@ while [ $# -gt 0 ] ; do
 done
 
 # load translations (do not exit if errors)
-case $lb_lang in
+case $lb__lang in
 	fr)
-		if ! source "$lb_directory/locales/$lb_lang.sh" &> /dev/null ; then
-			lb_error "libbash.sh: [WARNING] cannot load translation: $lb_lang"
-			lb_load_result=3
+		if ! source "$lb_directory/locales/$lb__lang.sh" &> /dev/null ; then
+			lb_error "libbash.sh: [WARNING] cannot load translation: $lb__lang"
+			lb__load_result=3
 		fi
 		;;
 esac
 
 # if macOS, disable text formatting in console
-[ "$lb_current_os" == macOS ] && lb_format_print=false
+[ "$lb_current_os" == macOS ] && lb__format_print=false
 
 # detect old sed command (mostly on macOS)
-sed --version &> /dev/null || lb_oldsed=true
+sed --version &> /dev/null || lb__oldsed=true
 
-return $lb_load_result
+return $lb__load_result

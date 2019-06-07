@@ -15,9 +15,8 @@
 #
 #   * Main variables
 #   * Internal functions
-#       lbg_get_console_size
-#       lbg_dialog_size
-#       lbg_osascript
+#       lbg__get_console_size
+#       lbg__dialog_size
 #   * GUI tools
 #       lbg_get_gui
 #       lbg_set_gui
@@ -63,19 +62,19 @@ fi
 declare -r lbg_path=$BASH_SOURCE
 
 # set supported GUIs
-lbg_supported_gui=(kdialog zenity osascript cscript dialog console)
+lbg__supported_gui=(kdialog zenity osascript cscript dialog console)
 
 # GUI tool
-lbg_gui=""
+lbg__gui=""
 
 # console size
-lbg_console_width=""
-lbg_console_height=""
+lbg__console_width=""
+lbg__console_height=""
 
 # VB script and cscript command for Windows
-declare -r lbg_vbscript_directory=$lb_directory/inc
-declare -r lbg_vbscript=libbash_gui.vbs
-lbg_cscript=(cscript /NoLogo "$lbg_vbscript")
+declare -r lbg__vbscript_dir=$lb_directory/inc
+declare -r lbg__vbscript=libbash_gui.vbs
+lbg__cscript=(cscript /NoLogo "$lbg__vbscript")
 
 
 ##################################
@@ -83,41 +82,41 @@ lbg_cscript=(cscript /NoLogo "$lbg_vbscript")
 #  DO NOT PUBLISH DOCUMENTATION  #
 ##################################
 
-# Get console size and update lbg_console_width and lbg_console_height variables
-# Usage: lbg_get_console_size()
+# Get console size and update lbg__console_width and lbg__console_height variables
+# Usage: lbg__get_console_size()
 # Exit codes:
 #   0: OK
 #   1: No terminal available
-lbg_get_console_size() {
+lbg__get_console_size() {
 
 	# get console width and height
-	lbg_console_width=$(tput cols 2> /dev/null)
-	lbg_console_height=$(tput lines 2> /dev/null)
+	lbg__console_width=$(tput cols 2> /dev/null)
+	lbg__console_height=$(tput lines 2> /dev/null)
 
 	# if error (script not running in a terminal)
-	if [ -z "$lbg_console_width" ] || [ -z "$lbg_console_height" ] ; then
+	if [ -z "$lbg__console_width" ] || [ -z "$lbg__console_height" ] ; then
 		return 1
 	fi
 }
 
 
 # Set dialog size to fit console
-# Usage: lbg_dialog_size MAX_WIDTH MAX_HEIGHT
+# Usage: lbg__dialog_size MAX_WIDTH MAX_HEIGHT
 # Return: HEIGHT WIDTH
-# e.g. dialog --msgbox "Hello world" $(lbg_dialog_size 50 10)
-lbg_dialog_size() {
+# e.g. dialog --msgbox "Hello world" $(lbg__dialog_size 50 10)
+lbg__dialog_size() {
 
 	# given size
 	local dialog_width=$1 dialog_height=$2
 
 	# if max width > console width, fit to console width
-	if [ "$dialog_width" -gt "$lbg_console_width" ] ; then
-		dialog_width=$lbg_console_width
+	if [ "$dialog_width" -gt "$lbg__console_width" ] ; then
+		dialog_width=$lbg__console_width
 	fi
 
 	# if max height > console height, fit to console height
-	if [ "$dialog_height" -gt "$lbg_console_height" ] ; then
-		dialog_height=$lbg_console_height
+	if [ "$dialog_height" -gt "$lbg__console_height" ] ; then
+		dialog_height=$lbg__console_height
 	fi
 
 	# return height width
@@ -134,10 +133,10 @@ lbg_dialog_size() {
 lbg_get_gui() {
 
 	# no GUI tool defined
-	[ -z "$lbg_gui" ] && return 1
+	[ -z "$lbg__gui" ] && return 1
 
 	# return current GUI tool
-	echo $lbg_gui
+	echo $lbg__gui
 }
 
 
@@ -146,7 +145,7 @@ lbg_get_gui() {
 lbg_set_gui() {
 
 	# default options
-	local gui_tools=(${lbg_supported_gui[@]}) result=0
+	local gui_tools=(${lbg__supported_gui[@]}) result=0
 
 	# if args set, test list of commands
 	[ $# -gt 0 ] && gui_tools=($*)
@@ -162,7 +161,7 @@ lbg_set_gui() {
 		fi
 
 		# test if GUI is supported
-		if ! lb_in_array "$gui" "${lbg_supported_gui[@]}" ; then
+		if ! lb_in_array "$gui" "${lbg__supported_gui[@]}" ; then
 			result=1
 			continue
 		fi
@@ -177,7 +176,7 @@ lbg_set_gui() {
 		case $gui in
 			dialog)
 				# get console size
-				if ! lbg_get_console_size ; then
+				if ! lbg__get_console_size ; then
 					result=4
 					continue
 				fi
@@ -197,7 +196,7 @@ lbg_set_gui() {
 				fi
 
 				# test VB script
-				if ! [ -f "$lbg_vbscript_directory/$lbg_vbscript" ] ; then
+				if ! [ -f "$lbg__vbscript_dir/$lbg__vbscript" ] ; then
 					result=4
 					continue
 				fi
@@ -217,7 +216,7 @@ lbg_set_gui() {
 	done
 
 	# set gui tool
-	[ $result == 0 ] && lbg_gui=$gui
+	[ $result == 0 ] && lbg__gui=$gui
 
 	return $result
 }
@@ -254,7 +253,7 @@ lbg_display_info() {
 
 	# prepare command
 	local cmd
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			cmd=(kdialog --title "$title" --msgbox "$*")
 			;;
@@ -273,18 +272,18 @@ EOF) || return 2
 			;;
 
 		cscript)
-			cmd=("${lbg_cscript[@]}")
+			cmd=("${lbg__cscript[@]}")
 			cmd+=(lbg_display_info "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# and quit
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
+			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
 		dialog)
 			local result=0
-			dialog --title "$title" --clear --msgbox "$*" $(lbg_dialog_size 50 10) 2> /dev/null || result=$?
+			dialog --title "$title" --clear --msgbox "$*" $(lbg__dialog_size 50 10) 2> /dev/null || result=$?
 
 			# clear console
 			clear
@@ -332,7 +331,7 @@ lbg_display_warning() {
 
 	# prepare command
 	local cmd
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			cmd=(kdialog --title "$title" --sorry "$*")
 			;;
@@ -351,11 +350,11 @@ EOF) || return 2
 			;;
 
 		cscript)
-			cmd=("${lbg_cscript[@]}")
+			cmd=("${lbg__cscript[@]}")
 			cmd+=(lbg_display_warning "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
+			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
@@ -402,7 +401,7 @@ lbg_display_error() {
 
 	# prepare command
 	local cmd
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			cmd=(kdialog --title "$title" --error "$*")
 			;;
@@ -421,11 +420,11 @@ EOF) || return 2
 			;;
 
 		cscript)
-			cmd=("${lbg_cscript[@]}")
+			cmd=("${lbg__cscript[@]}")
 			cmd+=(lbg_display_error "$(echo -e "$*")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
+			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
@@ -486,7 +485,7 @@ lbg_notify() {
 	if $use_notifysend && lb_command_exists notify-send ; then
 		# do not override kdialog because it has the best integration to KDE desktop
 		# do not use it on macOS nor in console mode
-		if ! lb_in_array "$lbg_gui" kdialog osascript console ; then
+		if ! lb_in_array "$lbg__gui" kdialog osascript console ; then
 			# execute command with timeout in milliseconds
 			[ -n "$timeout" ] && opts="-t $(($timeout * 1000)) "
 
@@ -497,7 +496,7 @@ lbg_notify() {
 	fi
 
 	# run command
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			kdialog --title "$title" --passivepopup "$*" $timeout 2> /dev/null || return 2
 			;;
@@ -574,7 +573,7 @@ lbg_yesno() {
 	local cmd result=0
 
 	# prepare command
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			cmd=(kdialog --title "$title")
 			[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
@@ -610,12 +609,12 @@ EOF)
 			;;
 
 		cscript)
-			cmd=("${lbg_cscript[@]}")
+			cmd=("${lbg__cscript[@]}")
 			cmd+=(lbg_yesno "$(echo -e "$*")" "$title")
 			$yes_default && cmd+=(true)
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
+			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
@@ -624,7 +623,7 @@ EOF)
 			$yes_default || cmd+=(--defaultno)
 			[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
 			[ -n "$no_label" ] && cmd+=(--no-label "$no_label")
-			cmd+=(--clear --yesno "$*" $(lbg_dialog_size 100 10))
+			cmd+=(--clear --yesno "$*" $(lbg__dialog_size 100 10))
 
 			# run command
 			"${cmd[@]}" || result=$?
@@ -724,7 +723,7 @@ lbg_choose_option() {
 
 	# prepare command
 	local i cmd
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			cmd=(kdialog --title "$title" --radiolist "$label")
 
@@ -800,18 +799,18 @@ EOF)
 			done
 
 			# prepare command (inputbox)
-			cmd=("${lbg_cscript[@]}" lbg_input_text "$label" "$title")
+			cmd=("${lbg__cscript[@]}" lbg_input_text "$label" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# error => cancelled
-			lbg_choose_option=$(cd "$lbg_vbscript_directory" && "${cmd[@]}" "${default[@]}") || return 2
+			lbg_choose_option=$(cd "$lbg__vbscript_dir" && "${cmd[@]}" "${default[@]}") || return 2
 
 			# remove \r ending character
 			lbg_choose_option=${lbg_choose_option:0:${#lbg_choose_option}-1}
 			;;
 
 		dialog)
-			cmd=(dialog --title "$title" --clear --radiolist "$label" $(lbg_dialog_size 100 30) 1000)
+			cmd=(dialog --title "$title" --clear --radiolist "$label" $(lbg__dialog_size 100 30) 1000)
 
 			# add options
 			for ((i=1 ; i<${#options[@]} ; i++)) ; do
@@ -905,7 +904,7 @@ lbg_input_text() {
 
 	# run command
 	local cmd
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			lbg_input_text=$(kdialog --title "$title" --inputbox "$*" "$default" 2> /dev/null)
 			;;
@@ -922,13 +921,13 @@ EOF)
 
 		cscript)
 			# prepare command
-			cmd=("${lbg_cscript[@]}")
+			cmd=("${lbg__cscript[@]}")
 			cmd+=(lbg_input_text "$(echo -e "$*")" "$title")
 			[ -n "$default" ] && cmd+=("$default")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# error => cancelled
-			lbg_input_text=$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
+			lbg_input_text=$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
@@ -937,7 +936,7 @@ EOF)
 		dialog)
 			# run command (complex case)
 			exec 3>&1
-			lbg_input_text=$(dialog --title "$title" --clear --inputbox "$*" $(lbg_dialog_size 100 10) "$default" 2>&1 1>&3)
+			lbg_input_text=$(dialog --title "$title" --clear --inputbox "$*" $(lbg__dialog_size 100 10) "$default" 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1014,7 +1013,7 @@ lbg_input_password() {
 	for i in 1 2 ; do
 
 		# run command
-		case $lbg_gui in
+		case $lbg__gui in
 			kdialog)
 				lbg_input_password=$(kdialog --title "$title" --password "$label" 2> /dev/null)
 				;;
@@ -1033,7 +1032,7 @@ EOF)
 			dialog)
 				# run command (complex case)
 				exec 3>&1
-				lbg_input_password=$(dialog --title "$title" --clear --passwordbox "$label" $(lbg_dialog_size 50 10) 2>&1 1>&3)
+				lbg_input_password=$(dialog --title "$title" --clear --passwordbox "$label" $(lbg__dialog_size 50 10) 2>&1 1>&3)
 				exec 3>&-
 
 				# clear console
@@ -1137,7 +1136,7 @@ lbg_choose_directory() {
 
 	# run command
 	local cmd choice
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			choice=$(kdialog --title "$title" --getexistingdirectory "$path" 2> /dev/null)
 			;;
@@ -1154,7 +1153,7 @@ EOF)
 
 		cscript)
 			# prepare command
-			cmd=("${lbg_cscript[@]}")
+			cmd=("${lbg__cscript[@]}")
 			cmd+=(lbg_choose_directory)
 
 			# if title is not defined,
@@ -1168,7 +1167,7 @@ EOF)
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# error => cancelled
-			choice=$(cd "$lbg_vbscript_directory" && "${cmd[@]}") || return 2
+			choice=$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			choice=${choice:0:${#choice}-1}
@@ -1177,7 +1176,7 @@ EOF)
 		dialog)
 			# run command (complex case)
 			exec 3>&1
-			choice=$(dialog --title "$title" --clear --dselect "$path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
+			choice=$(dialog --title "$title" --clear --dselect "$path" $(lbg__dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -1277,7 +1276,7 @@ lbg_choose_file() {
 
 	# display dialog
 	local cmd choice mode
-	case $lbg_gui in
+	case $lbg__gui in
 		kdialog)
 			# kdialog has a strange behaviour: it takes a path but only as a file name and needs to be run from start directory.
 			if [ -d "$path" ] ; then
@@ -1339,7 +1338,7 @@ EOF)
 		dialog)
 			# execute dialog (complex case)
 			exec 3>&1
-			choice=$(dialog --title "$title" --clear --fselect "$path" $(lbg_dialog_size 100 30) 2>&1 1>&3)
+			choice=$(dialog --title "$title" --clear --fselect "$path" $(lbg__dialog_size 100 30) 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
