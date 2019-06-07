@@ -430,8 +430,22 @@ lb_print() {
 		reset_color="\e[0m"
 	fi
 
-	# print to the console
-	echo -e $opts"$*"$reset_color
+	local text=$*
+	
+	# if text passed by argument
+	if [ ${#text} -gt 0 ] ; then
+		echo -e $opts"$text$reset_color"
+	else
+		# print empty text
+		if [ -t 0 ] ; then
+			echo
+		else
+			# print text from stdin
+			while read -r text ; do
+				echo -e $opts"$text$reset_color"
+			done
+		fi
+	fi
 }
 
 
