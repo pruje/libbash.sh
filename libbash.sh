@@ -487,10 +487,10 @@ lb_display() {
 		if ! [ -t 0 ] ; then
 			local t
 			while read -r t ; do
-				text+="$t\n"
+				text+="\n$t"
 			done
-			# delete last line jump
-			text=${text:0:${#text}-2}
+			# delete first line jump
+			text=${text:2}
 		fi
 	fi
 
@@ -822,14 +822,14 @@ lb_log() {
 	[ -z "$lb_logfile" ] && return 1
 
 	# default options
-	local echo_opts level
+	local echo_opts=(-e) level
 	local prefix=false date_prefix=false overwrite=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-n)
-				echo_opts="-n "
+				echo_opts+=(-n)
 				;;
 			-l|--level)
 				[ -z "$2" ] && return 1
@@ -855,6 +855,20 @@ lb_log() {
 		esac
 		shift # load next argument
 	done
+	
+	local text=$*
+	
+	# get text from stdin
+	if [ ${#text} == 0 ] ; then
+		if ! [ -t 0 ] ; then
+			local t
+			while read -r t ; do
+				text+="\n$t"
+			done
+			# delete first line jump
+			text=${text:2}
+		fi
+	fi
 
 	# if a default log level is set, test it
 	if [ -n "$level" ] && [ -n "$lb__log_level" ] ; then
@@ -868,24 +882,21 @@ lb_log() {
 	fi
 
 	# initialize log text + tee options
-	local log_message tee_cmd=tee
+	local log_prefix tee_opts=()
 
 	# add date prefix
-	$date_prefix && log_message+="[$(date +"%d %b %Y %H:%M:%S %z")] "
+	$date_prefix && log_prefix+="$(date +"%d %b %Y %H:%M:%S %z") "
 
 	# add level prefix
 	if $prefix && [ -n "$level" ] ; then
-		log_message+="[$level] "
+		log_prefix+="[$level] "
 	fi
 
-	# prepare text
-	log_message+=$*
-
 	# if not erase, append to file with tee -a
-	$overwrite || tee_cmd+=" -a"
+	$overwrite || tee_opts+=(-a)
 
 	# print into log file; do not output text or errors
-	echo -e $echo_opts"$log_message" | $tee_cmd "$lb_logfile" &> /dev/null || return 2
+	echo "${echo_opts[@]}" "$log_prefix$text" | tee "${tee_opts[@]}" "$lb_logfile" &> /dev/null || return 2
 }
 
 
