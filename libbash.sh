@@ -622,74 +622,11 @@ lb_result() {
 # Manage command result and display label in short mode
 # Usage: lb_short_result [OPTIONS] [EXIT_CODE]
 lb_short_result() {
-
 	# get last command result
 	local result=$?
 
-	# default values and options
-	local display_cmd=(lb_display)
-	local error_exitcode save_exitcode=false exit_on_error=false quiet_mode=false
-
-	# get options
-	while [ $# -gt 0 ] ; do
-		case $1 in
-			-l|--log-level)
-				[ -z "$2" ] && return 1
-				display_cmd+=(-l "$2")
-				shift
-				;;
-			--log)
-				display_cmd+=(--log)
-				;;
-			-s|--save-exitcode)
-				save_exitcode=true
-				;;
-			-e|--error-exitcode)
-				# check type and validity
-				lb_is_integer $2 || return 1
-				error_exitcode=$2
-				shift
-				;;
-			-x|--exit-on-error)
-				exit_on_error=true
-				;;
-			-q|--quiet)
-				quiet_mode=true
-				;;
-			*)
-				break
-				;;
-		esac
-		shift # load next argument
-	done
-
-	# specified exit code
-	if [ -n "$1" ] ; then
-		# test type
-		lb_is_integer $1 || return 1
-		result=$1
-	fi
-
-	# save result to exit code
-	$save_exitcode && lb_exitcode=$result
-
-	# if result OK (code 0)
-	if [ $result == 0 ] ; then
-		$quiet_mode || "${display_cmd[@]}" "[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]"
-	else
-		# if error (code 1-255)
-		$quiet_mode || "${display_cmd[@]}" "[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]"
-
-		# if save exit code is not set and error exitcode is specified, save it
-		if ! $save_exitcode && [ -n "$error_exitcode" ] ; then
-			lb_exitcode=$error_exitcode
-		fi
-
-		# if exit on error, exit
-		$exit_on_error && lb_exit
-	fi
-
-	return $result
+	lb_result --ok-label "[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]" \
+	          --failed-label "[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]" "$@" $result
 }
 
 

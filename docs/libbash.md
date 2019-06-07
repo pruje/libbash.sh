@@ -527,24 +527,13 @@ lb_result
 ### lb_short_result
 Print a short result label to the console to indicate if a command succeeded or failed.
 
-It uses the `lb_result` function with `--ok-label [  OK  ]` and `--failed-label [ FAILED ]` options.
+It is an alias to the `lb_result` function with `--ok-label [  OK  ]` and `--failed-label [ FAILED ]` options.
 
 #### Usage
 ```bash
 lb_short_result [OPTIONS] [EXIT_CODE]
 ```
-
-#### Options
-```
---log                      Append text to log file
--l, --log-level LEVEL      Choose a display level (will be the same for logs)
--s, --save-exitcode        Save the result to the $lb_exitcode variable
--e, --error-exitcode CODE  Set a custom code to the $lb_exitcode variable if error
--x, --exit-on-error        Exit if result is not ok (exit code not to 0)
--q, --quiet                Do not print anything
-
-EXIT_CODE                  Specify an exit code. If not set, variable $? will be used
-```
+See [lb_result](#lb_result) for options usage.
 
 #### Exit codes
 Exit code forwarded of the command (beware that 1 could also mean an usage error).
