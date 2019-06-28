@@ -767,7 +767,7 @@ Config file definition:
 
 #### Usage
 ```bash
-lb_import_config [OPTIONS] PATH
+lb_import_config [OPTIONS] PATH [FILTERS...]
 ```
 
 #### Options
@@ -775,6 +775,8 @@ lb_import_config [OPTIONS] PATH
 -s, --section SECTION  Import parameters only in the specified section(s)
 -e, --all-errors       Return all errors in exit codes
 -u, --unsecure         Do not prevent shell injection (could be dangerous)
+
+FILTERS                List of parameters that should be imported (others will be ignored)
 ```
 
 #### Exit codes

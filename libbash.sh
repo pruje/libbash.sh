@@ -981,7 +981,7 @@ lb_read_config() {
 
 
 # Import a config file into bash variables
-# Usage: lb_import_config [OPTIONS] PATH
+# Usage: lb_import_config [OPTIONS] PATH [PARAMETERS]
 lb_import_config() {
 
 	# local variables and default options
@@ -1014,7 +1014,10 @@ lb_import_config() {
 	# test if file is readable
 	[ -r "$1" ] || return 5
 
-	local result=0 line section value good_section=false section_found=false
+	local file=$1
+	shift
+
+	local filters=("$@") result=0 line section value good_section=false section_found=false
 
 	# read file line by line; backslashes are not escaped
 	while read -r line ; do
@@ -1052,6 +1055,14 @@ lb_import_config() {
 			continue
 		fi
 
+		# filter parameter
+		if [ ${#filters[@]} -gt 0 ] ; then
+			if ! lb_array_contains "$(echo "$line" | cut -d= -f1 | lb_trim)" "${filters[@]}" ; then
+				$return_errors && result=2
+				continue
+			fi
+		fi
+
 		# get parameter and value
 		# Note: use [[:space:]] for macOS compatibility
 		value=$(echo "$line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//')
@@ -1066,7 +1077,7 @@ lb_import_config() {
 		eval "$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')=$value" &> /dev/null || result=2
 
 	# read line by line except empty or commented lines
-	done < <(grep -Ev '^\s*(#|;|$)' "$1")
+	done < <(grep -Ev '^\s*(#|;|$)' "$file")
 
 	# if section was not found, return error
 	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
