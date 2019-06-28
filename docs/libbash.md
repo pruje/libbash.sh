@@ -676,6 +676,7 @@ To set a log file, see [lb_set_logfile](#lb_set_logfile).
 ```bash
 lb_log [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### Options
 ```
@@ -997,6 +998,7 @@ In source codes, comments are preceded by a symbol like `#`, `//`, ...
 ```bash
 lb_is_comment [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### Options
 ```

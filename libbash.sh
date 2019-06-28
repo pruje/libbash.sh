@@ -1357,9 +1357,15 @@ lb_is_comment() {
 		shift # load next command
 	done
 
+	local line=$*
+
+	# get text from stdin
+	if [ ${#line} == 0 ] ; then
+		[ -t 0 ] || read -r line
+	fi
+
 	# delete spaces to find the first character
-	# echo "$1" is to avoid * interpretation
-	local line=$(echo "$1" | tr -d '[:space:]')
+	line=$(lb_trim "$line")
 
 	# empty line
 	if [ -z "$line" ] ; then
@@ -2072,7 +2078,7 @@ lb_in_group() {
 	local user=$2
 
 	# get current user if not defined
-	[ -z "$user" ] && user=$(whoami)
+	[ -z "$user" ] && user=$lb_current_user
 
 	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
 	local groups=($(groups $user 2> /dev/null | cut -d: -f2))
