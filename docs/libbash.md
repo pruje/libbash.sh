@@ -1621,6 +1621,7 @@ You can install the `ssmtp` program (on Linux) to easely send emails via an exis
 ```bash
 lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 ```
+Note: you can also give `MESSAGE` argument using stdin or pipes.
 
 #### Options
 ```

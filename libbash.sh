@@ -487,10 +487,11 @@ lb_display() {
 		if ! [ -t 0 ] ; then
 			local t
 			while read -r t ; do
-				text+="\n$t"
+				text+="
+$t"
 			done
 			# delete first line jump
-			text=${text:2}
+			text=${text:1}
 		fi
 	fi
 
@@ -863,10 +864,11 @@ lb_log() {
 		if ! [ -t 0 ] ; then
 			local t
 			while read -r t ; do
-				text+="\n$t"
+				text+="
+$t"
 			done
 			# delete first line jump
-			text=${text:2}
+			text=${text:1}
 		fi
 	fi
 
@@ -2159,7 +2161,7 @@ lb_generate_password() {
 lb_email() {
 
 	# usage error
-	[ $# -lt 2 ] && return 1
+	[ $# == 0 ] && return 1
 
 	# default options and local variables
 	local subject sender replyto cc bcc message message_html
@@ -2215,15 +2217,29 @@ lb_email() {
 		shift # load next argument
 	done
 
-	# usage error if missing text and at least one option
-	[ $# -lt 2 ] && return 1
-
 	local recipients=$1
+	# usage error if missing recipients
+	[ ${#recipients} == 0 ] && return 1
+
 	shift
+	local text=$*
+
+	# get text from stdin
+	if [ ${#text} == 0 ] ; then
+		if ! [ -t 0 ] ; then
+			local t
+			while read -r t ; do
+				text+="
+$t"
+			done
+			# delete first line jump
+			text=${text:1}
+		fi
+	fi
 
 	# usage error if missing message
-	# could be not detected by test above if recipents field has some spaces
-	[ -z "$*" ] && return 1
+	# could be not detected by test above if recipients field has some spaces
+	[ ${#text} == 0 ] && return 1
 
 	# search compatible command to send email
 	local c
@@ -2289,7 +2305,7 @@ lb_email() {
 	# mail in TXT
 	message+="Content-Type: text/plain; charset=\"utf-8\"
 
-$*
+$text
 "
 
 	# mail in HTML + close multipart
