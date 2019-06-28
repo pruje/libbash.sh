@@ -275,6 +275,7 @@ Displays a notification popup.
 ```bash
 lbg_notify [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### notify-send
 On Linux systems, the `notify-send` command is used by default over `zenity --notification` command.

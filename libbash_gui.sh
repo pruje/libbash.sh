@@ -413,8 +413,23 @@ lbg_notify() {
 		shift # load next argument
 	done
 
+	local text=$*
+
+	# get text from stdin
+	if [ ${#text} == 0 ] ; then
+		if ! [ -t 0 ] ; then
+			local t
+			while read -r t ; do
+				text+="
+$t"
+			done
+			# delete first line jump
+			text=${text:1}
+		fi
+	fi
+
 	# usage error if no text
-	[ -z "$1" ] && return 1
+	[ ${#text} == 0 ] && return 1
 
 	local opts
 
@@ -428,7 +443,7 @@ lbg_notify() {
 			[ -n "$timeout" ] && opts="-t $(($timeout * 1000)) "
 
 			# push notification and return
-			notify-send $opts"$title" "$*" || return 2
+			notify-send $opts"$title" "$text" || return 2
 			return 0
 		fi
 	fi
@@ -436,7 +451,7 @@ lbg_notify() {
 	# run command
 	case $lbg__gui in
 		kdialog)
-			kdialog --title "$title" --passivepopup "$*" $timeout 2> /dev/null || return 2
+			kdialog --title "$title" --passivepopup "$text" $timeout 2> /dev/null || return 2
 			;;
 
 		zenity)
@@ -446,12 +461,12 @@ lbg_notify() {
 			[ -n "$timeout" ] && opts="--timeout=$timeout"
 
 			# run command
-			zenity --notification $opts --text "$*" 2> /dev/null || return 2
+			zenity --notification $opts --text "$text" 2> /dev/null || return 2
 			;;
 
 		osascript)
 			$(osascript &> /dev/null << EOF
-display notification "$*" with title "$title"
+display notification "$text" with title "$title"
 EOF) || return 2
 			;;
 
@@ -459,7 +474,7 @@ EOF) || return 2
 
 		*)
 			# print in console mode
-			lb_display "[$lb_default_info_label]  $*" || return 2
+			lb_display "[$lb_default_info_label]  $text" || return 2
 			;;
 	esac
 }
