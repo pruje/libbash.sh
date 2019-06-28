@@ -379,7 +379,7 @@ lb_set_display_level INFO
 ---------------------------------------------------------------
 <a name="lb_print"></a>
 ### lb_print (or lb_echo)
-Print a message to the console, with colors and formatting
+Print a message to the console, with colors and formatting.
 
 #### Usage
 ```bash
@@ -389,6 +389,7 @@ or
 ```bash
 lb_echo [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### macOS case
 For now, messages are not formatted in macOS terminal.
@@ -1026,6 +1027,7 @@ Deletes spaces before and after a string.
 ```bash
 lb_trim STRING
 ```
+Note: you can also give `STRING` argument using stdin or pipes.
 
 #### Exit codes
 Exit code of the `echo` command.

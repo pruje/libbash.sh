@@ -431,7 +431,7 @@ lb_print() {
 	fi
 
 	local text=$*
-	
+
 	# if text passed by argument
 	if [ ${#text} -gt 0 ] ; then
 		echo -e $opts"$text$reset_color"
@@ -479,9 +479,9 @@ lb_display() {
 		esac
 		shift # load next argument
 	done
-	
+
 	local text=$*
-	
+
 	# get text from stdin
 	if [ ${#text} == 0 ] ; then
 		if ! [ -t 0 ] ; then
@@ -855,9 +855,9 @@ lb_log() {
 		esac
 		shift # load next argument
 	done
-	
+
 	local text=$*
-	
+
 	# get text from stdin
 	if [ ${#text} == 0 ] ; then
 		if ! [ -t 0 ] ; then
@@ -1377,19 +1377,28 @@ lb_is_comment() {
 # Usage: lb_trim STRING
 lb_trim() {
 
-	# empty text: do nothing
-	[ $# == 0 ] && return 0
-
 	local string=$*
 
-	# remove spaces before string
-	string=${string#${string%%[![:space:]]*}}
-
-	# remove spaces after string
-	string=${string%${string##*[![:space:]]}}
-
-	# return string
-	echo "$string"
+	# test if text passed by stdin
+	if [ ${#string} == 0 ] ; then
+		if [ -t 0 ] ; then
+			# empty text
+			return 0
+		else
+			# get text from stdin
+			while read -r string ; do
+				# remove spaces before string
+				string=${string#${string%%[![:space:]]*}}
+				# remove spaces after string and return it
+				echo "${string%${string##*[![:space:]]}}"
+			done
+		fi
+	else
+		# remove spaces before string
+		string=${string#${string%%[![:space:]]*}}
+		# remove spaces after string and return it
+		echo "${string%${string##*[![:space:]]}}"
+	fi
 }
 
 
