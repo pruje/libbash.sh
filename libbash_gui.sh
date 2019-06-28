@@ -7,7 +7,7 @@
 #  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.12.2 (2019-05-15)                         #
+#  Version 2.0.0 (2019-06-28)                          #
 #                                                      #
 ########################################################
 
@@ -148,10 +148,23 @@ lbg__display_msgbox() {
 		shift # load next argument
 	done
 
-	# usage error if no text to display
-	[ -z "$1" ] && return 1
-
 	local text=$*
+
+	# get text from stdin
+	if [ ${#text} == 0 ] ; then
+		if ! [ -t 0 ] ; then
+			local t
+			while read -r t ; do
+				text+="
+$t"
+			done
+			# delete first line jump
+			text=${text:1}
+		fi
+	fi
+
+	# usage error if no text
+	[ ${#text} == 0 ] && return 1
 
 	# prepare command
 	local cmd

@@ -133,6 +133,8 @@ or
 ```bash
 lbg_info [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
+
 #### Options
 ```
 -t, --title TEXT  Set a title to the dialog
@@ -161,6 +163,7 @@ or
 ```bash
 lbg_warning [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### Options
 ```
@@ -190,6 +193,7 @@ or
 ```bash
 lbg_error [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### Options
 ```
@@ -219,6 +223,7 @@ or
 ```bash
 lbg_critical [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### Options
 ```
@@ -248,6 +253,7 @@ or
 ```bash
 lbg_debug [OPTIONS] TEXT
 ```
+Note: you can also give `TEXT` argument using stdin or pipes.
 
 #### Options
 ```
