@@ -7,11 +7,11 @@
 #  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 2.0.0 (2019-06-28)                          #
+#  Version 1.13.0 (2019-06-29)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=2.0.0-beta.1
+declare -r lb_version=1.13.0-beta.1
 
 # Index
 #
@@ -915,7 +915,7 @@ lb_read_config() {
 	lb_read_config=()
 
 	# default options
-	local sections=()
+	local sections=() analyse=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -924,6 +924,9 @@ lb_read_config() {
 				[ -z "$2" ] && return 1
 				sections+=("[$2]")
 				shift
+				;;
+			-a|--analyse)
+				analyse=true
 				;;
 			*)
 				break
@@ -938,7 +941,10 @@ lb_read_config() {
 	# test if file is readable
 	[ -r "$1" ] || return 2
 
-	local line section good_section=false section_found=false
+	local line section good_section=false section_found=false filters=(-v '^\s*(#|;|$)')
+
+	# analyse mode: do not filter comments
+	$analyse && filters=('^(\[|(#|;)*[a-zA-Z0-9_]+\s*=)')
 
 	# read config file line by line; backslashes are not escaped
 	while read -r line ; do
@@ -949,7 +955,8 @@ lb_read_config() {
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
 
-			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo '^\[.*\]')
+			# test if line is a section
+			section=$(echo "$line" | grep -Eo '^\[.*\]')
 
 			# if line is a section definition
 			if [ -n "$section" ] ; then
@@ -969,11 +976,16 @@ lb_read_config() {
 			fi
 		fi
 
-		# add line to the lb_read_config variable
-		lb_read_config+=("$line")
+		# analyse mode: add parameter to results
+		if $analyse ; then
+			lb_read_config+=("$(echo "$line" | sed 's/^\(\#\|\;\)*\([a-zA-Z0-9_]\+\)[[:space:]]*=.*/\2/')")
+		else
+			# add line to results
+			lb_read_config+=("$line")
+		fi
 
 	# read line by line except empty or commented lines
-	done < <(grep -Ev '^\s*(#|;|$)' "$1")
+	done < <(grep -E "${filters[@]}" "$1")
 
 	# if section was not found, error
 	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
@@ -1030,7 +1042,8 @@ lb_import_config() {
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
 
-			section=$(echo "$line" | tr -d '[:space:]' | grep -Eo '^\[.*\]')
+			# test if line is a section
+			section=$(echo "$line" | grep -Eo '^\[.*\]')
 
 			# if line is a section definition
 			if [ -n "$section" ] ; then
@@ -1067,7 +1080,7 @@ lb_import_config() {
 
 		# get parameter and value
 		# Note: use [[:space:]] for macOS compatibility
-		value=$(echo "$line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//')
+		value=$(echo "$line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]\+[[:space:]]*=[[:space:]]*//')
 
 		# secure config values with prevent bash injection
 		if $secure_mode && echo "$value" | grep -Eq '\$|`' ; then

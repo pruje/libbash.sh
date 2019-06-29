@@ -736,6 +736,7 @@ lb_read_config [OPTIONS] PATH
 #### Options
 ```
 -s, --section SECTION  Read parameters only in the specified section(s)
+-a, --analyse          Analyse mode: return sections and parameters names, even defaults in comments
 ```
 
 #### Exit codes
@@ -744,14 +745,18 @@ lb_read_config [OPTIONS] PATH
 - 2: File exists but is not readable
 - 3: Specified section was not found
 
-#### Example
+#### Examples
+1. Read and print values
 ```bash
 lb_read_config my_config.conf
-
-# print config lines
-for ((i = 0 ; i < ${#lb_read_config[@]} ; i++)) ; do
-	echo "${lb_read_config[$i]}"
+for i in "${lb_read_config[@]}" ; do
+	echo "$i"
 done
+```
+2. Analyse config file to secure import
+```bash
+lb_read_config --analyse template.conf
+lb_import_config my_config.conf "${lb_read_config[@]}"
 ```
 
 ---------------------------------------------------------------
