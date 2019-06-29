@@ -11,7 +11,7 @@
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.13.0-beta.1
+declare -r lb_version=1.13.0-beta.2
 
 # Index
 #
@@ -1137,7 +1137,7 @@ lb_migrate_config() {
 	[ $? != 0 ] && return 3
 
 	# analyse new config
-	lb_read_config -a "$2" || return 2
+	lb_read_config -a "$2" || return 4
 
 	# import old config
 	local param section opts=() value result=0

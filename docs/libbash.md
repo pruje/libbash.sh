@@ -825,6 +825,8 @@ lb_migrate_config OLD_FILE NEW_FILE
 - 0: Configuration migrated
 - 1: File(s) does not exists
 - 2: One or more parameters were not migrated
+- 3: File(s) are not readable/writable
+- 4: Failed to analyse new config file
 
 #### Example
 ```bash
