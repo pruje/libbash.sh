@@ -1124,6 +1124,47 @@ lb_import_config() {
 }
 
 
+# Migrate config file to another version
+# Usage: lb_migrate_config OLD_FILE NEW_FILE
+lb_migrate_config() {
+	# test if files exists
+	[ -f "$1" ] && [ -f "$2" ]
+	[ $? != 0 ] && return 1
+
+	# test if files are readable/writable
+	[ -r "$1" ] && [ -r "$2" ] && \
+	[ -w "$1" ] && [ -w "$2" ]
+	[ $? != 0 ] && return 3
+
+	# analyse new config
+	lb_read_config -a "$2" || return 2
+
+	# import old config
+	local param section opts=() value result=0
+	for param in "${lb_read_config[@]}" ; do
+		# reset
+		opts=()
+
+		# detect section definition
+		if echo "$param" | grep -Eq '^.+\..+' ; then
+			section=$(echo "$param" | cut -d. -f1)
+			param=$(echo "$param" | cut -d. -f2)
+			opts+=(-s "$section")
+		fi
+
+		# get old value if exists
+		value=$(lb_get_config "${opts[@]}" "$1" "$param")
+
+		# write value in new config
+		if [ $? == 0 ] ; then
+			lb_set_config "${opts[@]}" "$2" "$param" "$value" || result=2
+		fi
+	done
+
+	return $result
+}
+
+
 # Get config value
 # Usage: lb_get_config [OPTIONS] FILE PARAM
 lb_get_config() {

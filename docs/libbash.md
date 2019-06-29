@@ -88,6 +88,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 * Configuration files
 	* [lb_read_config](#lb_read_config)
 	* [lb_import_config](#lb_import_config)
+	* [lb_migrate_config](#lb_migrate_config)
 	* [lb_get_config](#lb_get_config)
 	* [lb_set_config](#lb_set_config)
 * Operations on variables
@@ -806,6 +807,28 @@ lb_import_config my_config.conf
 
 # print bye message
 echo "$hello_message ${users[@]}"
+```
+
+---------------------------------------------------------------
+<a name="lb_migrate_config"></a>
+### lb_migrate_config
+Migrate a config file to a new one.
+Import from old config parameters only defined in new config.
+Be careful that old defined values are lost! To avoid that, you have to code an upgrade procedure.
+
+#### Usage
+```bash
+lb_migrate_config OLD_FILE NEW_FILE
+```
+
+#### Exit codes
+- 0: Configuration migrated
+- 1: File(s) does not exists
+- 2: One or more parameters were not migrated
+
+#### Example
+```bash
+lb_migrate_config old_config.conf new_config.conf
 ```
 
 ---------------------------------------------------------------
