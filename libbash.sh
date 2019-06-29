@@ -1044,7 +1044,7 @@ lb_import_config() {
 	local file=$1
 	shift
 
-	local filters=("$@") result=0 line section value good_section=false section_found=false
+	local filters=("$@") result=0 line s section param param_filter value good_section=false section_found=false
 
 	# read file line by line; backslashes are not escaped
 	while read -r line ; do
@@ -1052,16 +1052,18 @@ lb_import_config() {
 		# delete the last character if file has Windows format (\r)
 		[ "${line:${#line}-1}" == $'\r' ] && line=${line:0:${#line}-1}
 
+		# test if line is a section
+		s=$(echo "$line" | grep -Eo '^\[.*\]')
+
+		# save current section
+		[ -n "$s" ] && section=$(echo "$s" | sed 's/\[\(.*\)\]/\1/')
+
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
-
-			# test if line is a section
-			section=$(echo "$line" | grep -Eo '^\[.*\]')
-
 			# if line is a section definition
-			if [ -n "$section" ] ; then
+			if [ -n "$s" ] ; then
 				# if section is valid, mark it
-				if lb_in_array "$section" "${sections[@]}" ; then
+				if lb_in_array "$s" "${sections[@]}" ; then
 					good_section=true
 					section_found=true
 				else
@@ -1083,9 +1085,15 @@ lb_import_config() {
 			continue
 		fi
 
+		# save parameter name
+		param=$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')
+
 		# filter parameter
 		if [ ${#filters[@]} -gt 0 ] ; then
-			if ! lb_array_contains "$(echo "$line" | cut -d= -f1 | lb_trim)" "${filters[@]}" ; then
+			param_filter=$param
+			[ -n "$section" ] && param_filter=$section.$param
+
+			if ! lb_array_contains "$param_filter" "${filters[@]}" ; then
 				$return_errors && result=2
 				continue
 			fi
@@ -1102,7 +1110,7 @@ lb_import_config() {
 		fi
 
 		# run command to attribute value to variable
-		eval "$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')=$value" &> /dev/null || result=2
+		eval "$param=$value" &> /dev/null || result=2
 
 	# read line by line except empty or commented lines
 	done < <(grep -Ev '^\s*(#|;|$)' "$file")
