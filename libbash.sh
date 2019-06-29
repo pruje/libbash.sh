@@ -1221,7 +1221,7 @@ lb_set_config() {
 	local config_line=($(grep -En "^\s*(#|;)*\s*$param\s*=" "$config_file" | cut -d: -f1))
 
 	# get number of results
-	local found=${#config_line[@]}
+	local found=${#config_line[@]} section_ready=true
 
 	# if line found, modify line (set the last one if multiple lines)
 	if [ $found -gt 0 ] ; then
@@ -1229,7 +1229,8 @@ lb_set_config() {
 		# if filter by section,
 		if [ -n "$section" ] ; then
 
-			local i j current_section section_found=false section_ready=false
+			local i j current_section section_found=false
+			section_ready=false
 
 			# parse every results
 			for i in ${config_line[@]} ; do
@@ -1260,7 +1261,7 @@ lb_set_config() {
 		if $section_ready ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			lb_edit "${config_line[found-1]}s/\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file" || return 4
+			lb_edit "${config_line[found-1]}s/^\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file" || return 4
 			return 0
 		fi
 	fi
