@@ -941,7 +941,7 @@ lb_read_config() {
 	# test if file is readable
 	[ -r "$1" ] || return 2
 
-	local line section good_section=false section_found=false filters=(-v '^\s*(#|;|$)')
+	local line s section good_section=false section_found=false filters=(-v '^\s*(#|;|$)') result
 
 	# analyse mode: do not filter comments
 	$analyse && filters=('^(\[|(#|;)*[a-zA-Z0-9_]+\s*=)')
@@ -952,33 +952,46 @@ lb_read_config() {
 		# delete the last character if file has Windows format (\r)
 		[ "${line:${#line}-1}" == $'\r' ] && line=${line:0:${#line}-1}
 
-		# filter by sections
-		if [ ${#sections[@]} -gt 0 ] ; then
+		# section detection
+		if [ ${#sections[@]} -gt 0 ] || $analyse ; then
 
 			# test if line is a section
-			section=$(echo "$line" | grep -Eo '^\[.*\]')
+			s=$(echo "$line" | grep -Eo '^\[.*\]')
 
-			# if line is a section definition
-			if [ -n "$section" ] ; then
-				# if section is valid, mark it
-				if lb_in_array "$section" "${sections[@]}" ; then
-					good_section=true
-					section_found=true
+			# filter by sections
+			if [ ${#sections[@]} -gt 0 ] ; then
+				# if line is a section definition
+				if [ -n "$s" ] ; then
+					# if section is valid, mark it
+					if lb_in_array "$s" "${sections[@]}" ; then
+						good_section=true
+						section_found=true
+					else
+						# if section is not valid, mark it and continue to the next line
+						good_section=false
+						continue
+					fi
 				else
-					# if section is not valid, mark it and continue to the next line
-					good_section=false
-					continue
+					# if normal line,
+					# if we are not in a good section, continue to the next line
+					$good_section || continue
 				fi
-			else
-				# if normal line,
-				# if we are not in a good section, continue to the next line
-				$good_section || continue
 			fi
 		fi
 
 		# analyse mode: add parameter to results
 		if $analyse ; then
-			lb_read_config+=("$(echo "$line" | sed 's/^\(\#\|\;\)*\([a-zA-Z0-9_]\+\)[[:space:]]*=.*/\2/')")
+
+			# section line: save and dont return it
+			if [ -n "$s" ] ; then
+				section=$(echo "$s" | sed 's/\[\(.*\)\]/\1/')
+				continue
+			fi
+
+			result=$(echo "$line" | sed 's/^\(\#\|\;\)*\([a-zA-Z0-9_]\+\)[[:space:]]*=.*/\2/')
+			[ -n "$section" ] && result=$section.$result
+
+			lb_read_config+=("$result")
 		else
 			# add line to results
 			lb_read_config+=("$line")
