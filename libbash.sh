@@ -1093,10 +1093,8 @@ lb_import_config() {
 			param_filter=$param
 			[ -n "$section" ] && param_filter=$section.$param
 
-			if ! lb_array_contains "$param_filter" "${filters[@]}" ; then
-				$return_errors && result=2
-				continue
-			fi
+			# not in filter list: continue
+			lb_array_contains "$param_filter" "${filters[@]}" || continue
 		fi
 
 		# get parameter and value
