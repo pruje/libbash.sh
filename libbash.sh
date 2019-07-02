@@ -988,7 +988,7 @@ lb_read_config() {
 				continue
 			fi
 
-			result=$(echo "$line" | sed 's/^\(\#\|\;\)*\([a-zA-Z0-9_]\+\)[[:space:]]*=.*/\2/')
+			result=$(echo "$line" | sed 's/^\(\#\|\;\)*\([a-zA-Z0-9_]*\)[[:space:]]*=.*/\2/')
 			[ -n "$section" ] && result=$section.$result
 
 			lb_read_config+=("$result")
@@ -1101,7 +1101,7 @@ lb_import_config() {
 
 		# get parameter and value
 		# Note: use [[:space:]] for macOS compatibility
-		value=$(echo "$line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]\+[[:space:]]*=[[:space:]]*//')
+		value=$(echo "$line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//')
 
 		# secure config values with prevent bash injection
 		if $secure_mode && echo "$value" | grep -Eq '\$|`' ; then
