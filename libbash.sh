@@ -11,7 +11,7 @@
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.13.0-beta.2
+declare -r lb_version=1.13.0-rc.1
 
 # Index
 #
@@ -494,16 +494,14 @@ lb_display() {
 	local text=$*
 
 	# get text from stdin
-	if [ ${#text} == 0 ] ; then
-		if ! [ -t 0 ] ; then
-			local t
-			while read -r t ; do
-				text+="
+	if [ ${#text} == 0 ] && ! [ -t 0 ] ; then
+		local t
+		while read -r t ; do
+			text+="
 $t"
-			done
-			# delete first line jump
-			text=${text:1}
-		fi
+		done
+		# delete first line jump
+		text=${text:1}
 	fi
 
 	# other options
@@ -871,16 +869,14 @@ lb_log() {
 	local text=$*
 
 	# get text from stdin
-	if [ ${#text} == 0 ] ; then
-		if ! [ -t 0 ] ; then
-			local t
-			while read -r t ; do
-				text+="
+	if [ ${#text} == 0 ] && ! [ -t 0 ] ; then
+		local t
+		while read -r t ; do
+			text+="
 $t"
-			done
-			# delete first line jump
-			text=${text:1}
-		fi
+		done
+		# delete first line jump
+		text=${text:1}
 	fi
 
 	# if a default log level is set, test it
@@ -1162,10 +1158,8 @@ lb_migrate_config() {
 		fi
 
 		# get old value if exists
-		value=$(lb_get_config "${opts[@]}" "$1" "$param")
-
-		# write value in new config
-		if [ $? == 0 ] ; then
+		if value=$(lb_get_config "${opts[@]}" "$1" "$param") ; then
+			# write value in new config
 			lb_set_config "${opts[@]}" "$2" "$param" "$value" || result=2
 		fi
 	done
@@ -2046,12 +2040,8 @@ lb_abspath() {
 
 		# case of the current directory (do not put /path/to/./)
 		if [ "$file" != "." ] ; then
-
 			# do not put //file if parent directory is root
-			if [ "$directory" != "/" ] ; then
-				path+="/"
-			fi
-
+			[ "$directory" != "/" ] && path+="/"
 			path+=$file
 		fi
 
@@ -2316,16 +2306,14 @@ lb_email() {
 	local text=$*
 
 	# get text from stdin
-	if [ ${#text} == 0 ] ; then
-		if ! [ -t 0 ] ; then
-			local t
-			while read -r t ; do
-				text+="
+	if [ ${#text} == 0 ] && ! [ -t 0 ] ; then
+		local t
+		while read -r t ; do
+			text+="
 $t"
-			done
-			# delete first line jump
-			text=${text:1}
-		fi
+		done
+		# delete first line jump
+		text=${text:1}
 	fi
 
 	# usage error if missing message
@@ -2345,53 +2333,32 @@ $t"
 	[ -z "$cmd" ] && return 2
 
 	# set email header
-
-	if [ -n "$sender" ] ; then
-		message+="From: $sender
+	[ -n "$sender" ] && message+="From: $sender
 "
-	fi
-
 	message+="To: $recipients
 "
-
-	if [ -n "$cc" ] ; then
-		message+="Cc: $cc
+	[ -n "$cc" ] && message+="Cc: $cc
 "
-	fi
-
-	if [ -n "$bcc" ] ; then
-		message+="Bcc: $bcc
+	[ -n "$bcc" ] && message+="Bcc: $bcc
 "
-	fi
-
-	if [ -n "$replyto" ] ; then
-		message+="Reply-To: $replyto
+	[ -n "$replyto" ] && message+="Reply-To: $replyto
 "
-	fi
-
-	if [ -n "$subject" ] ; then
-		message+="Subject: $subject
+	[ -n "$subject" ] && message+="Subject: $subject
 "
-	fi
-
 	message+="MIME-Version: 1.0
 "
 
 	# mixed definition (if attachments)
-	if [ ${#attachments[@]} -gt 0 ] ; then
-		message+="Content-Type: multipart/mixed; boundary=\"${separator}_mixed\"
+	[ ${#attachments[@]} -gt 0 ] && message+="Content-Type: multipart/mixed; boundary=\"${separator}_mixed\"
 
 --${separator}_mixed
 "
-	fi
 
 	# multipart definition (if HTML + TXT)
-	if $multipart ; then
-		message+="Content-Type: multipart/alternative; boundary=\"$separator\"
+	$multipart && message+="Content-Type: multipart/alternative; boundary=\"$separator\"
 
 --$separator
 "
-	fi
 
 	# mail in TXT
 	message+="Content-Type: text/plain; charset=\"utf-8\"
@@ -2400,14 +2367,12 @@ $text
 "
 
 	# mail in HTML + close multipart
-	if $multipart ; then
-		message+="
+	$multipart && message+="
 --$separator
 Content-Type: text/html; charset=\"utf-8\"
 
 $message_html
 --$separator--"
-	fi
 
 	# add attachments
 	if [ ${#attachments[@]} -gt 0 ] ; then
@@ -2590,9 +2555,8 @@ lb_choose_option() {
 	if [ ${#default[@]} -gt 0 ] ; then
 		local d
 		for d in ${default[@]} ; do
-			if ! lb_is_integer $d ; then
-				return 1
-			fi
+			lb_is_integer $d || return 1
+
 			if [ $d -lt 1 ] || [ $d -ge ${#options[@]} ] ; then
 				return 1
 			fi

@@ -1,6 +1,27 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.13.0 (2019-07-05)
+### New features
+- Add stdin support for some functions:
+   - `lb_print`
+   - `lb_error`
+   - `lb_display` and `lb_display_*`
+   - `lb_log`
+   - `lb_trim`
+   - `lb_is_comment`
+   - `lb_email`
+   - `lbg_display_*`
+   - `lbg_notify`
+- New analyse mode for `lb_read_config`
+- `lb_getargs` and `lb_getopt` now supports options with syntax `--option=value`
+- New filters argument in `lb_import_config` to import only some variables
+- New function: `lb_migrate_config` to migrate config files
+ 
+### Changes
+- Internal variables and functions are renamed with custom prefix
+- Code cleaning
+
 ## 1.12.2 (2019-05-15)
 - Append an empty line above a new section in `lb_set_config`
 
