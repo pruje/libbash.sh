@@ -1205,6 +1205,9 @@ lb_get_config() {
 	# test if file is readable
 	[ -r "$1" ] || return 2
 
+	# test parameter name
+	[[ $2 =~ ^[a-zA-Z0-9_]+$ ]] || return 1
+
 	# search config line
 	local config_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
 
@@ -1275,6 +1278,9 @@ lb_set_config() {
 
 	# test if file is writable
 	[ -w "$1" ] || return 2
+
+	# test parameter name
+	[[ $2 =~ ^[a-zA-Z0-9_]+$ ]] || return 1
 
 	local config_file=$1 param=$2
 	shift 2
