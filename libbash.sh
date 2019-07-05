@@ -230,6 +230,12 @@ lb_getargs() {
 # Get value of an option (e.g. --tail 10 will return 10)
 # Usage: lb_getopt "$@"
 lb_getopt() {
+	# if syntax --option=value
+	if [[ $1 =~ ^--.*=.* ]] ; then
+		echo "$1" | cut -d= -f2-
+		return 0
+	fi
+
 	# if no value, quit
 	[ $# -lt 2 ] && return 1
 
