@@ -220,8 +220,13 @@ lb_getargs() {
 		if [[ $a =~ ^-[a-zA-Z0-9]+$ ]] ; then
 			lb_getargs+=($(echo "${a:1}" | grep -o . | sed 's/^/-/'))
 		else
-			# forward argument
-			lb_getargs+=("$a")
+			# if syntax --option=value, split to --option value
+			if [[ $a =~ ^--.*=.* ]] ; then
+				lb_getargs+=("$(echo "$a" | cut -d= -f1)" "$(echo "$a" | cut -d= -f2-)")
+			else
+				# forward argument
+				lb_getargs+=("$a")
+			fi
 		fi
 	done
 }
