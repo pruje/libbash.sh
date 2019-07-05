@@ -2962,10 +2962,11 @@ while [ $# -gt 0 ] ; do
 			;;
 		-l|--lang)
 			# no errors if bad options
-			if [ -n "$2" ] ; then
-				lb__lang=$2
-				shift
-			fi
+			lb__lang=$(lb_getopt "$@") && shift
+			;;
+		--lang=*)
+			# no errors if bad options
+			lb__lang=$(lb_getopt "$@")
 			;;
 		-q|--quiet)
 			# activate quiet mode
