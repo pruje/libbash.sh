@@ -11,7 +11,7 @@
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.13.0-rc.1
+declare -r lb_version=1.13.0-rc.2
 
 # Index
 #
@@ -995,7 +995,7 @@ lb_read_config() {
 				continue
 			fi
 
-			result=$(echo "$line" | sed 's/^\(\#\|\;\)*\([a-zA-Z0-9_]*\)[[:space:]]*=.*/\2/')
+			result=$(echo "$line" | sed 's/^\#*\;*\([a-zA-Z0-9_]*\)[[:space:]]*=.*/\1/')
 			[ -n "$section" ] && result=$section.$result
 
 			lb_read_config+=("$result")
