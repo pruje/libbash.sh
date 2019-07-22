@@ -1,7 +1,7 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## 1.13.0 (2019-07-05)
+## 1.13.0 (2019-07-22)
 ### New features
 - Add stdin support for some functions:
    - `lb_print`
@@ -17,7 +17,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - `lb_getargs` and `lb_getopt` now supports options with syntax `--option=value`
 - New filters argument in `lb_import_config` to import only some variables
 - New function: `lb_migrate_config` to migrate config files
- 
+
 ### Changes
 - Internal variables and functions are renamed with custom prefix
 - Code cleaning
