@@ -2014,8 +2014,18 @@ lb_is_dir_empty() {
 
 
 # Get absolute path of a file/directory
-# Usage: lb_abspath PATH
+# Usage: lb_abspath OPTIONS PATH
 lb_abspath() {
+
+	local test_dir=true
+
+	# get options
+	case $1 in
+		-n|--no-test)
+			test_dir=false
+			shift
+			;;
+	esac
 
 	# usage error
 	[ $# == 0 ] && return 1
@@ -2023,9 +2033,14 @@ lb_abspath() {
 	# get directory and file names
 	local path directory=$(dirname "$*") file=$(basename "$*")
 
-	# root directory is always ok
-	if [ "$directory" == "/" ] ; then
-		path="/"
+	# begin with '/': already an absolute path
+	if [ "${directory:0:1}" == / ] ; then
+		# test directory
+		if $test_dir ; then
+			[ -d "$directory" ] || return 2
+		fi
+
+		path=$directory
 	else
 		# get absolute path of the parent directory
 		# if path does not exists, error
@@ -2033,20 +2048,16 @@ lb_abspath() {
 	fi
 
 	# case of root path (basename=/)
-	if [ "$file" == "/" ] ; then
-		echo /
-	else
-		# return absolute path
-
+	if [ "$file" != / ] ; then
 		# case of the current directory (do not put /path/to/./)
 		if [ "$file" != "." ] ; then
-			# do not put //file if parent directory is root
-			[ "$directory" != "/" ] && path+="/"
+			# do not put //file if parent directory is /
+			[ "$directory" != / ] && path+="/"
 			path+=$file
 		fi
-
-		echo "$path"
 	fi
+
+	echo "$path"
 }
 
 
