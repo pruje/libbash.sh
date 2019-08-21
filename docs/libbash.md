@@ -896,7 +896,7 @@ lb_set_config [OPTIONS] FILE PARAM VALUE
 #### Exit codes
 - 0: Configuration file updated
 - 1: Usage error or file(s) does not exists
-- 2: Configuration file is not writable
+- 2: Configuration file is not readable/writable
 - 3: Parameter does not exists (if strict mode)
 - 4: Error in setting config
 

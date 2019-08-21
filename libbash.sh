@@ -39,6 +39,7 @@ declare -r lb_version=1.13.0
 #   * Configuration files
 #       lb_read_config
 #       lb_import_config
+#       lb_migrate_config
 #       lb_get_config
 #       lb_set_config
 #   * Operations on variables
@@ -1136,9 +1137,8 @@ lb_migrate_config() {
 	[ -f "$1" ] && [ -f "$2" ]
 	[ $? != 0 ] && return 1
 
-	# test if files are readable/writable
-	[ -r "$1" ] && [ -r "$2" ] && \
-	[ -w "$1" ] && [ -w "$2" ]
+	# test if files are readable & writable
+	[ -r "$1" ] && [ -r "$2" ] && [ -w "$2" ]
 	[ $? != 0 ] && return 3
 
 	# analyse new config
@@ -1208,9 +1208,12 @@ lb_get_config() {
 	# if line not found, return error
 	[ ${#config_line[@]} == 0 ] && return 3
 
+	# sed regex to extract value + delete spaces at the end of line
+	local sed_extract="s/.*$2[[:space:]]*=[[:space:]]*//; s/[[:space:]]*$//"
+
 	# if no filter by section, print the first found
 	if [ -z "$section" ] ; then
-		sed "${config_line[0]}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//"
+		sed "${config_line[0]}q;d" "$1" | sed "$sed_extract"
 		return 0
 	fi
 
@@ -1225,8 +1228,8 @@ lb_get_config() {
 
 			if [ -n "$current_section" ] ; then
 				if [ "$current_section" == "[$section]" ] ; then
-					# return value (and without any Windows endline)
-					sed "${i}q;d" "$1" | sed "s/.*$2[[:space:]]*=[[:space:]]*//; s/\r$//"
+					# return value
+					sed "${i}q;d" "$1" | sed "$sed_extract"
 					return 0
 				fi
 				break
@@ -1270,8 +1273,9 @@ lb_set_config() {
 	# test is file exists
 	[ -f "$1" ] || return 1
 
-	# test if file is writable
-	[ -w "$1" ] || return 2
+	# test if file is readable & writable
+	[ -r "$1" ] && [ -w "$1" ]
+	[ $? != 0 ] && return 2
 
 	# test parameter name
 	[[ $2 =~ ^[a-zA-Z0-9_]+$ ]] || return 1
@@ -1280,9 +1284,9 @@ lb_set_config() {
 	shift 2
 
 	# get value
-	local value=$*
+	local value=$(lb_trim "$*")
 
-	# Windows files: add \r at the end of line
+	# Windows files: append \r at the end of line
 	[ "$lb_current_os" == Windows ] && value+="\r"
 
 	# prepare value for sed mode
