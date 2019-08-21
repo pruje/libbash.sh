@@ -7,11 +7,11 @@
 #  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.13.0 (2019-07-22)                         #
+#  Version 1.13.1 (2019-08-21)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.13.0
+declare -r lb_version=1.13.1-rc.1
 
 # Index
 #
@@ -2018,7 +2018,7 @@ lb_is_dir_empty() {
 
 
 # Get absolute path of a file/directory
-# Usage: lb_abspath OPTIONS PATH
+# Usage: lb_abspath [OPTIONS] PATH
 lb_abspath() {
 
 	local test_dir=true

@@ -1417,7 +1417,12 @@ Get the absolute path of a file or directory.
 
 #### Usage
 ```bash
-lb_abspath PATH
+lb_abspath [OPTIONS] PATH
+```
+
+#### Options
+```
+-n, --no-test  Do not test if path exists (if an absolute path is given in argument)
 ```
 
 #### Exit codes
