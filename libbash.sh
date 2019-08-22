@@ -957,9 +957,6 @@ lb_read_config() {
 	# read config file line by line; backslashes are not escaped
 	while read -r line ; do
 
-		# delete the last character if file has Windows format (\r)
-		[ "${line:${#line}-1}" == $'\r' ] && line=${line:0:${#line}-1}
-
 		# section detection
 		if [ ${#sections[@]} -gt 0 ] || $analyse ; then
 
@@ -1005,8 +1002,8 @@ lb_read_config() {
 			lb_read_config+=("$line")
 		fi
 
-	# read line by line except empty or commented lines
-	done < <(grep -E "${filters[@]}" "$1")
+	# read line by line except empty or commented lines (+ delete spaces at the end of lines)
+	done < <(grep -E "${filters[@]}" "$1" | sed 's/[[:space:]]*$//')
 
 	# if section was not found, error
 	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
@@ -1056,9 +1053,6 @@ lb_import_config() {
 
 	# read file line by line; backslashes are not escaped
 	while read -r line ; do
-
-		# delete the last character if file has Windows format (\r)
-		[ "${line:${#line}-1}" == $'\r' ] && line=${line:0:${#line}-1}
 
 		# test if line is a section
 		s=$(echo "$line" | grep -Eo '^\[.*\]')
@@ -1118,8 +1112,8 @@ lb_import_config() {
 		# run command to attribute value to variable
 		eval "$param=$value" &> /dev/null || result=2
 
-	# read line by line except empty or commented lines
-	done < <(grep -Ev '^\s*(#|;|$)' "$file")
+	# read line by line except empty or commented lines (+ delete spaces at the end of lines)
+	done < <(grep -Ev '^\s*(#|;|$)' "$file" | sed 's/[[:space:]]*$//')
 
 	# if section was not found, return error
 	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
@@ -1208,8 +1202,12 @@ lb_get_config() {
 	# if line not found, return error
 	[ ${#config_line[@]} == 0 ] && return 3
 
-	# sed regex to extract value + delete spaces at the end of line
-	local sed_extract="s/.*$2[[:space:]]*=[[:space:]]*//; s/[[:space:]]*$//"
+	# sed regex:
+	#   1. extract value
+	#   2. delete spaces at the end of line
+	#   3. delete quotes " and '
+	#   4. convert \" to "
+	local sed_extract="s/.*$2[[:space:]]*=[[:space:]]*//; s/[[:space:]]*$//; s/^\"\(.*\)\"$/\1/; s/^'\(.*\)'$/\1/; s/\\\\\"/\"/g"
 
 	# if no filter by section, print the first found
 	if [ -z "$section" ] ; then
@@ -1284,7 +1282,16 @@ lb_set_config() {
 	shift 2
 
 	# get value
-	local value=$(lb_trim "$*")
+	local value=$*
+
+	# spaces: add quotes
+	if echo "$value" | grep -q '\s' ; then
+		# if not an array
+		if [ "${value:0:1}" != '(' ] && [ "${value:${#value}-1}" != ')' ] ; then
+			# add quotes around value + escape quotes if any
+			value="\"$(echo "$value" | sed 's/"/\\\\"/g')\""
+		fi
+	fi
 
 	# Windows files: append \r at the end of line
 	[ "$lb_current_os" == Windows ] && value+="\r"
