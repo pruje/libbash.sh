@@ -492,7 +492,8 @@ lb_display() {
 		shift # load next argument
 	done
 
-	local text=$*
+	# other options
+	local text=$* prefix display=true result=0
 
 	# get text from stdin
 	if [ ${#text} == 0 ] && ! [ -t 0 ] ; then
@@ -505,38 +506,34 @@ $t"
 		text=${text:1}
 	fi
 
-	# other options
-	local prefix display=true result=0
-
-	# quiet mode: do not print anything
-	lb_istrue $lb_quietmode && display=false
-
-	# if a display level is set, test it
-	if [ -n "$display_level" ] && [ -n "$lb__display_level" ] ; then
-		# get display level ID
-		local level_id
-
-		# Note: if level is unknown, message will be displayed
-		if level_id=$(lb_get_display_level --id "$display_level") ; then
-			# if display level is higher than default, will not display (but can log)
-			[ $level_id -gt $lb__display_level ] && display=false
-		fi
-	fi
-
-	# add level prefix
-	if $display_prefix && [ -n "$display_level" ] ; then
-		prefix="[$display_level]  "
-	fi
+	# set level prefix
+	$display_prefix && [ -n "$display_level" ] && prefix="[$display_level]  "
 
 	# print into logfile
 	if $log_message ; then
 		# prepare command to log
-		local log_cmd=(lb_log "${opts[@]}")
+		local log_opts=("${opts[@]}")
+		[ -n "$display_level" ] && log_opts+=(--level "$display_level")
 
-		[ -n "$display_level" ] && log_cmd+=(--level "$display_level")
+		# write log
+		lb_log "${log_opts[@]}" "$prefix$text" || result=2
+	fi
 
-		# execute lb_log
-		"${log_cmd[@]}" "$prefix$text" || result=2
+	# quiet mode: do not print anything
+	if lb_istrue $lb_quietmode ; then
+		display=false
+	else
+		# if a display level is set, test current level
+		if [ -n "$display_level" ] && [ -n "$lb__display_level" ] ; then
+			# get display level ID
+			local level_id
+
+			# Note: if level is unknown, message will be displayed
+			if level_id=$(lb_get_display_level --id "$display_level") ; then
+				# if display level is higher than default, will not display (but can log)
+				[ $level_id -gt $lb__display_level ] && display=false
+			fi
+		fi
 	fi
 
 	# if no need to display, quit
