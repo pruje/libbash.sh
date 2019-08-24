@@ -591,8 +591,9 @@ lb_set_logfile [OPTIONS] PATH
 
 #### Options
 ```
--a, --append     Append to the file if exists
--x, --overwrite  Overwrite file if exists
+-a, --append      Append to the file if exists
+-x, --overwrite   Overwrite file if exists
+-w, --win-format  Write logs with Windows end of lines
 ```
 
 #### Exit codes

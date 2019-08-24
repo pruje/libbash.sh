@@ -690,7 +690,7 @@ lb_get_logfile() {
 lb_set_logfile() {
 
 	# default options
-	local overwrite=false append=false
+	local overwrite=false append=false win_format=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -700,6 +700,9 @@ lb_set_logfile() {
 				;;
 			-x|--overwrite)
 				overwrite=true
+				;;
+			-w|--win-format)
+				win_format=true
 				;;
 			*)
 				break
@@ -736,6 +739,7 @@ lb_set_logfile() {
 
 	# set log file path
 	lb_logfile=$*
+	lb__log_winformat=$win_format
 
 	# if not set, set higher log level
 	if [ -z "$lb__log_level" ] && [ ${#lb_log_levels[@]} -gt 0 ] ; then
@@ -876,6 +880,9 @@ $t"
 		# delete first line jump
 		text=${text:1}
 	fi
+
+	# windows format
+	lb_istrue $lb__log_winformat && text+="\r"
 
 	# if a default log level is set, test it
 	if [ -n "$level" ] && [ -n "$lb__log_level" ] ; then
