@@ -953,10 +953,10 @@ lb_read_config() {
 	# test if file is readable
 	[ -r "$1" ] || return 2
 
-	local line s section good_section=false section_found=false filters=(-v '^\s*(#|;|$)') result
+	local line s section good_section=false section_found=false filters=(-v '^[[:space:]]*(#|;|$)') result
 
 	# analyse mode: do not filter comments
-	$analyse && filters=('^(\[|(#|;)*[a-zA-Z0-9_]+\s*=)')
+	$analyse && filters=('^(\[|(#|;)*[a-zA-Z0-9_]+[[:space:]]*=)')
 
 	# read config file line by line; backslashes are not escaped
 	while read -r line ; do
@@ -1083,9 +1083,9 @@ lb_import_config() {
 		fi
 
 		# check syntax of the line (param = value)
-		if ! echo "$line" | grep -Eq '^\s*[a-zA-Z0-9_]+\s*=.*' ; then
+		if ! echo "$line" | grep -Eq '^[[:space:]]*[a-zA-Z0-9_]+[[:space:]]*=.*' ; then
 			# if section definition, do nothing (not error)
-			if ! echo "$line" | grep -Eq '^\[.*\]\s*$' ; then
+			if ! echo "$line" | grep -Eq '^\[.*\][[:space:]]*$' ; then
 				$return_errors && result=3
 			fi
 			continue
@@ -1117,7 +1117,7 @@ lb_import_config() {
 		eval "$param=$value" &> /dev/null || result=2
 
 	# read line by line except empty or commented lines (+ delete spaces at the end of lines)
-	done < <(grep -Ev '^\s*(#|;|$)' "$file" | sed 's/[[:space:]]*$//')
+	done < <(grep -Ev '^[[:space:]]*(#|;|$)' "$file" | sed 's/[[:space:]]*$//')
 
 	# if section was not found, return error
 	if [ ${#sections[@]} -gt 0 ] && ! $section_found ; then
@@ -1201,7 +1201,7 @@ lb_get_config() {
 	[[ $2 =~ ^[a-zA-Z0-9_]+$ ]] || return 1
 
 	# search config line
-	local config_line=($(grep -En "^\s*$2\s*=" "$1" | cut -d: -f1))
+	local config_line=($(grep -En "^[[:space:]]*$2[[:space:]]*=" "$1" | cut -d: -f1))
 
 	# if line not found, return error
 	[ ${#config_line[@]} == 0 ] && return 3
@@ -1289,7 +1289,7 @@ lb_set_config() {
 	local value=$*
 
 	# spaces: add quotes
-	if echo "$value" | grep -q '\s' ; then
+	if echo "$value" | grep -q '[[:space:]]' ; then
 		# if not an array
 		if [ "${value:0:1}" != '(' ] && [ "${value:${#value}-1}" != ')' ] ; then
 			# add quotes around value + escape quotes if any
@@ -1304,7 +1304,7 @@ lb_set_config() {
 	local sed_value=$(echo "$value" | sed 's/\//\\\//g')
 
 	# search config line
-	local config_line=($(grep -En "^\s*(#|;)*\s*$param\s*=" "$config_file" | cut -d: -f1))
+	local config_line=($(grep -En "^[[:space:]]*(#|;)*[[:space:]]*$param[[:space:]]*=" "$config_file" | cut -d: -f1))
 
 	# get number of results
 	local found=${#config_line[@]} section_ready=true
@@ -1372,7 +1372,7 @@ lb_set_config() {
 			# if section not found, append it
 
 			# append empty line above new section
-			if tail -1 "$config_file" | grep -Evq '^\s*$' ; then
+			if tail -1 "$config_file" | grep -Evq '^[[:space:]]*$' ; then
 				if [ "$lb_current_os" == Windows ] ; then
 					echo -e "\r" >> "$config_file" || return 4
 				else
