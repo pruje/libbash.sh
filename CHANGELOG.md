@@ -1,6 +1,20 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.14.0 (2019-08-24)
+### New features
+- New option in `lb_set_logfile` to write logs in Windows format
+- New option in `lb_abspath` to not test absolute paths
+
+### Changes
+- `lb_get_config` and `lb_set_config` sets quotes automatically
+- Minor code optimizations
+
+### Bugfixes
+- Avoid reading Windows endline characters in config values
+- Insert new config lines failed on macOS/*BSD
+- Fix spaces detection in grep regex for macOS/*BSD compatibility
+
 ## 1.13.0 (2019-07-22)
 ### New features
 - Add stdin support for some functions:
