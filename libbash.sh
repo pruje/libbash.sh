@@ -7,11 +7,11 @@
 #  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.13.1 (2019-08-21)                         #
+#  Version 1.14.0 (2019-08-29)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.13.1-rc.1
+declare -r lb_version=1.14.0-rc.1
 
 # Index
 #
@@ -1365,8 +1365,16 @@ lb_set_config() {
 
 		# if section exists,
 		if [ -n "$config_line" ] ; then
+			# prepare sed insert command
+			local sed_insert=$((${config_line[0]}+1))i
+			
+			# if last line, change sed append command
+			[ "$((${config_line[0]}+1))" -gt "$(cat "$config_file" | wc -l)" ] && sed_insert='$a'
+			
 			# append parameter to section
-			lb_edit "$((${config_line[0]}+1))i$param = $sed_value" "$config_file" || return 4
+			lb_edit "$sed_insert\\
+$param = $sed_value
+" "$config_file" || return 4
 			return 0
 		else
 			# if section not found, append it
