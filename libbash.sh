@@ -2137,6 +2137,9 @@ lb_is_writable() {
 # Edit a file with sed command
 # Usage: lb_edit PATTERN FILE
 lb_edit() {
+	# usage error
+	[ $# -lt 2 ] && return 1
+
 	if lb_istrue $lb__oldsed ; then
 		sed -i '' "$@"
 	else
