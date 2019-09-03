@@ -735,6 +735,9 @@ lb_set_logfile() {
 			# cancel if can not be append
 			$append || return 3
 		fi
+	else
+		# if file does not exists, create it
+		touch "$*" || return 2
 	fi
 
 	# set log file path
@@ -1367,10 +1370,10 @@ lb_set_config() {
 		if [ -n "$config_line" ] ; then
 			# prepare sed insert command
 			local sed_insert=$((${config_line[0]}+1))i
-			
+
 			# if last line, change sed append command
 			[ "$((${config_line[0]}+1))" -gt "$(cat "$config_file" | wc -l)" ] && sed_insert='$a'
-			
+
 			# append parameter to section
 			lb_edit "$sed_insert\\
 $param = $sed_value

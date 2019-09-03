@@ -582,7 +582,7 @@ logfile=$(lb_get_logfile)
 ---------------------------------------------------------------
 <a name="lb_set_logfile"></a>
 ### lb_set_logfile
-Set path of the log file.
+Set path of the log file. If file does not exists, it is created.
 
 #### Usage
 ```bash
