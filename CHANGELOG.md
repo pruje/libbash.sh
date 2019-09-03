@@ -1,6 +1,13 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.14.1 (2019-09-03)
+### Changes
+- `lb_set_logfile` creates log file if it does not exists
+
+### Bugfixes
+- Add usage error detection for `lb_edit`
+
 ## 1.14.0 (2019-08-24)
 ### New features
 - New option in `lb_set_logfile` to write logs in Windows format
