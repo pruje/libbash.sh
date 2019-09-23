@@ -1,6 +1,18 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.14.2 (2019-09-23)
+### New features
+- New option `--no-spaces` in `lb_set_logfile` to set values like `param=value`
+
+### Changes
+- `lb_get_config` gets the last value of the file/section if multiple values found
+- `lb_set_config` sets the last value of the file/section if multiple values found
+- Minor improvements in `lb_is_comment`
+
+### Bugfixes
+- Fixed bug in section detection in `lb_set_config`
+
 ## 1.14.1 (2019-09-03)
 ### Changes
 - `lb_set_logfile` creates log file if it does not exists
