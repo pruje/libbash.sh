@@ -1484,8 +1484,8 @@ lb_is_comment() {
 		[ -t 0 ] || read -r line
 	fi
 
-	# delete spaces to find the first character
-	line=$(lb_trim "$line")
+	# delete spaces
+	line=$(echo "$line" | sed 's/^[[:space:]]*//g')
 
 	# empty line
 	if [ -z "$line" ] ; then
@@ -1501,7 +1501,7 @@ lb_is_comment() {
 
 	# test if text starts with comment symbol
 	local s
-	for s in ${symbols[@]} ; do
+	for s in "${symbols[@]}" ; do
 		[ "${line:0:${#s}}" == "$s" ] && return 0
 	done
 
