@@ -1419,6 +1419,15 @@ lb_set_config() {
 		fi
 	fi
 
+	# the case of an empty file
+	if ! [ -s "$config_file" ] ; then
+		# insert an empty line
+		echo >> "$config_file" || return 4
+		# replace the first line
+		lb_edit "1s/.*/$sed_line/" "$config_file" || return 4
+		return 0
+	fi
+
 	# append line to file
 	lb_edit "$sed_insert\\
 $sed_line
