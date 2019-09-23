@@ -1364,7 +1364,7 @@ lb_set_config() {
 	if [ -n "$section" ] ; then
 
 		# search for the right section
-		config_line=($(grep -En "^\[$section\]$" "$config_file" | cut -d: -f1))
+		config_line=($(grep -En "^\[$section\][[:space:]]*$" "$config_file" | cut -d: -f1))
 
 		# if section exists,
 		if [ -n "$config_line" ] ; then
