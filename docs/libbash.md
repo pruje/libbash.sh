@@ -892,6 +892,7 @@ lb_set_config [OPTIONS] FILE PARAM VALUE
 ```
 -s, --section SECTION  Set the parameter only in the specified section
 --strict               Strict mode: do not insert parameter if it does not exists
+--no-spaces            Insert values like 'param=value' instead of 'param = value'
 ```
 
 #### Exit codes

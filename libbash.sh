@@ -1252,7 +1252,7 @@ lb_get_config() {
 lb_set_config() {
 
 	# local variables
-	local section strict_mode=false
+	local section strict_mode=false no_spaces=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1264,6 +1264,9 @@ lb_set_config() {
 				;;
 			--strict)
 				strict_mode=true
+				;;
+			--no-spaces)
+				no_spaces=true
 				;;
 			*)
 				break
@@ -1303,8 +1306,16 @@ lb_set_config() {
 	# Windows files: append \r at the end of line
 	[ "$lb_current_os" == Windows ] && value+="\r"
 
-	# prepare value for sed mode
-	local sed_value=$(echo "$value" | sed 's/\//\\\//g')
+	# prepare line for sed command
+	local sed_line=$param
+
+	if $no_spaces ; then
+		sed_line+='='
+	else
+		sed_line+=' = '
+	fi
+
+	sed_line+=$(echo "$value" | sed 's/\//\\\//g')
 
 	# search config line
 	local config_line=($(grep -En "^[[:space:]]*(#|;)*[[:space:]]*$param[[:space:]]*=" "$config_file" | cut -d: -f1))
@@ -1350,7 +1361,7 @@ lb_set_config() {
 		if $section_ready ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			lb_edit "${config_line[found-1]}s/^\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$param = $sed_value/" "$config_file" || return 4
+			lb_edit "${config_line[found-1]}s/^\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$sed_line/" "$config_file" || return 4
 			return 0
 		fi
 	fi
@@ -1360,6 +1371,9 @@ lb_set_config() {
 	# if strict mode, quit
 	$strict_mode && return 3
 
+	# prepare sed insert command
+	local sed_insert='$a'
+
 	# if filter by section,
 	if [ -n "$section" ] ; then
 
@@ -1368,17 +1382,8 @@ lb_set_config() {
 
 		# if section exists,
 		if [ -n "$config_line" ] ; then
-			# prepare sed insert command
-			local sed_insert=$((${config_line[0]}+1))i
-
-			# if last line, change sed append command
-			[ "$((${config_line[0]}+1))" -gt "$(cat "$config_file" | wc -l)" ] && sed_insert='$a'
-
-			# append parameter to section
-			lb_edit "$sed_insert\\
-$param = $sed_value
-" "$config_file" || return 4
-			return 0
+			# if not last line, change sed append command
+			[ "$((${config_line[0]}+1))" -le "$(cat "$config_file" | wc -l)" ] && sed_insert=$((${config_line[0]}+1))i
 		else
 			# if section not found, append it
 
@@ -1402,7 +1407,9 @@ $param = $sed_value
 	fi
 
 	# append line to file
-	echo -e "$param = $value" >> "$config_file" || return 4
+	lb_edit "$sed_insert\\
+$sed_line
+" "$config_file" || return 4
 }
 
 
