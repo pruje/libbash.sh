@@ -1204,10 +1204,10 @@ lb_get_config() {
 	[[ $2 =~ ^[a-zA-Z0-9_]+$ ]] || return 1
 
 	# search config line
-	local config_line=($(grep -En "^[[:space:]]*$2[[:space:]]*=" "$1" | cut -d: -f1))
+	local config_lines=($(grep -En "^[[:space:]]*$2[[:space:]]*=" "$1" | cut -d: -f1))
 
 	# if line not found, return error
-	[ ${#config_line[@]} == 0 ] && return 3
+	[ ${#config_lines[@]} == 0 ] && return 3
 
 	# sed regex:
 	#   1. extract value
@@ -1216,25 +1216,25 @@ lb_get_config() {
 	#   4. convert \" to "
 	local sed_extract="s/.*$2[[:space:]]*=[[:space:]]*//; s/[[:space:]]*$//; s/^\"\(.*\)\"$/\1/; s/^'\(.*\)'$/\1/; s/\\\\\"/\"/g"
 
-	# if no filter by section, print the first found
+	# if no filter by section, print the last found
 	if [ -z "$section" ] ; then
-		sed "${config_line[0]}q;d" "$1" | sed "$sed_extract"
+		sed "${config_lines[${#config_lines[@]}-1]}q;d" "$1" | sed "$sed_extract"
 		return 0
 	fi
 
-	# parse every results
+	# parse every results (from last to first)
 	local i j current_section
-	for i in ${config_line[@]} ; do
+	for ((i=${#config_lines[@]}-1; i>=0; i--)) ; do
 		# if first line, cannot go up
-		[ $i == 1 ] && continue
+		[ ${config_lines[i]} == 1 ] && continue
 
-		for ((j=$i-1; j>=1; j--)) ; do
+		for ((j=${config_lines[i]}-1; j>=1; j--)) ; do
 			current_section=$(sed "${j}q;d" "$1" | grep -Eo '^\[.*\]')
 
 			if [ -n "$current_section" ] ; then
 				if [ "$current_section" == "[$section]" ] ; then
 					# return value
-					sed "${i}q;d" "$1" | sed "$sed_extract"
+					sed "${config_lines[i]}q;d" "$1" | sed "$sed_extract"
 					return 0
 				fi
 				break
@@ -1333,7 +1333,7 @@ lb_set_config() {
 			section_ready=false
 
 			# parse every results
-			for i in ${config_line[@]} ; do
+			for i in "${config_line[@]}" ; do
 				# if first line, cannot go up
 				[ $i == 1 ] && continue
 
@@ -1366,7 +1366,7 @@ lb_set_config() {
 		fi
 	fi
 
-	# if parameter not found (or not in the right section)
+	# if line not found (or not in the right section)
 
 	# if strict mode, quit
 	$strict_mode && return 3
