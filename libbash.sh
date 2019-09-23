@@ -1318,22 +1318,21 @@ lb_set_config() {
 	sed_line+=$(echo "$value" | sed 's/\//\\\//g')
 
 	# search config line
-	local config_line=($(grep -En "^[[:space:]]*(#|;)*[[:space:]]*$param[[:space:]]*=" "$config_file" | cut -d: -f1))
-
-	# get number of results
-	local found=${#config_line[@]} section_ready=true
+	local config_lines=($(grep -En "^[[:space:]]*(#|;)*[[:space:]]*$param[[:space:]]*=" "$config_file" | cut -d: -f1))
 
 	# if line found, modify line (set the last one if multiple lines)
-	if [ $found -gt 0 ] ; then
+	if [ ${#config_lines[@]} -gt 0 ] ; then
 
-		# if filter by section,
+		# if filter by section, search valid results
 		if [ -n "$section" ] ; then
 
-			local i j current_section section_found=false
-			section_ready=false
+			# save results
+			local i j current_section results=(${config_lines[@]})
+			# reset results
+			config_lines=()
 
-			# parse every results
-			for i in "${config_line[@]}" ; do
+			# parse every results (saved before)
+			for i in "${results[@]}" ; do
 				# if first line, cannot go up
 				[ $i == 1 ] && continue
 
@@ -1342,26 +1341,40 @@ lb_set_config() {
 
 					if [ -n "$current_section" ] ; then
 						if [ "$current_section" == "[$section]" ] ; then
-							config_line=($i)
-							found=1
-							section_found=true
+							config_lines+=($i)
 						fi
 						break
 					fi
 				done
-
-				if $section_found ; then
-					section_ready=true
-					break
-				fi
 			done
 		fi
 
+		local config_line
+
+		# recheck results
+		if [ ${#config_lines[@]} -gt 0 ] ; then
+			# default: last line found
+			config_line=${config_lines[${#config_lines[@]}-1]}
+
+			# multiple results: find non commented lines
+			if [ ${#config_lines[@]} -gt 1 ] ; then
+				# parse results from last to first
+				local i
+				for ((i=${#config_lines[@]}-1; i>=0; i--)) ; do
+					# get the first non commented line
+					if ! sed "${config_lines[i]}q;d" "$config_file" | lb_is_comment -s '#' -s ';' ; then
+						config_line=${config_lines[i]}
+						break
+					fi
+				done
+			fi
+		fi
+
 		# if ready to edit
-		if $section_ready ; then
+		if [ -n "$config_line" ] ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			lb_edit "${config_line[found-1]}s/^\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$sed_line/" "$config_file" || return 4
+			lb_edit "${config_line}s/^\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$sed_line/" "$config_file" || return 4
 			return 0
 		fi
 	fi
@@ -1378,12 +1391,12 @@ lb_set_config() {
 	if [ -n "$section" ] ; then
 
 		# search for the right section
-		config_line=($(grep -En "^\[$section\][[:space:]]*$" "$config_file" | cut -d: -f1))
+		local section_line=($(grep -En "^\[$section\][[:space:]]*$" "$config_file" | cut -d: -f1))
 
 		# if section exists,
-		if [ -n "$config_line" ] ; then
+		if [ -n "$section_line" ] ; then
 			# if not last line, change sed append command
-			[ "$((${config_line[0]}+1))" -le "$(cat "$config_file" | wc -l)" ] && sed_insert=$((${config_line[0]}+1))i
+			[ "$((${section_line[0]}+1))" -le "$(cat "$config_file" | wc -l)" ] && sed_insert=$((${section_line[0]}+1))i
 		else
 			# if section not found, append it
 
@@ -1396,13 +1409,13 @@ lb_set_config() {
 				fi
 			fi
 
-			config_line="[$section]"
+			section_line="[$section]"
 
 			# Windows files: add \r at the end of line
-			[ "$lb_current_os" == Windows ] && config_line+="\r"
+			[ "$lb_current_os" == Windows ] && section_line+="\r"
 
 			# append section to file
-			echo -e "$config_line" >> "$config_file" || return 4
+			echo -e "$section_line" >> "$config_file" || return 4
 		fi
 	fi
 
