@@ -30,7 +30,7 @@ Read our [wiki](https://github.com/pruje/libbash.sh/wiki) for some tips and tric
 ## Usage
 Add `libbash.sh` to your script:
 ```bash
-source "/path/to/libbash.sh"
+source "/path/to/libbash.sh" -
 ```
 
 That's all! To use more powerful features like interactive windows, please read the documentation.

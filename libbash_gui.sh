@@ -7,7 +7,7 @@
 #  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.14.2 (2019-09-23)                         #
+#  Version 1.14.3 (2019-10-08)                         #
 #                                                      #
 ########################################################
 
@@ -1430,7 +1430,7 @@ lbg_open_directory() {
 
 		if [ "$lb_current_os" == Windows ] ; then
 			# particular case where explorer will not work if path finishes with '/'
-			[ "${path:${#path}-1}" == "/" ] && path=${path:0:${#path}-1}
+			[ "${path:${#path}-1}" == / ] && path=${path:0:${#path}-1}
 
 			# convert to Windows paths
 			path=$(cygpath -w "$path")

@@ -1,6 +1,11 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.14.3 (2019-10-08)
+### Bugfixes
+- Fixed bug when inserting a value in empty file in `lb_set_config`
+- Improve documentation about libbash options calls
+
 ## 1.14.2 (2019-09-23)
 ### New features
 - New option `--no-spaces` in `lb_set_logfile` to set values like `param=value`

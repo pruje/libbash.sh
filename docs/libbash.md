@@ -17,7 +17,8 @@ Then call the functions described below.
 -q, --quiet      Disable any output in functions
 ```
 
-Note: If you call libbash.sh without those options and if you want to use some options in your own script, you may have to add a simple character at the end of the source command to avoid overwriting your own options.
+Note: If you call libbash.sh without any of these options and if you want to use some options in your own script, you have to add a simple character at the end of the source command to avoid overwriting your own options.
+
 ```bash
 # example: this will prevent to call libbash with --quiet option and disable your own --quiet script option
 source "/path/to/libbash.sh" -
