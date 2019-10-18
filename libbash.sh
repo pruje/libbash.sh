@@ -2273,7 +2273,7 @@ lb_group_members() {
 lb_generate_password() {
 
 	# default options
-	local password size=16
+	local size=16
 
 	# get size option
 	if [ -n "$1" ] ; then
@@ -2288,21 +2288,41 @@ lb_generate_password() {
 		fi
 	fi
 
-	# generate password
-	if lb_command_exists openssl ; then
-		# with openssl random command
-		password=$(openssl rand -base64 32 2> /dev/null)
-	else
-		# print date timestamp + nanoseconds then generate md5 checksum
-		# then encode in base64 and delete spaces
-		password=$(date +%s%N | shasum -a 256 | base64 2> /dev/null | tr -d '[:space:]')
-	fi
+	local hasher=md5sum
+	case $lb_current_os in
+		BSD|macOS)
+			hasher=md5
+			;;
+	esac
 
-	# test if password is not empty
-	[ -n "$password" ] || return 2
+	# we may retry 10 times if password was not long enough
+	local i password
+	for i in $(seq 1 10) ; do
 
-	# return password at the right size
-	echo "${password:0:$size}"
+		# generate password
+		if lb_command_exists openssl ; then
+			# with openssl random command; filter alphanumeric characters only
+			password=$(openssl rand -base64 48 | tr -dc '[:alnum:]')
+		else
+			# test md5 and base64
+			lb_command_exists $hasher base64 || return 2
+
+			# print date timestamp + nanoseconds, generate md5 checksum,
+			# encode it in base64 and delete spaces
+			password=$(date +%s%N | $hasher | base64 2> /dev/null | tr -d '[:space:]')
+		fi
+
+		# test if password is not empty
+		[ -n "$password" ] || return 2
+
+		# test size; if not good, retry
+		if [ ${#password} -ge $size ] ; then
+			echo "${password:0:$size}"
+			return 0
+		fi
+	done
+
+	return 2
 }
 
 
