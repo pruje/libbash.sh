@@ -1905,10 +1905,6 @@ lb_df_fstype() {
 	[ -e "$*" ] || return 2
 
 	case $lb_current_os in
-		BSD)
-			df -T "$*" 2> /dev/null | tail -n 1 | awk '{print $2}'
-			;;
-
 		macOS)
 			# get mountpoint
 			local mount_point
@@ -1926,9 +1922,16 @@ lb_df_fstype() {
 
 				# get "real" fs type
 				lsblk --output=FSTYPE "$device" 2> /dev/null | tail -n 1
-			else
-				# no lsblk command: use df command
+
+				[ ${PIPESTATUS[0]} == 0 ] && return 0
+			fi
+
+			# no lsblk command or lsblk failed: use df command
+			if df --output=fstype &> /dev/null ; then
 				df --output=fstype "$*" 2> /dev/null | tail -n 1
+			else
+				# simple df command (BSD systems or Linux busybox)
+				df -T "$*" 2> /dev/null | tail -n 1 | awk '{print $2}'
 			fi
 			;;
 	esac
@@ -1948,14 +1951,12 @@ lb_df_space_left() {
 	[ -e "$*" ] || return 2
 
 	# get space available
-	case $lb_current_os in
-		BSD|macOS)
-			df -k "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
-			;;
-		*)
-			df -k --output=avail "$*" 2> /dev/null | tail -n 1
-			;;
-	esac
+	if df --output=avail &> /dev/null ; then
+		df -k --output=avail "$*" 2> /dev/null | tail -n 1
+	else
+		# simple df command (BSD/macOS systems or Linux busybox)
+		df -k "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
+	fi
 
 	[ ${PIPESTATUS[0]} == 0 ] || return 3
 }
@@ -1972,19 +1973,29 @@ lb_df_mountpoint() {
 	[ -e "$*" ] || return 2
 
 	# get mountpoint
+	local mountpoint
 	case $lb_current_os in
-		BSD)
-			df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=6;i<=NF;++i) print $i}'
-			;;
 		macOS)
-			df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}'
+			# Note: macOS has not the same default df output structure than other OS
+			mountpoint=$(df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=9;i<=NF;++i) print $i}')
 			;;
+
 		*)
-			df --output=target "$*" 2> /dev/null | tail -n 1
+			if df --output=target &> /dev/null ; then
+				mountpoint=$(df --output=target "$*" 2> /dev/null | tail -n 1)
+			else
+				# simple df command (BSD systems or Linux busybox)
+				mountpoint=$(df "$*" 2> /dev/null | tail -n 1 | awk '{for(i=6;i<=NF;++i) print $i}')
+			fi
 			;;
 	esac
 
 	[ ${PIPESTATUS[0]} == 0 ] || return 3
+
+	# verify if mountpoint exists (security in case of bad spaces detection)
+	[ -e "$mountpoint" ] || return 3
+
+	echo "$mountpoint"
 }
 
 
@@ -2009,18 +2020,16 @@ lb_df_uuid() {
 			diskutil info "$mount_point" | grep 'Volume UUID:' | cut -d: -f2 | awk '{print $1}'
 			;;
 
-		Linux)
+		*)
+			# lsblk does not exists (BSD systems or Linux busybox): not supported
+			lb_command_exists lsblk || return 4
+
 			# get device
 			local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
 			[ -z "$device" ] && return 3
 
 			# get disk UUID
 			lsblk --output=UUID "$device" 2> /dev/null | tail -n 1
-			;;
-
-		*)
-			# other OS not supported
-			return 4
 			;;
 	esac
 
