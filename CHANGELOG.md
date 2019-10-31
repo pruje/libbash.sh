@@ -1,6 +1,11 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.14.4 (2019-10-31)
+### Bugfixes
+- Fixed bug and enhance reliability of `lb_generate_password`
+- Enhance reliability of df functions
+
 ## 1.14.3 (2019-10-08)
 ### Bugfixes
 - Fixed bug when inserting a value in empty file in `lb_set_config`
