@@ -683,8 +683,8 @@ lbg_choose_option() {
 			fi
 		done
 	else
-		# initialize first choice as default
-		default=(0)
+		# one choice: initialize first choice as default
+		$multiple_choices || default=(1)
 	fi
 
 	# change default label if multiple options
@@ -764,9 +764,8 @@ lbg_choose_option() {
 				opts+=("\"$o\"")
 
 				# set default option
-				if [ ${#default[@]} -gt 0 ] && lb_in_array $i "${default[@]}" ; then
-					default_option=$o
-				fi
+				lb_in_array $i "${default[@]}" && default_option=$o
+
 				i+=1
 			done
 
@@ -800,6 +799,9 @@ EOF)
 
 			# prepare command (inputbox)
 			cmd=("${lbg__cscript[@]}" lbg_input_text "$label" "$title")
+
+			# avoid empty default values (if multiple choices)
+			[ ${#default[@]} == 0 ] && default=(1)
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# error => cancelled
@@ -847,8 +849,8 @@ EOF)
 
 			$multiple_choices && cmd+=(-m)
 
-			# add default without the first default
-			[ "${default[0]}" == 0 ] || cmd+=(-d $(lb_join , "${default[@]}"))
+			# add default choice(s)
+			[ ${#default[@]} -gt 0 ] && cmd+=(-d $(lb_join , "${default[@]}"))
 
 			# execute console function and forward result
 			"${cmd[@]}" "$@" && choices=${lb_choose_option[*]}
