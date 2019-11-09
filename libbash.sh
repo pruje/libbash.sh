@@ -122,6 +122,7 @@ lb_default_no_shortlabel="n"
 lb_default_pwd_label="Password:"
 lb_default_pwd_confirm_label="Confirm password:"
 lb_default_chopt_label="Choose an option:"
+lb_default_chopts_label="Choose one ore more options:"
 lb_default_chdir_label="Choose a directory:"
 lb_default_chfile_label="Choose a file:"
 lb_default_debug_label="DEBUG"
@@ -2640,26 +2641,27 @@ lb_choose_option() {
 		shift # load next argument
 	done
 
-	# missing at least 1 choice option
+	# usage error if missing at least 1 choice option
 	[ -z "$1" ] && return 1
-
-	# options: initialize with an empty first value (option ID starts to 1, not 0)
-	local options=("")
-
-	# prepare choice options
-	options+=("$@")
 
 	# verify if default options are valid
 	if [ ${#default[@]} -gt 0 ] ; then
 		local d
-		for d in ${default[@]} ; do
-			lb_is_integer $d || return 1
+		for d in "${default[@]}" ; do
+			lb_is_integer "$d" || return 1
 
-			if [ $d -lt 1 ] || [ $d -ge ${#options[@]} ] ; then
+			if [ $d -lt 1 ] || [ $d -gt $# ] ; then
 				return 1
 			fi
 		done
 	fi
+
+	# change default label if multiple options
+	if $multiple_choices ; then
+		[ "$label" == "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
+	fi
+	
+	local o choices
 
 	# print question (if not quiet mode)
 	if ! lb_istrue $lb_quietmode ; then
@@ -2667,9 +2669,10 @@ lb_choose_option() {
 		echo -e "$label"
 
 		# print options
-		local i
-		for ((i=1; i < ${#options[@]}; i++)) ; do
-			echo "  $i. ${options[i]}"
+		local -i i=1
+		for o in "$@" ; do
+			echo "  $i. $o"
+			i+=1
 		done
 
 		echo
@@ -2683,21 +2686,19 @@ lb_choose_option() {
 	fi
 
 	# read user input
-	local choices
 	read choices
 
 	# defaut behaviour if input is empty
 	if [ -z "$choices" ] ; then
 		if [ ${#default[@]} -gt 0 ] ; then
-			# default option
+			# return default option(s)
 			lb_choose_option=(${default[@]})
+			return 0
 		else
 			# cancel code
 			return 2
 		fi
 	fi
-
-	# if user made a choice
 
 	# convert choices to an array
 	if $multiple_choices ; then
@@ -2721,13 +2722,13 @@ lb_choose_option() {
 		fi
 
 		# check if user choice is valid
-		if [ $c -lt 1 ] || [ $c -ge ${#options[@]} ] ; then
+		if [ $c -lt 1 ] || [ $c -gt $# ] ; then
 			lb_choose_option=()
 			return 3
 		fi
 
 		# save choice if not already done
-		lb_in_array "$c" "${lb_choose_option[@]}" || lb_choose_option+=("$c")
+		lb_in_array $c "${lb_choose_option[@]}" || lb_choose_option+=($c)
 	done
 }
 
