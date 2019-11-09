@@ -72,6 +72,7 @@ declare -r lb_version=1.15.0-beta.1
 #       lb_current_os
 #       lb_user_exists
 #       lb_in_group
+#       lb_group_exists
 #       lb_group_members
 #       lb_generate_password
 #       lb_email
@@ -2250,6 +2251,22 @@ lb_in_group() {
 
 	# find if user is in group
 	lb_in_array "$1" "${groups[@]}"
+}
+
+
+# Test if a group exists
+# Usage: lb_group_exists GROUP [GROUP...]
+lb_group_exists() {
+
+	# usage error
+	[ $# == 0 ] && return 1
+
+	local group
+	for group in "$@" ; do
+		[ -z "$group" ] && return 1
+		# check if group exists
+		grep -q "^$group:" /etc/group &> /dev/null || return 1
+	done
 }
 
 
