@@ -130,7 +130,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_current_os](#lb_current_os)
 	* [lb_user_exists](#lb_user_exists)
 	* [lb_in_group](#lb_in_group)
-	* [lb_group_exists](#lb_group_exists)
+	* [lb_group_exists](#lb_group_exists)*
 	* [lb_group_members](#lb_group_members)*
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)*
@@ -1609,6 +1609,8 @@ fi
 ### lb_group_exists
 Test if a group exists.
 
+**WARNING**: This function is not supported on macOS and Windows systems.
+
 #### Usage
 ```bash
 lb_group_exists GROUP [GROUP...]
@@ -1617,6 +1619,7 @@ lb_group_exists GROUP [GROUP...]
 #### Exit codes
 - 0: Group(s) exists
 - 1: Group(s) does not exists
+- 2: Not supported
 
 #### Example
 ```bash

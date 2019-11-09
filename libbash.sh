@@ -2261,6 +2261,13 @@ lb_group_exists() {
 	# usage error
 	[ $# == 0 ] && return 1
 
+	case $lb_current_os in
+		macOS|Windows)
+			# OS not compatible
+			return 2
+			;;
+	esac
+
 	local group
 	for group in "$@" ; do
 		[ -z "$group" ] && return 1
