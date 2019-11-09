@@ -21,7 +21,7 @@ Note: If you call libbash.sh without any of these options and if you want to use
 
 ```bash
 # example: this will prevent to call libbash with --quiet option and disable your own --quiet script option
-source "/path/to/libbash.sh" -
+source /path/to/libbash.sh -
 if [ "$1" == "--quiet" ] ; then
 	...
 ```
@@ -130,6 +130,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_current_os](#lb_current_os)
 	* [lb_user_exists](#lb_user_exists)
 	* [lb_in_group](#lb_in_group)
+	* [lb_group_exists](#lb_group_exists)
 	* [lb_group_members](#lb_group_members)*
 	* [lb_generate_password](#lb_generate_password)
 	* [lb_email](#lb_email)*
@@ -956,8 +957,8 @@ lb_is_number VALUE
 
 #### Example
 ```bash
-x="-42.9"
-if lb_is_number $x ; then
+x=-42.9
+if lb_is_number "$x" ; then
     echo "x is a number"
 fi
 ```
@@ -978,8 +979,8 @@ lb_is_integer VALUE
 
 #### Example
 ```bash
-x="-1"
-if lb_is_integer $x ; then
+x=-10
+if lb_is_integer "$x" ; then
     echo "x is an integer"
 fi
 ```
@@ -1001,7 +1002,7 @@ lb_is_boolean VALUE
 #### Example
 ```bash
 x=false
-if lb_is_boolean $x ; then
+if lb_is_boolean "$x" ; then
     echo "x is a boolean"
 fi
 ```
@@ -1023,7 +1024,7 @@ lb_is_email STRING
 #### Example
 ```bash
 x="me@domain.com"
-if lb_is_email $x ; then
+if lb_is_email "$x" ; then
     echo "x is an email address"
 fi
 ```
@@ -1244,8 +1245,8 @@ VERSION_2  Software version
 
 #### Example
 ```bash
-version1="2.0.1"
-version2="1.8.9"
+version1=2.0.1
+version2=1.8.9
 if lb_compare_versions $version1 -ge $version2 ; then
     echo "Newer version: $version1"
 else
@@ -1600,6 +1601,27 @@ Note: if USER is not specified, current user is used
 ```bash
 if lb_in_group empire ; then
     echo "You are part of the empire."
+fi
+```
+
+---------------------------------------------------------------
+<a name="lb_group_exists"></a>
+### lb_group_exists
+Test if a group exists.
+
+#### Usage
+```bash
+lb_group_exists GROUP [GROUP...]
+```
+
+#### Exit codes
+- 0: Group(s) exists
+- 1: Group(s) does not exists
+
+#### Example
+```bash
+if lb_group_exists empire ; then
+    echo "The empire strikes back!"
 fi
 ```
 

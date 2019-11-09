@@ -59,7 +59,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_notify](#lbg_notify)*
 * User interaction
 	* [lbg_yesno](#lbg_yesno)
-	* [lbg_choose_option](#lbg_choose_option)
+	* [lbg_choose_option](#lbg_choose_option)*
 	* [lbg_input_text](#lbg_input_text)
 	* [lbg_input_password](#lbg_input_password)*
 * Files and directories
@@ -359,6 +359,8 @@ lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 -t, --title TEXT  Set a title to the dialog
 ```
 
+**WARNING **: Multiple option is not supported yet on macOS.
+
 #### Exit codes
 - 0: OK
 - 1: Usage error
@@ -447,8 +449,6 @@ Displays a dialog to choose an existing directory.
 
 Path of the chosen directory is set into the `$lbg_choose_directory` variable.
 
-**WARNING**: On Windows, starting path is not working with cscript (works in console mode).
-
 #### Usage
 ```bash
 lbg_choose_directory [OPTIONS] [PATH]
@@ -459,8 +459,9 @@ lbg_choose_directory [OPTIONS] [PATH]
 -a, --absolute-path  Return absolute path of the directory
 -t, --title TEXT     Set a title to the dialog
 PATH                 Starting path (current directory by default)
-                     OPTION NOT SUPPORTED ON Windows cscript dialogs
 ```
+
+**WARNING**: On Windows, starting path is not working with cscript dialogs (but works in console mode).
 
 #### Exit codes
 - 0: OK
@@ -470,8 +471,8 @@ PATH                 Starting path (current directory by default)
 
 #### Example
 ```bash
-if lbg_choose_directory "/opt/" ; then
-    opt_path="$lbg_choose_directory"
+if lbg_choose_directory /opt ; then
+    opt_path=$lbg_choose_directory
 fi
 ```
 
@@ -482,9 +483,7 @@ Displays a dialog to choose an existing file.
 
 Path of the chosen file is set into the `$lbg_choose_file` variable.
 
-**WARNING**: This function is not supported on Windows with cscript (works in console mode).
-
-**WARNING 2**: File filters are not supported yet on macOS.
+**WARNING**: This function is not supported on Windows with cscript (but works in console mode).
 
 #### Usage
 ```bash
@@ -494,13 +493,14 @@ lbg_choose_file [OPTIONS] [PATH]
 #### Options
 ```
 -s, --save           Save mode (create/save a file instead of open an existing one)
--f, --filter FILTER  Set filters (WARNING: not supported with dialog command)
+-f, --filter FILTER  Set file filters
                      e.g. -f "*.jpg" to filter by JPEG files
-                     OPTION NOT SUPPORTED YET ON macOS
 -a, --absolute-path  Return absolute path of the file
 -t, --title TEXT     Set a title to the dialog
 PATH                 Starting path or default file path (open current directory by default)
 ```
+
+**WARNING**: File filters are not supported yet with dialog command neither with macOS osascript dialogs.
 
 #### Exit codes
 - 0: OK
@@ -540,6 +540,8 @@ PATH                Directory path (current directory by default)
 - 2: Explorer command does not exists
 - 3: Unknown error (happens often on Windows)
 - 4: One or more of the specified paths are not existing directories
+
+**Note**: On some OS like Windows, this function may work but return a bad exit code.
 
 #### Example
 ```bash
