@@ -669,16 +669,13 @@ lbg_choose_option() {
 	# usage error if missing at least 1 choice option
 	[ -z "$1" ] && return 1
 
-	# options: initialize with an empty first value (option ID starts to 1, not 0)
-	local options=("" "$@")
-
 	# verify if default options are valid
 	if [ ${#default[@]} -gt 0 ] ; then
 		local d
 		for d in "${default[@]}" ; do
-			lb_is_integer $d || return 1
+			lb_is_integer "$d" || return 1
 
-			if [ $d -lt 1 ] || [ $d -ge ${#options[@]} ] ; then
+			if [ $d -lt 1 ] || [ $d -gt $# ] ; then
 				return 1
 			fi
 		done
@@ -688,19 +685,21 @@ lbg_choose_option() {
 	fi
 
 	# prepare command
-	local i cmd
+	local cmd o
+	local -i i=1
 	case $lbg__gui in
 		kdialog)
 			cmd=(kdialog --title "$title" --radiolist "$label")
 
 			# add options
-			for ((i=1 ; i<${#options[@]} ; i++)) ; do
-				cmd+=($i "${options[i]}")
+			for o in "$@" ; do
+				cmd+=($i "$o")
 				if lb_in_array $i "${default[@]}" ; then
 					cmd+=(on)
 				else
 					cmd+=(off)
 				fi
+				i+=1
 			done
 
 			# run command
@@ -711,14 +710,15 @@ lbg_choose_option() {
 			cmd=(zenity --list --title "$title" --text "$label" --radiolist --column "" --column "" --column "")
 
 			# add options
-			for ((i=1 ; i<${#options[@]} ; i++)) ; do
+			for o in "$@" ; do
 				if lb_in_array $i "${default[@]}" ; then
 					cmd+=(TRUE)
 				else
 					cmd+=(FALSE)
 				fi
 
-				cmd+=($i "${options[i]}")
+				cmd+=($i "$o")
+				i+=1
 			done
 
 			# run command
@@ -729,14 +729,14 @@ lbg_choose_option() {
 			# prepare options
 			local default_option opts=()
 
-			for ((i=1 ; i<${#options[@]} ; i++)) ; do
-				# forward options WITHOUT the first
-				opts+=("\"${options[i]}\"")
+			for o in "$@" ; do
+				opts+=("\"$o\"")
 
 				# set default option
 				if [ ${#default[@]} -gt 0 ] && lb_in_array $i "${default[@]}" ; then
-					default_option=${options[i]}
+					default_option=$o
 				fi
+				i+=1
 			done
 
 			# join values
@@ -749,9 +749,11 @@ EOF)
 			# if empty, error
 			[ -z "$choice" ] && return 2
 
-			# macOS case: find result
-			for ((i=1 ; i<${#options[@]} ; i++)) ; do
-				[ "$choice" == "${options[i]}" ] && lbg_choose_option=$i
+			# find choice id
+			i=1
+			for o in "$@" ; do
+				[ "$choice" == "$o" ] && lbg_choose_option=$i
+				i+=1
 			done
 			;;
 
@@ -760,8 +762,9 @@ EOF)
 			label=$(echo -e "$label")
 
 			# add options to the label, with a line return between each option
-			for ((i=1 ; i<${#options[@]} ; i++)) ; do
-				label+=$(echo -e "\n   $i. ${options[i]}")
+			for o in "$@" ; do
+				label+=$(echo -e "\n   $i. $o")
+				i+=1
 			done
 
 			# prepare command (inputbox)
@@ -779,13 +782,14 @@ EOF)
 			cmd=(dialog --title "$title" --clear --radiolist "$label" $(lbg__dialog_size 100 30) 1000)
 
 			# add options
-			for ((i=1 ; i<${#options[@]} ; i++)) ; do
-				cmd+=($i "${options[i]}")
+			for o in "$@" ; do
+				cmd+=($i "$o")
 				if lb_in_array $i "${default[@]}" ; then
 					cmd+=(on)
 				else
 					cmd+=(off)
 				fi
+				i+=1
 			done
 
 			# run command (complex case)
@@ -799,19 +803,13 @@ EOF)
 
 		*)
 			# console mode
-			cmd=(lb_choose_option)
+			cmd=(lb_choose_option -l "$label")
 
-			# add default without the first 0
-			[ "$default" == 0 ] || cmd+=(-d $(lb_join , "${default[@]}"))
-			cmd+=(-l "$label")
-
-			# add options WITHOUT the first empty
-			for ((i=1; i<${#options[@]}; i++)) ; do
-				cmd+=("${options[i]}")
-			done
+			# add default without the first default
+			[ "${default[0]}" == 0 ] || cmd+=(-d $(lb_join , "${default[@]}"))
 
 			# execute console function and forward result
-			"${cmd[@]}" && lbg_choose_option=$lb_choose_option
+			"${cmd[@]}" "$@" && lbg_choose_option=$lb_choose_option
 			;;
 	esac
 
@@ -826,7 +824,7 @@ EOF)
 	fi
 
 	# check if user choice is valid
-	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -ge ${#options[@]} ] ; then
+	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -gt $# ] ; then
 		# reset result and return error
 		lbg_choose_option=""
 		return 3
