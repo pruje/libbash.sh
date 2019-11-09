@@ -7,11 +7,11 @@
 #  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.14.4 (2019-10-31)                         #
+#  Version 1.15.0 (2019-11-09)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.14.4
+declare -r lb_version=1.15.0-beta.1
 
 # Index
 #
@@ -2707,28 +2707,27 @@ lb_choose_option() {
 	fi
 
 	# parsing choices
-	local c
-	for c in ${choices[@]} ; do
+	for o in ${choices[@]} ; do
 		# check cancel option
-		if [ "$c" == "$cancel_label" ] ; then
+		if [ "$o" == "$cancel_label" ] ; then
 			lb_choose_option=()
 			return 2
 		fi
 
-		# strict check type
-		if ! lb_is_integer "$c" ; then
+		# check type
+		if ! lb_is_integer "$o" ; then
 			lb_choose_option=()
 			return 3
 		fi
 
 		# check if user choice is valid
-		if [ $c -lt 1 ] || [ $c -gt $# ] ; then
+		if [ $o -lt 1 ] || [ $o -gt $# ] ; then
 			lb_choose_option=()
 			return 3
 		fi
 
-		# save choice if not already done
-		lb_in_array $c "${lb_choose_option[@]}" || lb_choose_option+=($c)
+		# save choice (prevent duplicates)
+		lb_in_array $o "${lb_choose_option[@]}" || lb_choose_option+=($o)
 	done
 }
 

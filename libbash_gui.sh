@@ -629,11 +629,11 @@ EOF)
 
 # Ask user to choose an option
 # Usage: lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
-lbg_choose_option=""
+lbg_choose_option=()
 lbg_choose_option() {
 
 	# reset result
-	lbg_choose_option=""
+	lbg_choose_option=()
 
 	# default options
 	local default=() multiple_choices=false
@@ -653,6 +653,9 @@ lbg_choose_option() {
 				[ -z "$2" ] && return 1
 				label=$2
 				shift
+				;;
+			-m|--multiple)
+				multiple_choices=true
 				;;
 			-t|--title)
 				[ -z "$2" ] && return 1
@@ -684,12 +687,25 @@ lbg_choose_option() {
 		default=(0)
 	fi
 
-	# prepare command
-	local cmd o
+	# change default label if multiple options
+	if $multiple_choices ; then
+		[ "$label" == "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
+	fi
+
+	local o choices cmd
 	local -i i=1
+
 	case $lbg__gui in
 		kdialog)
-			cmd=(kdialog --title "$title" --radiolist "$label")
+			cmd=(kdialog --title "$title")
+			
+			if $multiple_choices ; then
+				cmd+=(--checklist)
+			else
+				cmd+=(--radiolist)
+			fi
+			
+			cmd+=("$label")
 
 			# add options
 			for o in "$@" ; do
@@ -703,11 +719,20 @@ lbg_choose_option() {
 			done
 
 			# run command
-			lbg_choose_option=$("${cmd[@]}" 2> /dev/null)
+			choices=$("${cmd[@]}" 2> /dev/null)
+			
+			# multiple choices: transform '"1" "3"' to '1 3'
+			choices=$(echo $choices | sed 's/"//g')
 			;;
 
 		zenity)
-			cmd=(zenity --list --title "$title" --text "$label" --radiolist --column "" --column "" --column "")
+			cmd=(zenity --list --title "$title" --text "$label" --column "" --column "" --column "")
+
+			if $multiple_choices ; then
+				cmd+=(--checklist)
+			else
+				cmd+=(--radiolist)
+			fi
 
 			# add options
 			for o in "$@" ; do
@@ -722,12 +747,18 @@ lbg_choose_option() {
 			done
 
 			# run command
-			lbg_choose_option=$("${cmd[@]}" 2> /dev/null)
+			choices=$("${cmd[@]}" 2> /dev/null)
+			
+			# multiple choices: transform '1|3' to '1 3'
+			choices=$(echo $choices | sed 's/|/ /g')
 			;;
 
 		osascript)
 			# prepare options
 			local default_option opts=()
+			
+			# multiple choices: not supported yet
+			$multiples_choices && return 1
 
 			for o in "$@" ; do
 				opts+=("\"$o\"")
@@ -752,7 +783,7 @@ EOF)
 			# find choice id
 			i=1
 			for o in "$@" ; do
-				[ "$choice" == "$o" ] && lbg_choose_option=$i
+				[ "$choice" == "$o" ] && choices=$i
 				i+=1
 			done
 			;;
@@ -772,14 +803,22 @@ EOF)
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# error => cancelled
-			lbg_choose_option=$(cd "$lbg__vbscript_dir" && "${cmd[@]}" "${default[@]}") || return 2
+			choices=$(cd "$lbg__vbscript_dir" && "${cmd[@]}" "${default[@]}") || return 2
 
 			# remove \r ending character
-			lbg_choose_option=${lbg_choose_option:0:${#lbg_choose_option}-1}
+			choices=${choices:0:${#choices}-1}
 			;;
 
 		dialog)
-			cmd=(dialog --title "$title" --clear --radiolist "$label" $(lbg__dialog_size 100 30) 1000)
+			cmd=(dialog --title "$title" --clear)
+
+			if $multiple_choices ; then
+				cmd+=(--checklist)
+			else
+				cmd+=(--radiolist)
+			fi
+
+			cmd+=("$label" $(lbg__dialog_size 100 30) 1000)
 
 			# add options
 			for o in "$@" ; do
@@ -794,7 +833,7 @@ EOF)
 
 			# run command (complex case)
 			exec 3>&1
-			lbg_choose_option=$("${cmd[@]}" 2>&1 1>&3)
+			choices=$("${cmd[@]}" 2>&1 1>&3)
 			exec 3>&-
 
 			# clear console
@@ -804,31 +843,37 @@ EOF)
 		*)
 			# console mode
 			cmd=(lb_choose_option -l "$label")
+			
+			$multiple_choices && cmd+=(-m)
 
 			# add default without the first default
 			[ "${default[0]}" == 0 ] || cmd+=(-d $(lb_join , "${default[@]}"))
 
 			# execute console function and forward result
-			"${cmd[@]}" "$@" && lbg_choose_option=$lb_choose_option
+			"${cmd[@]}" "$@" && choices=${lb_choose_option[*]}
 			;;
 	esac
 
 	# if empty, cancelled
-	[ -z "$lbg_choose_option" ] && return 2
+	[ -z "$choices" ] && return 2
 
-	# check if user choice is an integer
-	if ! lb_is_integer $lbg_choose_option ; then
-		# reset result and return error
-		lbg_choose_option=""
-		return 3
-	fi
+	# parsing choices
+	for o in ${choices[@]} ; do
+		# strict check type
+		if ! lb_is_integer "$o" ; then
+			lb_choose_option=()
+			return 3
+		fi
 
-	# check if user choice is valid
-	if [ "$lbg_choose_option" -lt 1 ] || [ "$lbg_choose_option" -gt $# ] ; then
-		# reset result and return error
-		lbg_choose_option=""
-		return 3
-	fi
+		# check if user choice is valid
+		if [ $o -lt 1 ] || [ $o -gt $# ] ; then
+			lbg_choose_option=()
+			return 3
+		fi
+
+		# save choice
+		lbg_choose_option+=($o)
+	done
 }
 
 
