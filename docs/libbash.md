@@ -1759,7 +1759,7 @@ fi
 ### lb_choose_option
 Ask user to choose one or multiple options.
 
-The chosen IDs are set into the `$lb_choose_option` (array) variable.
+Chosen IDs are set into the `$lb_choose_option` (array) variable.
 
 #### Usage
 ```bash

@@ -343,9 +343,9 @@ fi
 ---------------------------------------------------------------
 <a name="lbg_choose_option"></a>
 ### lbg_choose_option
-Displays a dialog to ask a to user to choose an option.
+Displays a dialog to ask user to choose one or multiple options.
 
-Chosen ID is set into the `$lbg_choose_option` variable.
+Chosen IDs are set into the `$lbg_choose_option` (array) variable.
 
 #### Usage
 ```bash

@@ -627,7 +627,7 @@ EOF)
 }
 
 
-# Ask user to choose an option
+# Ask user to choose one or multiple options
 # Usage: lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 lbg_choose_option=()
 lbg_choose_option() {
@@ -698,13 +698,13 @@ lbg_choose_option() {
 	case $lbg__gui in
 		kdialog)
 			cmd=(kdialog --title "$title")
-			
+
 			if $multiple_choices ; then
 				cmd+=(--checklist)
 			else
 				cmd+=(--radiolist)
 			fi
-			
+
 			cmd+=("$label")
 
 			# add options
@@ -720,7 +720,7 @@ lbg_choose_option() {
 
 			# run command
 			choices=$("${cmd[@]}" 2> /dev/null)
-			
+
 			# multiple choices: transform '"1" "3"' to '1 3'
 			choices=$(echo $choices | sed 's/"//g')
 			;;
@@ -748,7 +748,7 @@ lbg_choose_option() {
 
 			# run command
 			choices=$("${cmd[@]}" 2> /dev/null)
-			
+
 			# multiple choices: transform '1|3' to '1 3'
 			choices=$(echo $choices | sed 's/|/ /g')
 			;;
@@ -756,7 +756,7 @@ lbg_choose_option() {
 		osascript)
 			# prepare options
 			local default_option opts=()
-			
+
 			# multiple choices: not supported yet
 			$multiples_choices && return 1
 
@@ -803,10 +803,11 @@ EOF)
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# error => cancelled
-			choices=$(cd "$lbg__vbscript_dir" && "${cmd[@]}" "${default[@]}") || return 2
+			choices=$(cd "$lbg__vbscript_dir" && "${cmd[@]}" "${default[*]}") || return 2
 
-			# remove \r ending character
-			choices=${choices:0:${#choices}-1}
+			# multiple choices: transform '1,3' to '1 3'
+			# and remove \r ending character
+			choices=$(echo $choices | sed 's/,/ /g; s/[[:space:]]*$//')
 			;;
 
 		dialog)
@@ -843,7 +844,7 @@ EOF)
 		*)
 			# console mode
 			cmd=(lb_choose_option -l "$label")
-			
+
 			$multiple_choices && cmd+=(-m)
 
 			# add default without the first default
@@ -858,7 +859,7 @@ EOF)
 	[ -z "$choices" ] && return 2
 
 	# parsing choices
-	for o in ${choices[@]} ; do
+	for o in ${choices[*]} ; do
 		# strict check type
 		if ! lb_is_integer "$o" ; then
 			lb_choose_option=()

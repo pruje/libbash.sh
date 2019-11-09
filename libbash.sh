@@ -2623,7 +2623,7 @@ lb_yesno() {
 }
 
 
-# Prompt user to choose an option
+# Ask user to choose one or multiple options
 # Usage: lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 lb_choose_option=()
 lb_choose_option() {
@@ -2684,7 +2684,7 @@ lb_choose_option() {
 	if $multiple_choices ; then
 		[ "$label" == "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
 	fi
-	
+
 	local o choices
 
 	# print question (if not quiet mode)
@@ -2731,7 +2731,7 @@ lb_choose_option() {
 	fi
 
 	# parsing choices
-	for o in ${choices[@]} ; do
+	for o in ${choices[*]} ; do
 		# check cancel option
 		if [ "$o" == "$cancel_label" ] ; then
 			lb_choose_option=()
