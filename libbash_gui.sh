@@ -683,8 +683,10 @@ lbg_choose_option() {
 			fi
 		done
 	else
-		# one choice: initialize first choice as default
-		$multiple_choices || default=(1)
+		# one choice: initialize first choice as default (except for console mode)
+		if ! $multiple_choices && [ "$lbg__gui" != console ] ; then
+			default=(1)
+		fi
 	fi
 
 	# change default label if multiple options
