@@ -578,7 +578,7 @@ lb_result() {
 
 	# default values and options
 	local ok_label=$lb_default_result_ok_label failed_label=$lb_default_result_failed_label
-	local display_cmd=(lb_display) log_cmd=(lb_log) log=false
+	local display_cmd=(lb_display) log_cmd=(lb_log) log=false smart_levels=false
 	local error_exitcode save_exitcode=false exit_on_error=false quiet_mode=false
 
 	# get options
@@ -599,14 +599,16 @@ lb_result() {
 				display_cmd+=(-l "$2")
 				shift
 				;;
+			--log)
+				log=true
+				;;
 			-l|--log-level)
 				[ -z "$2" ] && return 1
-				log=true
 				log_cmd+=(-l "$2")
 				shift
 				;;
-			--log)
-				log=true
+			--smart-levels)
+				smart_levels=true
 				;;
 			-s|--save-exitcode)
 				save_exitcode=true
@@ -642,12 +644,30 @@ lb_result() {
 
 	# log & display result
 	if [ $result == 0 ] ; then
-		$log && "${log_cmd[@]}" "$ok_label"
-		$quiet_mode || "${display_cmd[@]}" "$ok_label"
+		if $log ; then
+			$smart_levels && log_cmd+=(-l INFO)
+			log_cmd+=("$ok_label")
+		fi
+
+		if ! $quiet_mode ; then
+			$smart_levels && display_cmd+=(-l INFO)
+			display_cmd+=("$ok_label")
+		fi
 	else
-		$log && "${log_cmd[@]}" "$failed_label"
-		$quiet_mode || "${display_cmd[@]}" "$failed_label"
+		if $log ; then
+			$smart_levels && log_cmd+=(-l ERROR)
+			log_cmd+=("$failed_label")
+		fi
+
+		if ! $quiet_mode ; then
+			$smart_levels && display_cmd+=(-l ERROR)
+			display_cmd+=("$failed_label")
+		fi
 	fi
+
+	# log & display result
+	$log && "${log_cmd[@]}"
+	$quiet_mode || "${display_cmd[@]}"
 
 	if [ $result != 0 ] ; then
 		# if save exit code is not set and error exitcode is specified, save it
