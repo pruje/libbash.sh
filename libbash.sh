@@ -578,7 +578,7 @@ lb_result() {
 
 	# default values and options
 	local ok_label=$lb_default_result_ok_label failed_label=$lb_default_result_failed_label
-	local display_cmd=(lb_display)
+	local display_cmd=(lb_display) log_cmd=(lb_log) log=false
 	local error_exitcode save_exitcode=false exit_on_error=false quiet_mode=false
 
 	# get options
@@ -594,13 +594,19 @@ lb_result() {
 				failed_label=$2
 				shift
 				;;
-			-l|--log-level)
+			-d|--display-level)
 				[ -z "$2" ] && return 1
 				display_cmd+=(-l "$2")
 				shift
 				;;
+			-l|--log-level)
+				[ -z "$2" ] && return 1
+				log=true
+				log_cmd+=(-l "$2")
+				shift
+				;;
 			--log)
-				display_cmd+=(--log)
+				log=true
 				;;
 			-s|--save-exitcode)
 				save_exitcode=true
@@ -634,13 +640,16 @@ lb_result() {
 	# save result to exit code
 	$save_exitcode && lb_exitcode=$result
 
-	# if result OK (code 0)
+	# log & display result
 	if [ $result == 0 ] ; then
+		$log && "${log_cmd[@]}" "$ok_label"
 		$quiet_mode || "${display_cmd[@]}" "$ok_label"
 	else
-		# if error (code 1-255)
+		$log && "${log_cmd[@]}" "$failed_label"
 		$quiet_mode || "${display_cmd[@]}" "$failed_label"
+	fi
 
+	if [ $result != 0 ] ; then
 		# if save exit code is not set and error exitcode is specified, save it
 		if ! $save_exitcode && [ -n "$error_exitcode" ] ; then
 			lb_exitcode=$error_exitcode

@@ -515,7 +515,8 @@ lb_result [OPTIONS] [EXIT_CODE]
 --ok-label LABEL           Set a success label (default: OK)
 --failed-label LABEL       Set a failed label (default: FAILED)
 --log                      Append text to log file
--l, --log-level LEVEL      Choose a display level (will be the same for logs)
+-d, --display-level LEVEL  Choose a display level
+-l, --log-level LEVEL      Choose a log level
 -s, --save-exitcode        Save the result to the $lb_exitcode variable
 -e, --error-exitcode CODE  Set a custom code to the $lb_exitcode variable if error
 -x, --exit-on-error        Exit if result is not ok (exit code not to 0)
