@@ -760,7 +760,7 @@ lbg_choose_option() {
 			local default_option opts=()
 
 			# multiple choices: not supported yet
-			$multiples_choices && return 1
+			$multiple_choices && return 1
 
 			for o in "$@" ; do
 				opts+=("\"$o\"")
