@@ -24,6 +24,7 @@ Note: If you call libbash.sh without any of these options and if you want to use
 source /path/to/libbash.sh -
 if [ "$1" == "--quiet" ] ; then
 	...
+fi
 ```
 
 ### libbash.sh GUI
@@ -1773,7 +1774,7 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 ```
 -d, --default ID[,ID...]  Option(s) to use by default (IDs starts to 1)
 -m, --multiple            Allow user to choose between multiple options
--l, --label TEXT          Set a label question (default: "Choose an option:")
+-l, --label TEXT          Set a question label (default: "Choose an option:")
 -c, --cancel-label TEXT   Set a cancel label (default: c)
 ```
 
@@ -1785,10 +1786,11 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Example
 ```bash
-if lb_choose_option --label "Choose a planet:" --default 1 "Earth" "Jupiter" ; then
+if lb_choose_option --label "Choose a planet:" --default 1 Earth Jupiter ; then
     chosen_planet=$lb_choose_option
 fi
-if lb_choose_option --label "Choose valid countries:" --default 1,2 "France" "USA" "Neverland" ; then
+
+if lb_choose_option --multiple --label "Choose valid countries:" --default 1,2 France USA Neverland ; then
     chosen_countries=(${lb_choose_option[@]})
 fi
 ```

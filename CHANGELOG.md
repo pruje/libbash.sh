@@ -1,6 +1,15 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.15.0 (2019-11-17)
+### New features
+- `lbg_choose_option` now supports multiple choices with `-m` option
+- New function `lb_group_exists` to test if a group exists (does not work on Windows and macOS)
+- New option `--display-level` in `lb_result` and `lb_short_result`
+
+### Changes
+- In `lb_result` and `lb_short_result`, option `--log-level` does not affect display level (set in new option `--display-level`)
+
 ## 1.14.4 (2019-10-31)
 ### Bugfixes
 - Fixed bug and enhance reliability of `lb_generate_password`

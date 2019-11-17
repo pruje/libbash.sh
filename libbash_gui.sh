@@ -7,7 +7,7 @@
 #  Copyright (c) 2017-2019 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.14.4 (2019-10-31)                         #
+#  Version 1.15.0 (2019-11-17)                         #
 #                                                      #
 ########################################################
 
@@ -649,13 +649,13 @@ lbg_choose_option() {
 				default=(${lb_split[@]})
 				shift
 				;;
+			-m|--multiple)
+				multiple_choices=true
+				;;
 			-l|--label)
 				[ -z "$2" ] && return 1
 				label=$2
 				shift
-				;;
-			-m|--multiple)
-				multiple_choices=true
 				;;
 			-t|--title)
 				[ -z "$2" ] && return 1

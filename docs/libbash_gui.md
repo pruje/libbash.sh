@@ -354,12 +354,13 @@ lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Options
 ```
--d, --default ID  Option ID to use by default (IDs starts to 1)
--l, --label TEXT  Set a question text (default: "Choose an option:")
--t, --title TEXT  Set a title to the dialog
+-d, --default ID[,ID...]  Option(s) to use by default (IDs starts to 1)
+-m, --multiple            Allow user to choose between multiple options
+-l, --label TEXT          Set a question label (default: "Choose an option:")
+-t, --title TEXT          Set a title to the dialog
 ```
 
-**WARNING **: Multiple option is not supported yet on macOS.
+**WARNING**: Multiple option is not supported yet on macOS.
 
 #### Exit codes
 - 0: OK
@@ -369,8 +370,12 @@ lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 
 #### Example
 ```bash
-if lbg_choose_option --default 1 --label "Choose a country:" "France" "USA" "Other" ; then
-    chosen_option=$lbg_choose_option
+if lbg_choose_option --label "Choose a planet:" --default 1 Earth Jupiter ; then
+    chosen_planet=$lbg_choose_option
+fi
+
+if lbg_choose_option --multiple --label "Choose valid countries:" --default 1,2 France USA Neverland ; then
+    chosen_countries=(${lbg_choose_option[@]})
 fi
 ```
 
