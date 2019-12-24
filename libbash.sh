@@ -171,7 +171,7 @@ lb_function_exists() {
 		type=$(type -t $arg) || return 2
 
 		# test if is not a function
-		[ "$type" == function ] || return 3
+		[ "$type" = function ] || return 3
 	done
 }
 
@@ -214,7 +214,7 @@ lb_getargs() {
 	lb_getargs=()
 
 	# no arguments
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	# parse arguments
 	local a
@@ -248,7 +248,7 @@ lb_getopt() {
 	[ $# -lt 2 ] && return 1
 
 	# if next option, quit
-	[ "${2:0:1}" == - ] && return 1
+	[ "${2:0:1}" = - ] && return 1
 
 	# return option value
 	echo "$2"
@@ -355,7 +355,7 @@ lb_get_display_level() {
 	# search log level id for a gived level name
 	for ((i=0 ; i < ${#lb_log_levels[@]} ; i++)) ; do
 		# if found, return it
-		if [ "${lb_log_levels[i]}" == "$level" ] ; then
+		if [ "${lb_log_levels[i]}" = "$level" ] ; then
 			if $get_id ; then
 				echo $i
 			else
@@ -381,7 +381,7 @@ lb_set_display_level() {
 	local id
 	for ((id=0 ; id < ${#lb_log_levels[@]} ; id++)) ; do
 		# search by name and set level id
-		if [ "${lb_log_levels[id]}" == $1 ] ; then
+		if [ "${lb_log_levels[id]}" = $1 ] ; then
 			lb__display_level=$id
 			return 0
 		fi
@@ -498,7 +498,7 @@ lb_display() {
 	local text=$* prefix display=true result=0
 
 	# get text from stdin
-	if [ ${#text} == 0 ] && ! [ -t 0 ] ; then
+	if [ ${#text} = 0 ] && ! [ -t 0 ] ; then
 		local t
 		while read -r t ; do
 			text+="
@@ -643,7 +643,7 @@ lb_result() {
 	$save_exitcode && lb_exitcode=$result
 
 	# log & display result
-	if [ $result == 0 ] ; then
+	if [ $result = 0 ] ; then
 		if $log ; then
 			$smart_levels && log_cmd+=(-l INFO)
 			log_cmd+=("$ok_label")
@@ -708,7 +708,7 @@ lb_get_logfile() {
 	# test if log file is writable
 	if ! lb_is_writable "$lb_logfile" ; then
 		# do not return error if samba share: cannot determine rights in some cases
-		[ "$(lb_df_fstype "$(dirname "$lb_logfile")")" == smbfs ] || return 2
+		[ "$(lb_df_fstype "$(dirname "$lb_logfile")")" = smbfs ] || return 2
 	fi
 
 	# return log file path
@@ -753,7 +753,7 @@ lb_set_logfile() {
 	# cancel if file is not writable
 	if ! lb_is_writable "$*" ; then
 		# do not return error if samba share: cannot determine rights in some cases
-		[ "$(lb_df_fstype "$(dirname "$*")")" == smbfs ] || return 2
+		[ "$(lb_df_fstype "$(dirname "$*")")" = smbfs ] || return 2
 	fi
 
 	# if file exists
@@ -823,7 +823,7 @@ lb_get_log_level() {
 	# search log level id for a gived level name
 	for ((i=0 ; i < ${#lb_log_levels[@]} ; i++)) ; do
 		# if found, return it
-		if [ "${lb_log_levels[i]}" == "$level" ] ; then
+		if [ "${lb_log_levels[i]}" = "$level" ] ; then
 			if $get_id ; then
 				echo $i
 			else
@@ -849,7 +849,7 @@ lb_set_log_level() {
 	local id
 	for ((id=0 ; id < ${#lb_log_levels[@]} ; id++)) ; do
 		# search by name and set level id
-		if [ "${lb_log_levels[id]}" == $1 ] ; then
+		if [ "${lb_log_levels[id]}" = $1 ] ; then
 			lb__log_level=$id
 			return 0
 		fi
@@ -905,7 +905,7 @@ lb_log() {
 	local text=$*
 
 	# get text from stdin
-	if [ ${#text} == 0 ] && ! [ -t 0 ] ; then
+	if [ ${#text} = 0 ] && ! [ -t 0 ] ; then
 		local t
 		while read -r t ; do
 			text+="
@@ -1238,7 +1238,7 @@ lb_get_config() {
 	local config_lines=($(grep -En "^[[:space:]]*$2[[:space:]]*=" "$1" | cut -d: -f1))
 
 	# if line not found, return error
-	[ ${#config_lines[@]} == 0 ] && return 3
+	[ ${#config_lines[@]} = 0 ] && return 3
 
 	# sed regex:
 	#   1. extract value
@@ -1257,13 +1257,13 @@ lb_get_config() {
 	local i j current_section
 	for ((i=${#config_lines[@]}-1; i>=0; i--)) ; do
 		# if first line, cannot go up
-		[ ${config_lines[i]} == 1 ] && continue
+		[ ${config_lines[i]} = 1 ] && continue
 
 		for ((j=${config_lines[i]}-1; j>=1; j--)) ; do
 			current_section=$(sed "${j}q;d" "$1" | grep -Eo '^\[.*\]')
 
 			if [ -n "$current_section" ] ; then
-				if [ "$current_section" == "[$section]" ] ; then
+				if [ "$current_section" = "[$section]" ] ; then
 					# return value
 					sed "${config_lines[i]}q;d" "$1" | sed "$sed_extract"
 					return 0
@@ -1335,7 +1335,7 @@ lb_set_config() {
 	fi
 
 	# Windows files: append \r at the end of line
-	[ "$lb_current_os" == Windows ] && value+="\r"
+	[ "$lb_current_os" = Windows ] && value+="\r"
 
 	# prepare line for sed command
 	local sed_line=$param
@@ -1365,13 +1365,13 @@ lb_set_config() {
 			# parse every results (saved before)
 			for i in "${results[@]}" ; do
 				# if first line, cannot go up
-				[ $i == 1 ] && continue
+				[ $i = 1 ] && continue
 
 				for ((j=$i-1; j>=1; j--)) ; do
 					current_section=$(sed "${j}q;d" "$config_file" | grep -Eo '^\[.*\]')
 
 					if [ -n "$current_section" ] ; then
-						if [ "$current_section" == "[$section]" ] ; then
+						if [ "$current_section" = "[$section]" ] ; then
 							config_lines+=($i)
 						fi
 						break
@@ -1433,7 +1433,7 @@ lb_set_config() {
 
 			# append empty line above new section
 			if tail -1 "$config_file" | grep -Evq '^[[:space:]]*$' ; then
-				if [ "$lb_current_os" == Windows ] ; then
+				if [ "$lb_current_os" = Windows ] ; then
 					echo -e "\r" >> "$config_file" || return 4
 				else
 					echo >> "$config_file" || return 4
@@ -1443,7 +1443,7 @@ lb_set_config() {
 			section_line="[$section]"
 
 			# Windows files: add \r at the end of line
-			[ "$lb_current_os" == Windows ] && section_line+="\r"
+			[ "$lb_current_os" = Windows ] && section_line+="\r"
 
 			# append section to file
 			echo -e "$section_line" >> "$config_file" || return 4
@@ -1473,7 +1473,7 @@ $sed_line
 # Test if a boolean is true
 # Usage: lb_istrue VALUE
 lb_istrue() {
-	[ "$*" == true ]
+	[ "$*" = true ]
 }
 
 
@@ -1533,7 +1533,7 @@ lb_is_comment() {
 	local line=$*
 
 	# get text from stdin
-	if [ ${#line} == 0 ] ; then
+	if [ ${#line} = 0 ] ; then
 		[ -t 0 ] || read -r line
 	fi
 
@@ -1550,12 +1550,12 @@ lb_is_comment() {
 	fi
 
 	# set default comment symbol if none is set
-	[ ${#symbols[@]} == 0 ] && symbols+=("#")
+	[ ${#symbols[@]} = 0 ] && symbols+=("#")
 
 	# test if text starts with comment symbol
 	local s
 	for s in "${symbols[@]}" ; do
-		[ "${line:0:${#s}}" == "$s" ] && return 0
+		[ "${line:0:${#s}}" = "$s" ] && return 0
 	done
 
 	# symbol not found: not a comment
@@ -1570,7 +1570,7 @@ lb_trim() {
 	local string=$*
 
 	# test if text passed by stdin
-	if [ ${#string} == 0 ] ; then
+	if [ ${#string} = 0 ] ; then
 		if [ -t 0 ] ; then
 			# empty text
 			return 0
@@ -1642,11 +1642,11 @@ lb_in_array() {
 	shift
 
 	# if array is empty, return not found
-	[ $# == 0 ] && return 2
+	[ $# = 0 ] && return 2
 
 	# parse array to find value
 	for value in "$@" ; do
-		[ "$value" == "$search" ] && return 0
+		[ "$value" = "$search" ] && return 0
 	done
 
 	# not found
@@ -1763,7 +1763,7 @@ lb_compare_versions() {
 	local version2=$(echo "$3" | tr -d '[:space:]' | cut -d+ -f1)
 
 	# global comparison
-	if [ "$version1" == "$version2" ] ; then
+	if [ "$version1" = "$version2" ] ; then
 		# versions are equal
 		case $operator in
 			-eq|-le|-ge)
@@ -1789,7 +1789,7 @@ lb_compare_versions() {
 		while true ; do
 
 			# get major number
-			if [ $i == 1 ] ; then
+			if [ $i = 1 ] ; then
 				version1_num=$(echo "$version1_main" | cut -d. -f$i)
 				version2_num=$(echo "$version2_main" | cut -d. -f$i)
 			else
@@ -1803,12 +1803,12 @@ lb_compare_versions() {
 			[ -z "$version1_num" ] && version1_num=0
 			[ -z "$version2_num" ] && version2_num=0
 
-			if [ "$version1_num" == "$version2_num" ] ; then
+			if [ "$version1_num" = "$version2_num" ] ; then
 
 				# if minor numbers (x.x.x.0), avoid infinite loop
 				if [ $i -gt 3 ] ; then
 					# end of comparison
-					if [ $version1_num == 0 ] && [ $version2_num == 0 ] ; then
+					if [ $version1_num = 0 ] && [ $version2_num = 0 ] ; then
 						break
 					fi
 				fi
@@ -1834,13 +1834,13 @@ lb_compare_versions() {
 
 	# get pre-release tags
 	local version1_tag version2_tag
-	[[ "$version1" == *"-"* ]] && version1_tag=$(echo "$version1" | tr -d '[:space:]' | cut -d- -f2)
-	[[ "$version2" == *"-"* ]] && version2_tag=$(echo "$version2" | tr -d '[:space:]' | cut -d- -f2)
+	[[ "$version1" = *"-"* ]] && version1_tag=$(echo "$version1" | tr -d '[:space:]' | cut -d- -f2)
+	[[ "$version2" = *"-"* ]] && version2_tag=$(echo "$version2" | tr -d '[:space:]' | cut -d- -f2)
 
 	# tags are equal
 	# this can happen if main versions are different
-	# e.g. v1.0 == v1.0.0 or v2.1-beta == v2.1.0-beta
-	if [ "$version1_tag" == "$version2_tag" ] ; then
+	# e.g. v1.0 = v1.0.0 or v2.1-beta = v2.1.0-beta
+	if [ "$version1_tag" = "$version2_tag" ] ; then
 		case $operator in
 			-eq|-le|-ge)
 				return 0
@@ -1930,7 +1930,7 @@ lb_compare_versions() {
 lb_df_fstype() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -1954,7 +1954,7 @@ lb_df_fstype() {
 				# get "real" fs type
 				lsblk --output=FSTYPE "$device" 2> /dev/null | tail -n 1
 
-				[ ${PIPESTATUS[0]} == 0 ] && return 0
+				[ ${PIPESTATUS[0]} = 0 ] && return 0
 			fi
 
 			# no lsblk command or lsblk failed: use df command
@@ -1967,7 +1967,7 @@ lb_df_fstype() {
 			;;
 	esac
 
-	[ ${PIPESTATUS[0]} == 0 ] || return 3
+	[ ${PIPESTATUS[0]} = 0 ] || return 3
 }
 
 
@@ -1976,7 +1976,7 @@ lb_df_fstype() {
 lb_df_space_left() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -1989,7 +1989,7 @@ lb_df_space_left() {
 		df -k "$*" 2> /dev/null | tail -n 1 | awk '{print $4}'
 	fi
 
-	[ ${PIPESTATUS[0]} == 0 ] || return 3
+	[ ${PIPESTATUS[0]} = 0 ] || return 3
 }
 
 
@@ -1998,7 +1998,7 @@ lb_df_space_left() {
 lb_df_mountpoint() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -2021,7 +2021,7 @@ lb_df_mountpoint() {
 			;;
 	esac
 
-	[ ${PIPESTATUS[0]} == 0 ] || return 3
+	[ ${PIPESTATUS[0]} = 0 ] || return 3
 
 	# verify if mountpoint exists (security in case of bad spaces detection)
 	[ -e "$mountpoint" ] || return 3
@@ -2036,7 +2036,7 @@ lb_df_mountpoint() {
 lb_df_uuid() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -2064,7 +2064,7 @@ lb_df_uuid() {
 			;;
 	esac
 
-	[ ${PIPESTATUS[0]} == 0 ] || return 3
+	[ ${PIPESTATUS[0]} = 0 ] || return 3
 }
 
 
@@ -2123,13 +2123,13 @@ lb_abspath() {
 	esac
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	# get directory and file names
 	local path directory=$(dirname "$*") file=$(basename "$*")
 
 	# begin with '/': already an absolute path
-	if [ "${directory:0:1}" == / ] ; then
+	if [ "${directory:0:1}" = / ] ; then
 		# test directory
 		if $test_dir ; then
 			[ -d "$directory" ] || return 2
@@ -2174,7 +2174,7 @@ lb_realpath() {
 			local path=$1
 
 			# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
-			[ "$lb_current_os" == Windows ] && path=$(cygpath "$1")
+			[ "$lb_current_os" = Windows ] && path=$(cygpath "$1")
 
 			# find real path
 			readlink -f "$path" 2> /dev/null || return 2
@@ -2249,7 +2249,7 @@ lb_current_os() {
 lb_user_exists() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	local user
 	for user in "$@" ; do
@@ -2276,7 +2276,7 @@ lb_in_group() {
 	local groups=($(groups $user 2> /dev/null | cut -d: -f2))
 
 	# no groups found
-	[ ${#groups[@]} == 0 ] && return 3
+	[ ${#groups[@]} = 0 ] && return 3
 
 	# find if user is in group
 	lb_in_array "$1" "${groups[@]}"
@@ -2288,7 +2288,7 @@ lb_in_group() {
 lb_group_exists() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	case $lb_current_os in
 		macOS|Windows)
@@ -2394,7 +2394,7 @@ lb_generate_password() {
 lb_email() {
 
 	# usage error
-	[ $# == 0 ] && return 1
+	[ $# = 0 ] && return 1
 
 	# default options and local variables
 	local subject sender replyto cc bcc message message_html
@@ -2452,13 +2452,13 @@ lb_email() {
 
 	local recipients=$1
 	# usage error if missing recipients
-	[ ${#recipients} == 0 ] && return 1
+	[ ${#recipients} = 0 ] && return 1
 
 	shift
 	local text=$*
 
 	# get text from stdin
-	if [ ${#text} == 0 ] && ! [ -t 0 ] ; then
+	if [ ${#text} = 0 ] && ! [ -t 0 ] ; then
 		local t
 		while read -r t ; do
 			text+="
@@ -2470,7 +2470,7 @@ $t"
 
 	# usage error if missing message
 	# could be not detected by test above if recipients field has some spaces
-	[ ${#text} == 0 ] && return 1
+	[ ${#text} = 0 ] && return 1
 
 	# search compatible command to send email
 	local c
@@ -2642,7 +2642,7 @@ lb_yesno() {
 	if [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')" ] ; then
 
 		# cancel case
-		if $cancel_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" == "$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')" ] ; then
+		if $cancel_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" = "$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')" ] ; then
 			return 3
 		fi
 
@@ -2711,7 +2711,7 @@ lb_choose_option() {
 
 	# change default label if multiple options
 	if $multiple_choices ; then
-		[ "$label" == "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
+		[ "$label" = "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
 	fi
 
 	local o choices
@@ -2762,7 +2762,7 @@ lb_choose_option() {
 	# parsing choices
 	for o in ${choices[*]} ; do
 		# check cancel option
-		if [ "$o" == "$cancel_label" ] ; then
+		if [ "$o" = "$cancel_label" ] ; then
 			lb_choose_option=()
 			return 2
 		fi
@@ -3111,7 +3111,7 @@ case $lb__lang in
 esac
 
 # if macOS, disable text formatting in console
-[ "$lb_current_os" == macOS ] && lb__format_print=false
+[ "$lb_current_os" = macOS ] && lb__format_print=false
 
 # detect old sed command (mostly on macOS)
 sed --version &> /dev/null || lb__oldsed=true

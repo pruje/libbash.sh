@@ -22,7 +22,7 @@ Note: If you call libbash.sh without any of these options and if you want to use
 ```bash
 # example: this will prevent to call libbash with --quiet option and disable your own --quiet script option
 source /path/to/libbash.sh -
-if [ "$1" == "--quiet" ] ; then
+if [ "$1" = "--quiet" ] ; then
 	...
 fi
 ```

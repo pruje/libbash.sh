@@ -13,7 +13,7 @@
 #
 
 # get real path of the script
-if [ "$(uname)" == Darwin ] ; then
+if [ "$(uname)" = Darwin ] ; then
 	# macOS which does not support readlink -f option
 	current_script=$(perl -e 'use Cwd "abs_path";print abs_path(shift)' "$0")
 else
@@ -136,7 +136,7 @@ case $lbg_choose_option in
 esac
 
 # compare
-if [ "$(lb_detect_os)" == "$chosen_os" ] ; then
+if [ "$(lb_detect_os)" = "$chosen_os" ] ; then
 	lbg_display_info "Correct! You are on $(lb_detect_os)!"
 else
 	lbg_display_error "Incorrect! You are on $(lb_detect_os)!"

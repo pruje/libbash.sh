@@ -151,7 +151,7 @@ lbg__display_msgbox() {
 	local text=$*
 
 	# get text from stdin
-	if [ ${#text} == 0 ] ; then
+	if [ ${#text} = 0 ] ; then
 		if ! [ -t 0 ] ; then
 			local t
 			while read -r t ; do
@@ -164,7 +164,7 @@ $t"
 	fi
 
 	# usage error if no text
-	[ ${#text} == 0 ] && return 1
+	[ ${#text} = 0 ] && return 1
 
 	# prepare command
 	local cmd
@@ -303,7 +303,7 @@ lbg_set_gui() {
 	for gui in ${gui_tools[@]} ; do
 
 		# set console mode is always OK
-		if [ "$gui" == console ] ; then
+		if [ "$gui" = console ] ; then
 			result=0
 			break
 		fi
@@ -364,7 +364,7 @@ lbg_set_gui() {
 	done
 
 	# set gui tool
-	[ $result == 0 ] && lbg__gui=$gui
+	[ $result = 0 ] && lbg__gui=$gui
 
 	return $result
 }
@@ -429,7 +429,7 @@ lbg_notify() {
 	local text=$*
 
 	# get text from stdin
-	if [ ${#text} == 0 ] ; then
+	if [ ${#text} = 0 ] ; then
 		if ! [ -t 0 ] ; then
 			local t
 			while read -r t ; do
@@ -442,7 +442,7 @@ $t"
 	fi
 
 	# usage error if no text
-	[ ${#text} == 0 ] && return 1
+	[ ${#text} = 0 ] && return 1
 
 	local opts
 
@@ -691,7 +691,7 @@ lbg_choose_option() {
 
 	# change default label if multiple options
 	if $multiple_choices ; then
-		[ "$label" == "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
+		[ "$label" = "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
 	fi
 
 	local o choices cmd
@@ -784,7 +784,7 @@ EOF)
 			# find choice id
 			i=1
 			for o in "$@" ; do
-				[ "$choice" == "$o" ] && choices=$i
+				[ "$choice" = "$o" ] && choices=$i
 				i+=1
 			done
 			;;
@@ -803,7 +803,7 @@ EOF)
 			cmd=("${lbg__cscript[@]}" lbg_input_text "$label" "$title")
 
 			# avoid empty default values (if multiple choices)
-			[ ${#default[@]} == 0 ] && default=(1)
+			[ ${#default[@]} = 0 ] && default=(1)
 
 			# run VBscript into a context (cscript does not work with absolute paths)
 			# error => cancelled
@@ -1061,7 +1061,7 @@ EOF)
 
 				result=0
 				"${cmd[@]}" || result=$?
-				if [ $result == 0 ] ; then
+				if [ $result = 0 ] ; then
 					# forward result
 					lbg_input_password=$lb_input_password
 				else
@@ -1083,7 +1083,7 @@ EOF)
 		$confirm || return 0
 
 		# if first iteration,
-		if [ $i == 1 ] ; then
+		if [ $i = 1 ] ; then
 			# save password
 			local password_confirm=$lbg_input_password
 
@@ -1171,7 +1171,7 @@ EOF)
 			cmd+=(lbg_choose_directory)
 
 			# if title is not defined,
-			if [ "$title" == "$lb_current_script_name" ] ; then
+			if [ "$title" = "$lb_current_script_name" ] ; then
 				# print default label
 				cmd+=("$lb_default_chdir_label")
 			else
@@ -1202,7 +1202,7 @@ EOF)
 			cmd=(lb_input_text -d "$path")
 
 			# set dialog title as label
-			if [ "$title" == "$lb_current_script_name" ] ; then
+			if [ "$title" = "$lb_current_script_name" ] ; then
 				cmd+=("$lb_default_chdir_label")
 			else
 				cmd+=("$title")
@@ -1217,7 +1217,7 @@ EOF)
 	[ -z "$choice" ] && return 2
 
 	# return windows paths
-	if [ "$lb_current_os" == Windows ] ; then
+	if [ "$lb_current_os" = Windows ] ; then
 		choice=$(lb_realpath "$choice") || return 3
 	fi
 
@@ -1364,7 +1364,7 @@ EOF)
 			cmd=(lb_input_text -d "$path")
 
 			# set dialog title as label
-			if [ "$title" == "$lb_current_script_name" ] ; then
+			if [ "$title" = "$lb_current_script_name" ] ; then
 				cmd+=("$lb_default_chfile_label")
 			else
 				cmd+=("$title")
@@ -1379,7 +1379,7 @@ EOF)
 	[ -z "$choice" ] && return 2
 
 	# return windows paths
-	if [ "$lb_current_os" == Windows ] ; then
+	if [ "$lb_current_os" = Windows ] ; then
 		# beware the save mode where file does not exists!
 		if $save_mode ; then
 			choice="$(lb_realpath "$(dirname "$choice")")/$(basename "$choice")" || return 3
@@ -1451,7 +1451,7 @@ lbg_open_directory() {
 	done
 
 	# if no existing directory, usage error
-	[ ${#paths[@]} == 0 ] && return 1
+	[ ${#paths[@]} = 0 ] && return 1
 
 	# set OS explorer if not specified
 	if [ -z "$explorer" ] ; then
@@ -1476,9 +1476,9 @@ lbg_open_directory() {
 	for ((i=0 ; i<${#paths[@]} ; i++)) ; do
 		path=${paths[i]}
 
-		if [ "$lb_current_os" == Windows ] ; then
+		if [ "$lb_current_os" = Windows ] ; then
 			# particular case where explorer will not work if path finishes with '/'
-			[ "${path:${#path}-1}" == / ] && path=${path:0:${#path}-1}
+			[ "${path:${#path}-1}" = / ] && path=${path:0:${#path}-1}
 
 			# convert to Windows paths
 			path=$(cygpath -w "$path")
