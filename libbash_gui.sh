@@ -757,35 +757,46 @@ lbg_choose_option() {
 
 		osascript)
 			# prepare options
-			local default_option opts=()
+			local default_options=() multiple_option opts=() options
 
-			# multiple choices: not supported yet
-			$multiple_choices && return 1
-
+			# security: remove comas and spaces
 			for o in "$@" ; do
+				o=$(echo "$o" | sed 's/,//g' | lb_trim)
 				opts+=("\"$o\"")
 
 				# set default option
-				lb_in_array $i "${default[@]}" && default_option=$o
+				lb_in_array $i "${default[@]}" && default_options+=("\"$o\"")
 
 				i+=1
 			done
 
 			# join values
-			opts=$(lb_join , "${opts[@]}")
+			options=$(lb_join , "${opts[@]}")
+			default_options=$(lb_join , "${default_options[@]}")
+
+			# add multiple choice option
+			$multiple_choices && multiple_option="with multiple selections allowed"
 
 			# execute command
 			local choice=$(osascript 2> /dev/null <<EOF
-set answer to (choose from list {$opts} with prompt "$label" default items "$default_option" with title "$title")
+set answer to (choose from list {$options} $multiple_option default items {$default_options} with prompt "$label" with title "$title")
 EOF)
 			# if empty, error
 			[ -z "$choice" ] && return 2
 
-			# find choice id
-			i=1
-			for o in "$@" ; do
-				[ "$choice" = "$o" ] && choices=$i
-				i+=1
+			# split choices
+			lb_split , "$choice"
+
+			# find choice IDs
+			for c in "${lb_split[@]}" ; do
+				i=1
+				for o in "${opts[@]}" ; do
+					if [ "\"$(lb_trim "$c")\"" = "$o" ] ; then
+						choices+="$i "
+						break
+					fi
+					i+=1
+				done
 			done
 			;;
 
