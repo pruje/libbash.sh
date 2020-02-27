@@ -11,7 +11,7 @@
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.15.0
+declare -r lb_version=1.16.0-beta.1
 
 # Index
 #

@@ -59,7 +59,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_notify](#lbg_notify)*
 * User interaction
 	* [lbg_yesno](#lbg_yesno)
-	* [lbg_choose_option](#lbg_choose_option)*
+	* [lbg_choose_option](#lbg_choose_option)
 	* [lbg_input_text](#lbg_input_text)
 	* [lbg_input_password](#lbg_input_password)*
 * Files and directories
@@ -359,8 +359,6 @@ lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 -l, --label TEXT          Set a question label (default: "Choose an option:")
 -t, --title TEXT          Set a title to the dialog
 ```
-
-**WARNING**: Multiple option is not supported yet on macOS.
 
 #### Exit codes
 - 0: OK
