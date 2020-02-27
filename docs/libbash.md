@@ -1707,6 +1707,8 @@ Note: you can also give `MESSAGE` argument using stdin or pipes.
 -a, --attachment PATH        Add attachments to the email
 --sender EMAIL               Specify a sender email address
 --html MESSAGE               Send a HTML version of the TEXT
+--mail-command COMMAND       Use custom command to send email
+                             (supported: /usr/bin/mail, /usr/sbin/sendmail)
 ```
 
 #### Exit codes

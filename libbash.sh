@@ -2402,7 +2402,7 @@ lb_email() {
 	local attachments=()
 
 	# email commands
-	local cmd email_commands=(/usr/sbin/sendmail)
+	local cmd email_commands=(/usr/bin/mail /usr/sbin/sendmail)
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -2443,6 +2443,11 @@ lb_email() {
 				multipart=true
 				shift
 				;;
+			--mail-command)
+				lb_array_contains "$2" "${email_commands[@]}" || return 1
+				cmd=$2
+				shift
+				;;
 			*)
 				break
 				;;
@@ -2473,16 +2478,23 @@ $t"
 	[ ${#text} = 0 ] && return 1
 
 	# search compatible command to send email
-	local c
-	for c in ${email_commands[@]} ; do
-		if lb_command_exists "$c" ; then
-			cmd=$c
-			break
-		fi
-	done
+	if [ -z "$cmd" ] ; then
+		local c
+		for c in ${email_commands[@]} ; do
+			if lb_command_exists "$c" ; then
+				cmd=$c
+				break
+			fi
+		done
+	fi
 
 	# if no command to send email, error
 	[ -z "$cmd" ] && return 2
+
+	# detect if old version of mail command
+	if [ "$cmd" = /usr/bin/mail ] && ! /usr/bin/mail --version &> /dev/null ; then
+		return 2
+	fi
 
 	# set email header
 	[ -n "$sender" ] && message+="From: $sender
@@ -2547,12 +2559,12 @@ $(base64 "$attachment")
 
 		# close mixed section
 		message+="--${separator}_mixed--"
-fi
+	fi
 
 	# send email
 	case $cmd in
-		/usr/sbin/sendmail)
-			echo "$message" | /usr/sbin/sendmail -t || return 3
+		/usr/bin/mail|/usr/sbin/sendmail)
+			echo "$message" | $cmd -t || return 3
 			;;
 		*)
 			# no program found to send email
