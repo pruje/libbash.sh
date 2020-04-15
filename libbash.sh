@@ -110,6 +110,7 @@ declare -r lb_version=1.16.0-beta.1
 ####################
 
 # default labels
+### translatable
 lb_default_result_ok_label="... Done!"
 lb_default_result_failed_label="... Failed!"
 lb_default_ok_label="OK"
@@ -132,6 +133,7 @@ lb_default_warning_label="WARNING"
 lb_default_error_label="ERROR"
 lb_default_critical_label="CRITICAL"
 lb_default_newfile_name="New file"
+### END translatable
 
 # default log and display levels (CRITICAL ERROR WARNING INFO DEBUG)
 lb_log_levels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
@@ -3115,7 +3117,10 @@ done
 # load translations (do not exit if errors)
 case $lb__lang in
 	fr)
-		if ! source "$lb_directory/locales/$lb__lang.sh" &> /dev/null ; then
+		if source "$lb_directory/locales/$lb__lang.sh" &> /dev/null ; then
+			# reset log levels
+			lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
+		else
 			lb_error "libbash.sh: [WARNING] cannot load translation: $lb__lang"
 			lb__load_result=3
 		fi

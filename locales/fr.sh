@@ -1,13 +1,12 @@
 #
-# libbash.sh French translations
+#  libbash.sh French translations
 #
-# This file is part of libbash.sh (https://github.com/pruje/libbash.sh)
+#  This file is part of libbash.sh (https://github.com/pruje/libbash.sh)
 #
-# MIT License
-# Copyright (c) 2017-2019 Jean Prunneaux
+#  MIT License
+#  Copyright (c) 2017-2020 Jean Prunneaux
 #
 
-# translation for default labels
 lb_default_result_ok_label="... Terminé!"
 lb_default_result_failed_label="... Échoué!"
 lb_default_ok_label="OK"
@@ -30,6 +29,3 @@ lb_default_warning_label="AVERTISSEMENT"
 lb_default_error_label="ERREUR"
 lb_default_critical_label="CRITIQUE"
 lb_default_newfile_name="Nouveau fichier"
-
-# reset log levels
-lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
