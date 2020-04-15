@@ -224,7 +224,7 @@ $t"
 
 			# run command
 			$(osascript &> /dev/null << EOF
-display dialog "$text" with title "$title" with icon $icon buttons {"$lb_default_ok_label"} default button 1
+display dialog "$text" with title "$title" with icon $icon buttons {"$lb__ok_label"} default button 1
 EOF) || return 2
 
 			return 0
@@ -244,10 +244,10 @@ EOF) || return 2
 
 			case $type in
 				error)
-					prefix="$lb_default_error_label: "
+					prefix="$lb__error_label: "
 					;;
 				warning)
-					prefix="$lb_default_warning_label: "
+					prefix="$lb__warning_label: "
 					;;
 			esac
 
@@ -487,7 +487,7 @@ EOF) || return 2
 
 		*)
 			# print in console mode
-			lb_display "[$lb_default_info_label]  $text" || return 2
+			lb_display "[$lb__info_label]  $text" || return 2
 			;;
 	esac
 }
@@ -553,8 +553,8 @@ lbg_yesno() {
 
 		osascript)
 			# set button labels
-			[ -z "$yes_label" ] && yes_label=$lb_default_yes_label
-			[ -z "$no_label" ] && no_label=$lb_default_no_label
+			[ -z "$yes_label" ] && yes_label=$lb__yes_label
+			[ -z "$no_label" ] && no_label=$lb__no_label
 
 			# set options
 			local default_button=2
@@ -637,7 +637,7 @@ lbg_choose_option() {
 
 	# default options
 	local default=() multiple_choices=false
-	local title=$lb_current_script_name label=$lb_default_chopt_label
+	local title=$lb_current_script_name label=$lb__chopt_label
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -691,7 +691,7 @@ lbg_choose_option() {
 
 	# change default label if multiple options
 	if $multiple_choices ; then
-		[ "$label" = "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
+		[ "$label" = "$lb__chopt_label" ] && label=$lb__chopts_label
 	fi
 
 	local o choices cmd
@@ -993,7 +993,7 @@ lbg_input_password() {
 	lbg_input_password=""
 
 	# default options
-	local label=$lb_default_pwd_label confirm_label=$lb_default_pwd_confirm_label
+	local label=$lb__pwd_label confirm_label=$lb__pwd_confirm_label
 	local title=$lb_current_script_name confirm=false min_size=0
 
 	# get options
@@ -1184,7 +1184,7 @@ EOF)
 			# if title is not defined,
 			if [ "$title" = "$lb_current_script_name" ] ; then
 				# print default label
-				cmd+=("$lb_default_chdir_label")
+				cmd+=("$lb__chdir_label")
 			else
 				# print title as label
 				cmd+=("$title")
@@ -1214,7 +1214,7 @@ EOF)
 
 			# set dialog title as label
 			if [ "$title" = "$lb_current_script_name" ] ; then
-				cmd+=("$lb_default_chdir_label")
+				cmd+=("$lb__chdir_label")
 			else
 				cmd+=("$title")
 			fi
@@ -1256,7 +1256,7 @@ lbg_choose_file() {
 
 	# default options
 	local path filters=() absolute_path=false save_mode=false
-	local title=$lb_current_script_name filename=$lb_default_newfile_name
+	local title=$lb_current_script_name filename=$lb__newfile_name
 
 	# catch options
 	while [ $# -gt 0 ] ; do
@@ -1376,7 +1376,7 @@ EOF)
 
 			# set dialog title as label
 			if [ "$title" = "$lb_current_script_name" ] ; then
-				cmd+=("$lb_default_chfile_label")
+				cmd+=("$lb__chfile_label")
 			else
 				cmd+=("$title")
 			fi

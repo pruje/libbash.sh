@@ -111,32 +111,32 @@ declare -r lb_version=1.16.0-beta.1
 
 # default labels
 ### translatable
-lb_default_result_ok_label="... Done!"
-lb_default_result_failed_label="... Failed!"
-lb_default_ok_label="OK"
-lb_default_cancel_label="Cancel"
-lb_default_cancel_shortlabel="c"
-lb_default_failed_label="Failed"
-lb_default_yes_label="Yes"
-lb_default_no_label="No"
-lb_default_yes_shortlabel="y"
-lb_default_no_shortlabel="n"
-lb_default_pwd_label="Password:"
-lb_default_pwd_confirm_label="Confirm password:"
-lb_default_chopt_label="Choose an option:"
-lb_default_chopts_label="Choose one ore more options:"
-lb_default_chdir_label="Choose a directory:"
-lb_default_chfile_label="Choose a file:"
-lb_default_debug_label="DEBUG"
-lb_default_info_label="INFO"
-lb_default_warning_label="WARNING"
-lb_default_error_label="ERROR"
-lb_default_critical_label="CRITICAL"
-lb_default_newfile_name="New file"
+lb__result_ok_label="... Done!"
+lb__result_failed_label="... Failed!"
+lb__ok_label="OK"
+lb__cancel_label="Cancel"
+lb__cancel_shortlabel="c"
+lb__failed_label="Failed"
+lb__yes_label="Yes"
+lb__no_label="No"
+lb__yes_shortlabel="y"
+lb__no_shortlabel="n"
+lb__pwd_label="Password:"
+lb__pwd_confirm_label="Confirm password:"
+lb__chopt_label="Choose an option:"
+lb__chopts_label="Choose one ore more options:"
+lb__chdir_label="Choose a directory:"
+lb__chfile_label="Choose a file:"
+lb__debug_label="DEBUG"
+lb__info_label="INFO"
+lb__warning_label="WARNING"
+lb__error_label="ERROR"
+lb__critical_label="CRITICAL"
+lb__newfile_name="New file"
 ### END translatable
 
 # default log and display levels (CRITICAL ERROR WARNING INFO DEBUG)
-lb_log_levels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
+lb_log_levels=("$lb__critical_label" "$lb__error_label" "$lb__warning_label" "$lb__info_label" "$lb__debug_label")
 
 # print formatted strings in console
 lb__format_print=true
@@ -546,19 +546,19 @@ $t"
 	# enable coloured prefixes
 	if $display_prefix ; then
 		case $display_level in
-			$lb_default_critical_label)
+			$lb__critical_label)
 				prefix="[$(lb_print --red "$display_level")]  "
 				;;
-			$lb_default_error_label)
+			$lb__error_label)
 				prefix="[$(lb_print --red "$display_level")]  "
 				;;
-			$lb_default_warning_label)
+			$lb__warning_label)
 				prefix="[$(lb_print --yellow "$display_level")]  "
 				;;
-			$lb_default_info_label)
+			$lb__info_label)
 				prefix="[$(lb_print --green "$display_level")]  "
 				;;
-			$lb_default_debug_label)
+			$lb__debug_label)
 				prefix="[$(lb_print --cyan "$display_level")]  "
 				;;
 		esac
@@ -579,7 +579,7 @@ lb_result() {
 	local result=$?
 
 	# default values and options
-	local ok_label=$lb_default_result_ok_label failed_label=$lb_default_result_failed_label
+	local ok_label=$lb__result_ok_label failed_label=$lb__result_failed_label
 	local display_cmd=(lb_display) log_cmd=(lb_log) log=false smart_levels=false
 	local error_exitcode save_exitcode=false exit_on_error=false quiet_mode=false
 
@@ -691,8 +691,8 @@ lb_short_result() {
 	# get last command result
 	local result=$?
 
-	lb_result --ok-label "[ $(echo "$lb_default_ok_label" | tr '[:lower:]' '[:upper:]') ]" \
-	          --failed-label "[ $(echo "$lb_default_failed_label" | tr '[:lower:]' '[:upper:]') ]" "$@" $result
+	lb_result --ok-label "[ $(echo "$lb__ok_label" | tr '[:lower:]' '[:upper:]') ]" \
+	          --failed-label "[ $(echo "$lb__failed_label" | tr '[:lower:]' '[:upper:]') ]" "$@" $result
 }
 
 
@@ -2586,7 +2586,7 @@ lb_yesno() {
 
 	# default options
 	local yes_default=false cancel_mode=false
-	local yes_label=$lb_default_yes_shortlabel no_label=$lb_default_no_shortlabel cancel_label=$lb_default_cancel_shortlabel
+	local yes_label=$lb__yes_shortlabel no_label=$lb__no_shortlabel cancel_label=$lb__cancel_shortlabel
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -2676,7 +2676,7 @@ lb_choose_option() {
 
 	# default options
 	local default=() multiple_choices=false
-	local label=$lb_default_chopt_label cancel_label=$lb_default_cancel_shortlabel
+	local label=$lb__chopt_label cancel_label=$lb__cancel_shortlabel
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -2725,7 +2725,7 @@ lb_choose_option() {
 
 	# change default label if multiple options
 	if $multiple_choices ; then
-		[ "$label" = "$lb_default_chopt_label" ] && label=$lb_default_chopts_label
+		[ "$label" = "$lb__chopt_label" ] && label=$lb__chopts_label
 	fi
 
 	local o choices
@@ -2864,7 +2864,7 @@ lb_input_password() {
 	lb_input_password=""
 
 	# default options
-	local label=$lb_default_pwd_label confirm_label=$lb_default_pwd_confirm_label
+	local label=$lb__pwd_label confirm_label=$lb__pwd_confirm_label
 	local confirm=false min_size=0
 
 	# get options
@@ -2973,15 +2973,15 @@ lb_set_loglevel() {
 # Common display levels functions
 # See lb_display for usage
 lb_display_critical() {
-	lb_display -p -l "$lb_default_critical_label" "$@"
+	lb_display -p -l "$lb__critical_label" "$@"
 }
 
 lb_display_error() {
-	lb_display -p -l "$lb_default_error_label" "$@"
+	lb_display -p -l "$lb__error_label" "$@"
 }
 
 lb_display_warning() {
-	lb_display -p -l "$lb_default_warning_label" "$@"
+	lb_display -p -l "$lb__warning_label" "$@"
 }
 
 lb_warning() {
@@ -2989,7 +2989,7 @@ lb_warning() {
 }
 
 lb_display_info() {
-	lb_display -p -l "$lb_default_info_label" "$@"
+	lb_display -p -l "$lb__info_label" "$@"
 }
 
 lb_info() {
@@ -2997,7 +2997,7 @@ lb_info() {
 }
 
 lb_display_debug() {
-	lb_display -p -l "$lb_default_debug_label" "$@"
+	lb_display -p -l "$lb__debug_label" "$@"
 }
 
 lb_debug() {
@@ -3008,23 +3008,23 @@ lb_debug() {
 # Usage: lb_log_* [OPTIONS] TEXT
 # See lb_log for options usage
 lb_log_critical() {
-	lb_log -p -l "$lb_default_critical_label" "$@"
+	lb_log -p -l "$lb__critical_label" "$@"
 }
 
 lb_log_error() {
-	lb_log -p -l "$lb_default_error_label" "$@"
+	lb_log -p -l "$lb__error_label" "$@"
 }
 
 lb_log_warning() {
-	lb_log -p -l "$lb_default_warning_label" "$@"
+	lb_log -p -l "$lb__warning_label" "$@"
 }
 
 lb_log_info() {
-	lb_log -p -l "$lb_default_info_label" "$@"
+	lb_log -p -l "$lb__info_label" "$@"
 }
 
 lb_log_debug() {
-	lb_log -p -l "$lb_default_debug_label" "$@"
+	lb_log -p -l "$lb__debug_label" "$@"
 }
 
 
@@ -3119,7 +3119,7 @@ case $lb__lang in
 	fr)
 		if source "$lb_directory/locales/$lb__lang.sh" &> /dev/null ; then
 			# reset log levels
-			lb_loglevels=("$lb_default_critical_label" "$lb_default_error_label" "$lb_default_warning_label" "$lb_default_info_label" "$lb_default_debug_label")
+			lb_loglevels=("$lb__critical_label" "$lb__error_label" "$lb__warning_label" "$lb__info_label" "$lb__debug_label")
 		else
 			lb_error "libbash.sh: [WARNING] cannot load translation: $lb__lang"
 			lb__load_result=3
