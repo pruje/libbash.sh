@@ -39,10 +39,6 @@ who | grep "^myuser .*(:[0-9])$" | head -1 | sed "s/.*(\(:[0-9]*\))$/\1/g"
 
 **Note**: If you set the DISPLAY variable AFTER integrate libbash GUI, then you have to reset the GUI tool with calling the `lbg_set_gui` function (see usage below).
 
-## Variables
-You can use the following variables that are initialized when you include libbash_gui.sh in your scripts:
-- `$lbg_path`: the current path of libbash GUI
-
 ## Functions
 All functions are named with the `lbg_` prefix.
 Functions with a `*` are not fully supported on every OS yet (may change in the future).

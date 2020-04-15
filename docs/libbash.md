@@ -13,7 +13,7 @@ Then call the functions described below.
 ## Options
 ```
 -g, --gui        Load libbash.sh GUI
--l, --lang LANG  Load a specific translation (by default the current language)
+-l, --lang LANG  Load a specific translation (by default the current terminal language)
 -q, --quiet      Disable any output in functions
 ```
 
@@ -35,8 +35,10 @@ See the [GUI documentation](libbash_gui.md) for more informations.
 By default, libbash.sh translation is loaded in the current terminal language.
 But you can specify a language by the `--lang` option.
 Currently supported languages:
-- `en`: English (default)
+- `en`: English (default if language not found)
 - `fr`: French
+
+You can also add your own translation in `locales` directory.
 
 ## Return codes
 When you load libbash.sh, you can have the following return codes:

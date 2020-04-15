@@ -15,7 +15,6 @@ declare -r lb_version=1.16.0-beta.1
 
 # Index
 #
-#   * Main variables
 #   * Bash utilities
 #       lb_command_exists
 #       lb_function_exists
@@ -102,49 +101,8 @@ declare -r lb_version=1.16.0-beta.1
 #       lb_detect_os
 #       lb_array_contains
 #       lb_dir_is_empty
+#   * Variables
 #   * Initialization
-
-
-####################
-#  MAIN VARIABLES  #
-####################
-
-# default labels
-### translatable
-lb__result_ok_label="... Done!"
-lb__result_failed_label="... Failed!"
-lb__ok_label="OK"
-lb__cancel_label="Cancel"
-lb__cancel_shortlabel="c"
-lb__failed_label="Failed"
-lb__yes_label="Yes"
-lb__no_label="No"
-lb__yes_shortlabel="y"
-lb__no_shortlabel="n"
-lb__pwd_label="Password:"
-lb__pwd_confirm_label="Confirm password:"
-lb__chopt_label="Choose an option:"
-lb__chopts_label="Choose one ore more options:"
-lb__chdir_label="Choose a directory:"
-lb__chfile_label="Choose a file:"
-lb__debug_label="DEBUG"
-lb__info_label="INFO"
-lb__warning_label="WARNING"
-lb__error_label="ERROR"
-lb__critical_label="CRITICAL"
-lb__newfile_name="New file"
-### END translatable
-
-# default log and display levels (CRITICAL ERROR WARNING INFO DEBUG)
-lb_log_levels=("$lb__critical_label" "$lb__error_label" "$lb__warning_label" "$lb__info_label" "$lb__debug_label")
-
-# print formatted strings in console
-lb__format_print=true
-
-# exit code
-lb_exitcode=0
-# command to execute when exit
-lb_exit_cmd=()
 
 
 ####################
@@ -3040,13 +2998,65 @@ lb_dir_is_empty() {
 }
 
 
+###############
+#  VARIABLES  #
+###############
+
+# Internal variables
+
+lb__load_result=0
+
+# print formatted strings in console
+lb__format_print=true
+
+# get current terminal language (e.g. fr, en, ...)
+lb__lang=${LANG:0:2}
+
+# default labels
+### translatable
+lb__result_ok_label="... Done!"
+lb__result_failed_label="... Failed!"
+lb__ok_label="OK"
+lb__cancel_label="Cancel"
+lb__cancel_shortlabel="c"
+lb__failed_label="Failed"
+lb__yes_label="Yes"
+lb__no_label="No"
+lb__yes_shortlabel="y"
+lb__no_shortlabel="n"
+lb__pwd_label="Password:"
+lb__pwd_confirm_label="Confirm password:"
+lb__chopt_label="Choose an option:"
+lb__chopts_label="Choose one ore more options:"
+lb__chdir_label="Choose a directory:"
+lb__chfile_label="Choose a file:"
+lb__debug_label="DEBUG"
+lb__info_label="INFO"
+lb__warning_label="WARNING"
+lb__error_label="ERROR"
+lb__critical_label="CRITICAL"
+lb__newfile_name="New file"
+### END translatable
+
+# Editable variables
+
+# default log and display levels (CRITICAL ERROR WARNING INFO DEBUG)
+lb_log_levels=("$lb__critical_label" "$lb__error_label" "$lb__warning_label" "$lb__info_label" "$lb__debug_label")
+
+# exit code
+lb_exitcode=0
+
+# command to execute when exit
+lb_exit_cmd=()
+
+
 ####################
 #  INITIALIZATION  #
 ####################
 
-lb__load_result=0
+# Set constant variables
 
-# context variables
+# system context
 declare -r lb_current_os=$(lb_current_os)
 declare -r lb_current_hostname=$(hostname 2> /dev/null)
 declare -r lb_current_user=$(whoami)
@@ -3061,7 +3071,13 @@ declare -r lb_current_script=$(lb_realpath "$0")
 declare -r lb_current_script_directory=$(dirname "$lb_current_script")
 lb_current_script_name=$(basename "$lb_current_script")
 
-# verify if variables are set
+# if macOS, disable text formatting in console
+[ "$lb_current_os" = macOS ] && lb__format_print=false
+
+# detect old sed command (mostly on macOS)
+sed --version &> /dev/null || lb__oldsed=true
+
+# Check variables
 for v in lb_current_os lb_current_hostname lb_current_user lb_current_path \
          lb_path lb_directory \
          lb_current_script lb_current_script_name lb_current_script_directory ; do
@@ -3071,10 +3087,7 @@ for v in lb_current_os lb_current_hostname lb_current_user lb_current_path \
 	fi
 done
 
-# get current user language (e.g. fr, en, ...)
-lb__lang=${LANG:0:2}
-
-# get options
+# Get options
 while [ $# -gt 0 ] ; do
 	case $1 in
 		-g|--gui)
@@ -3114,7 +3127,7 @@ while [ $# -gt 0 ] ; do
 	shift # get next option
 done
 
-# load translations (do not exit if errors)
+# Load translations
 case $lb__lang in
 	fr)
 		if source "$lb_directory/locales/$lb__lang.sh" &> /dev/null ; then
@@ -3126,11 +3139,5 @@ case $lb__lang in
 		fi
 		;;
 esac
-
-# if macOS, disable text formatting in console
-[ "$lb_current_os" = macOS ] && lb__format_print=false
-
-# detect old sed command (mostly on macOS)
-sed --version &> /dev/null || lb__oldsed=true
 
 return $lb__load_result

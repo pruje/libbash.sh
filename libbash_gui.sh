@@ -13,7 +13,6 @@
 
 # Index
 #
-#   * Main variables
 #   * Internal functions
 #       lbg__get_console_size
 #       lbg__dialog_size
@@ -44,38 +43,6 @@
 #       lbg_warning
 #       lbg_error
 #   * Initialization
-
-
-# test if libbash.sh is loaded
-if [ -z "$lb_version" ] ; then
-	echo >&2 "Error: libbash core not loaded!"
-	echo >&2 "Please load it in your script before loading this library with command:"
-	echo >&2 "   source \"/path/to/libbash.sh\""
-	return 1
-fi
-
-
-####################
-#  MAIN VARIABLES  #
-####################
-
-# libbash GUI path
-declare -r lbg_path=$BASH_SOURCE
-
-# set supported GUIs
-lbg__supported_gui=(kdialog zenity osascript cscript dialog console)
-
-# GUI tool
-lbg__gui=""
-
-# console size
-lbg__console_width=""
-lbg__console_height=""
-
-# VB script and cscript command for Windows
-declare -r lbg__vbscript_dir=$lb_directory/inc
-declare -r lbg__vbscript=libbash_gui.vbs
-lbg__cscript=(cscript /NoLogo "$lbg__vbscript")
 
 
 ##################################
@@ -1545,5 +1512,30 @@ lbg_error() {
 #  INITIALIZATION  #
 ####################
 
-# set the default GUI tool
+# check if libbash.sh is loaded
+if [ -z "$lb_version" ] ; then
+	echo >&2 "Error: libbash core not loaded!"
+	echo >&2 "Please load it in your script before loading this library with command:"
+	echo >&2 "   source \"/path/to/libbash.sh\""
+	return 1
+fi
+
+# Set internal variables
+
+# set supported GUIs
+lbg__supported_gui=(kdialog zenity osascript cscript dialog console)
+
+# GUI tool
+lbg__gui=""
+
+# console size
+lbg__console_width=""
+lbg__console_height=""
+
+# VB script and cscript command for Windows
+declare -r lbg__vbscript_dir=$lb_directory/inc
+declare -r lbg__vbscript=libbash_gui.vbs
+lbg__cscript=(cscript /NoLogo "$lbg__vbscript")
+
+# Set the default GUI tool
 lbg_set_gui || return 2
