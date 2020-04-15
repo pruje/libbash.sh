@@ -1165,7 +1165,7 @@ lb_migrate_config() {
 lb_get_config() {
 
 	# default options
-	local section
+	local section text
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1185,17 +1185,33 @@ lb_get_config() {
 	# usage error
 	[ $# -lt 2 ] && return 1
 
-	# test is file exists
-	[ -f "$1" ] || return 1
+	if [ "$1" = "-" ] ; then
+		# get config from stdin
+		if ! [ -t 0 ] ; then
+			local t
+			while read -r t ; do
+				text+="
+$t"
+			done
+			# delete first line jump
+			text=${text:1}
+		fi
+	else
+		# test is file exists
+		[ -f "$1" ] || return 1
 
-	# test if file is readable
-	[ -r "$1" ] || return 2
+		# test if file is readable
+		[ -r "$1" ] || return 2
+
+		# get file content
+		text=$(cat "$1")
+	fi
 
 	# test parameter name
 	[[ $2 =~ ^[a-zA-Z0-9_]+$ ]] || return 1
 
 	# search config line
-	local config_lines=($(grep -En "^[[:space:]]*$2[[:space:]]*=" "$1" | cut -d: -f1))
+	local config_lines=($(echo "$text" | grep -En "^[[:space:]]*$2[[:space:]]*=" | cut -d: -f1))
 
 	# if line not found, return error
 	[ ${#config_lines[@]} = 0 ] && return 3
@@ -1209,7 +1225,7 @@ lb_get_config() {
 
 	# if no filter by section, print the last found
 	if [ -z "$section" ] ; then
-		sed "${config_lines[${#config_lines[@]}-1]}q;d" "$1" | sed "$sed_extract"
+		echo "$text" | sed "${config_lines[${#config_lines[@]}-1]}q;d" | sed "$sed_extract"
 		return 0
 	fi
 
@@ -1220,12 +1236,12 @@ lb_get_config() {
 		[ ${config_lines[i]} = 1 ] && continue
 
 		for ((j=${config_lines[i]}-1; j>=1; j--)) ; do
-			current_section=$(sed "${j}q;d" "$1" | grep -Eo '^\[.*\]')
+			current_section=$(echo "$text" | sed "${j}q;d" | grep -Eo '^\[.*\]')
 
 			if [ -n "$current_section" ] ; then
 				if [ "$current_section" = "[$section]" ] ; then
 					# return value
-					sed "${config_lines[i]}q;d" "$1" | sed "$sed_extract"
+					echo "$text" | sed "${config_lines[i]}q;d" | sed "$sed_extract"
 					return 0
 				fi
 				break

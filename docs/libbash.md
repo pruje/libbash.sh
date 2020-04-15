@@ -865,6 +865,11 @@ Config file definition:
 lb_get_config [OPTIONS] FILE PARAM
 ```
 
+You can also get config from stdin with using the following syntax:
+```bash
+... | lb_get_config [OPTIONS] - PARAM
+```
+
 #### Options
 ```
 -s, --section SECTION  Get the parameter only in the specified section
