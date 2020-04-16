@@ -482,8 +482,6 @@ Displays a dialog to choose an existing file.
 
 Path of the chosen file is set into the `$lbg_choose_file` variable.
 
-**WARNING**: This function is not supported on Windows with cscript (but works in console mode).
-
 #### Usage
 ```bash
 lbg_choose_file [OPTIONS] [PATH]

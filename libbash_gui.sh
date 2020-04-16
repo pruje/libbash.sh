@@ -1337,6 +1337,29 @@ EOF)
 			clear
 			;;
 
+		cscript)
+			# prepare command
+			cmd=("${lbg__powershell[@]}" choosefile "$(cygpath -w "$(lb_abspath "$path")")" "$title")
+
+			# save mode
+			if $save_mode ; then
+				cmd+=(save)
+			else
+				cmd+=(open)
+			fi
+
+			# add filters
+			if [ ${#filters[@]} -gt 0 ] ; then
+				cmd+=("$(lb_join , "${filters[@]}")")
+			fi
+
+			# run powershell
+			choice=$("${cmd[@]}") || return 2
+
+			# remove \r ending character
+			choice=${choice:0:${#choice}-1}
+			;;
+
 		*)
 			# console mode
 			cmd=(lb_input_text -d "$path")
@@ -1532,10 +1555,15 @@ lbg__gui=""
 lbg__console_width=""
 lbg__console_height=""
 
-# VB script and cscript command for Windows
-declare -r lbg__vbscript_dir=$lb_directory/inc
-declare -r lbg__vbscript=libbash_gui.vbs
-lbg__cscript=(cscript /NoLogo "$lbg__vbscript")
+if [ "$lb_current_os" = Windows ] ; then
+	# VB script and cscript command
+	declare -r lbg__vbscript_dir=$lb_directory/inc
+	declare -r lbg__vbscript=libbash_gui.vbs
+	lbg__cscript=(cscript /NoLogo "$lbg__vbscript")
+
+	# PowerShell command
+	lbg__powershell=(powershell -ExecutionPolicy ByPass -File "$(cygpath -w "$lb_directory"/inc/libbash_gui.ps1)")
+fi
 
 # Set the default GUI tool
 lbg_set_gui || return 2
