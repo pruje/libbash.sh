@@ -1,6 +1,17 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.16.0 (2020-04-16)
+### New features
+- `lbg_choose_file` is now supported on Windows using PowerShell
+- Multiple choices for `lbg_choose_option` is now supported on macOS
+- `lb_get_config` can now read configs from stdin
+- `mail` command is now supported for `lb_email`
+
+### Changes
+- Removed unused variable `$lbg_path`
+- Renamed translations variables (BE CAREFUL TO UPDATE YOUR OWN TRANSLATIONS, IF ANY)
+
 ## 1.15.0 (2019-11-17)
 ### New features
 - `lbg_choose_option` now supports multiple choices with `-m` option
