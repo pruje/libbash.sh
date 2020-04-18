@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.16.1 (2020-04-18)
+### Bugfixes
+- Fix bug that prevented `lb_set_config` to work properly on BSD/macOS
+
 ## 1.16.0 (2020-04-16)
 ### New features
 - `lbg_choose_file` is now supported on Windows using PowerShell
