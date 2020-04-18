@@ -1381,7 +1381,7 @@ lb_set_config() {
 		if [ -n "$config_line" ] ; then
 			# modify config file
 			# Note: use [[:space:]] for macOS compatibility
-			lb_edit "${config_line}s/^\(#\|;\)*[[:space:]]*$param[[:space:]]*=.*/$sed_line/" "$config_file" || return 4
+			lb_edit "${config_line}s/^#*;*[[:space:]]*$param[[:space:]]*=.*/$sed_line/" "$config_file" || return 4
 			return 0
 		fi
 	fi
