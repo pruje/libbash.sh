@@ -51,7 +51,7 @@
 ##################################
 
 # Get console size and update lbg__console_width and lbg__console_height variables
-# Usage: lbg__get_console_size()
+# Usage: lbg__get_console_size
 # Exit codes:
 #   0: OK
 #   1: No terminal available

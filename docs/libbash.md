@@ -54,8 +54,9 @@ You can use the following variables that are initialized when you include libbas
 - `$lb_version`: the current libbash.sh version
 - `$lb_current_os`: your current Operating System (result of `lb_current_os` function)
 - `$lb_current_hostname`: your current host name (result of `hostname` command)
-- `$lb_current_user`: your user name (result of `whoami` command)
-- `$lb_current_path`: your current path (same as `pwd`)
+- `$lb_current_user`: your username (result of `whoami` command)
+- `$lb_current_uid`: your user ID
+- `$lb_current_path`: your current path (result of `pwd` command)
 - `$lb_path`: real path of libbash.sh
 - `$lb_directory`: libbash.sh directory real path
 - `$lb_current_script`: real path of your current script
@@ -131,6 +132,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_edit](#lb_edit)
 * System utilities
 	* [lb_current_os](#lb_current_os)
+	* [lb_current_uid](#lb_current_uid)
 	* [lb_user_exists](#lb_user_exists)
 	* [lb_in_group](#lb_in_group)
 	* [lb_group_exists](#lb_group_exists)*
@@ -1567,6 +1569,25 @@ case $(lb_current_os) in
         echo "You are on a Linux system."
         ;;
 esac
+```
+
+---------------------------------------------------------------
+<a name="lb_current_uid"></a>
+### lb_current_uid
+Return current user ID.
+
+#### Usage
+```bash
+lb_current_uid
+```
+
+#### Exit codes
+- 0: UID returned
+- 1: Unknown error
+
+#### Example
+```bash
+my_uid=$(lb_current_uid)
 ```
 
 ---------------------------------------------------------------

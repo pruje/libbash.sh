@@ -69,6 +69,7 @@ declare -r lb_version=1.16.1
 #       lb_edit
 #   * System utilities
 #       lb_current_os
+#       lb_current_uid
 #       lb_user_exists
 #       lb_in_group
 #       lb_group_exists
@@ -2220,6 +2221,13 @@ lb_current_os() {
 }
 
 
+# Detect current UID
+# Usage: lb_current_uid
+lb_current_uid() {
+	id -u $(whoami) 2> /dev/null
+}
+
+
 # Test if a user exists
 # Usage: lb_user_exists USER [USER...]
 lb_user_exists() {
@@ -3076,6 +3084,7 @@ lb_exit_cmd=()
 declare -r lb_current_os=$(lb_current_os)
 declare -r lb_current_hostname=$(hostname 2> /dev/null)
 declare -r lb_current_user=$(whoami)
+declare -r lb_current_uid=$(lb_current_uid)
 declare -r lb_current_path=$(pwd)
 
 # libbash context
