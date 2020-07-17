@@ -202,7 +202,7 @@ EOF) || return 2
 			cmd+=(lbg_display_$type "$(echo -e "$text")" "$title")
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
+			(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
@@ -547,7 +547,7 @@ EOF)
 			$yes_default && cmd+=(true)
 
 			# run VBscript into a context (cscript does not work with absolute paths)
-			$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
+			(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
 			return 0
 			;;
 
