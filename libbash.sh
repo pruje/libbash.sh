@@ -7,11 +7,11 @@
 #  Copyright (c) 2017-2020 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.16.1 (2020-04-18)                         #
+#  Version 1.17.0 (2020-07-17)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.16.1
+declare -r lb_version=1.17.0
 
 # Index
 #
@@ -2277,7 +2277,7 @@ lb_in_group() {
 	local user=$2
 
 	# get current user if not defined
-	[ -z "$user" ] && user=$lb_current_user
+	[ -z "$user" ] && user=$(whoami)
 
 	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
 	local groups=($(groups $user 2> /dev/null | cut -d: -f2))

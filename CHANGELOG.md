@@ -1,6 +1,15 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.17.0 (2020-07-17)
+### New features
+- New function `lb_cmd_to_array` to store results of a command in an array.
+- New function `lb_current_uid` (and `$lb_current_uid` variable) to get the current user uid
+- New constant variable `$lb_current_uid`
+
+### Changes
+- `lb_in_group` default user is get by `whoami` command
+
 ## 1.16.1 (2020-04-18)
 ### Bugfixes
 - Fix bug that prevented `lb_set_config` to work properly on BSD/macOS

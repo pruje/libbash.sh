@@ -7,7 +7,7 @@
 #  Copyright (c) 2017-2020 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.16.1 (2020-04-18)                         #
+#  Version 1.17.0 (2020-07-17)                         #
 #                                                      #
 ########################################################
 
