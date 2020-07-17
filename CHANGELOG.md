@@ -1,6 +1,11 @@
 # Changelog
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.17.1 (2020-07-17)
+### Bugfixes
+- Fix bug that could run false commands on Windows
+- Secure `lb_import_config` with escape of `<` and `>` characters
+
 ## 1.17.0 (2020-07-17)
 ### New features
 - New function `lb_cmd_to_array` to store results of a command in an array.
