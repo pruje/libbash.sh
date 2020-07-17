@@ -19,6 +19,7 @@ declare -r lb_version=1.16.1
 #       lb_command_exists
 #       lb_function_exists
 #       lb_test_arguments
+#       lb_cmd_to_array
 #       lb_getargs
 #       lb_getopt
 #       lb_exit
@@ -164,6 +165,28 @@ lb_test_arguments() {
 			return 1
 			;;
 	esac
+}
+
+
+# Get result of a command and put it in array
+# Usage: lb_cmd_to_array CMD [ARGS]
+lb_cmd_to_array=()
+lb_cmd_to_array() {
+	# reset variable
+	lb_cmd_to_array=()
+
+	[ -z "$1" ] && return 1
+
+	# save current field separator and set a new with line return
+	local old_IFS=$IFS IFS=$'\n'
+
+	lb_cmd_to_array=($("$@"))
+	local res=$?
+
+	# restore field separator
+	IFS=$old_IFS
+
+	return $res
 }
 
 

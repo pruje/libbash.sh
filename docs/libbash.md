@@ -79,6 +79,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_command_exists](#lb_command_exists)
 	* [lb_function_exists](#lb_function_exists)
 	* [lb_test_arguments](#lb_test_arguments)
+	* [lb_cmd_to_array](#lb_cmd_to_array)
 	* [lb_getargs](#lb_getargs)
 	* [lb_getopt](#lb_getopt)
 	* [lb_exit](#lb_exit)
@@ -226,6 +227,33 @@ ARG       your arguments; (e.g. $* without quotes)
 if lb_test_arguments -lt 2 $* ; then
     echo "You have to give at least 2 arguments to this script."
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_cmd_to_array"></a>
+### lb_cmd_to_array
+Run a command and put the results in an array. Values are separated by line returns.
+Useful for parsing results of `find` or `grep` commands, because values with spaces
+are not considered as separated values.
+
+#### Usage
+```bash
+lb_cmd_to_array CMD [ARGS]
+```
+
+#### Exit codes
+Exit code of the command (1 if no command provided)
+
+#### Example
+```bash
+# search all jpg files
+lb_cmd_to_array find . -name '*.jpg'
+
+# parse all jpg files, without problems with spaces in file names
+for f in "${lb_cmd_to_array[@]}" ; do
+	echo "File found: $f"
+	...
+done
 ```
 
 ---------------------------------------------------------------
