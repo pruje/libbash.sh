@@ -1126,7 +1126,7 @@ lb_import_config() {
 		value=$(echo "$line" | sed 's/^[[:space:]]*[a-zA-Z0-9_]*[[:space:]]*=[[:space:]]*//')
 
 		# secure config values with prevent bash injection
-		if $secure_mode && echo "$value" | grep -Eq '\$|`' ; then
+		if $secure_mode && echo "$value" | grep -Eq '\$|`|<|>' ; then
 			$return_errors && result=4
 			continue
 		fi
