@@ -381,7 +381,7 @@ lb_set_display_level() {
 lb_print() {
 
 	# quiet mode: do not print anything
-	lb_istrue $lb_quietmode && return 0
+	[ "$lb_quietmode" = true ] && return 0
 
 	local opts reset_color format=()
 
@@ -417,7 +417,7 @@ lb_print() {
 	done
 
 	# append formatting options
-	if lb_istrue $lb__format_print && [ ${#format[@]} -gt 0 ] ; then
+	if [ "$lb__format_print" = true ] && [ ${#format[@]} -gt 0 ] ; then
 		opts+="\e["
 		local f
 		for f in ${format[@]} ; do
@@ -506,7 +506,7 @@ $t"
 	fi
 
 	# quiet mode: do not print anything
-	if lb_istrue $lb_quietmode ; then
+	if [ "$lb_quietmode" = true ] ; then
 		display=false
 	else
 		# if a display level is set, test current level
@@ -900,7 +900,7 @@ $t"
 	fi
 
 	# windows format
-	lb_istrue $lb__log_winformat && text+="\r"
+	[ "$lb__log_winformat" = true ] && text+="\r"
 
 	# if a default log level is set, test it
 	if [ -n "$level" ] && [ -n "$lb__log_level" ] ; then
@@ -2212,7 +2212,7 @@ lb_edit() {
 	# usage error
 	[ $# -lt 2 ] && return 1
 
-	if lb_istrue $lb__oldsed ; then
+	if [ "$lb__oldsed" = true ] ; then
 		sed -i '' "$@"
 	else
 		sed -i "$@"
@@ -2628,7 +2628,7 @@ lb_yesno() {
 	[ -z "$1" ] && return 1
 
 	# print question (if not quiet mode)
-	if ! lb_istrue $lb_quietmode ; then
+	if [ "$lb_quietmode" != true ] ; then
 		# defines question
 		local question
 		if $yes_default ; then
@@ -2736,7 +2736,7 @@ lb_choose_option() {
 	local o choices
 
 	# print question (if not quiet mode)
-	if ! lb_istrue $lb_quietmode ; then
+	if [ "$lb_quietmode" != true ] ; then
 		# print question
 		echo -e "$label"
 
@@ -2837,7 +2837,7 @@ lb_input_text() {
 	[ -z "$1" ] && return 1
 
 	# print question (if not quiet mode)
-	if ! lb_istrue $lb_quietmode ; then
+	if [ "$lb_quietmode" != true ] ; then
 		echo -n -e "$*"
 		[ -n "$default" ] && echo -n -e " [$default]"
 	fi
@@ -2905,7 +2905,7 @@ lb_input_password() {
 	[ $# -gt 0 ] && label=$*
 
 	# print question (if not quiet mode)
-	lb_istrue $lb_quietmode || echo -n -e "$label "
+	[ "$lb_quietmode" != true ] && echo -n -e "$label "
 
 	# prompt user for password
 	read -s -r lb_input_password
@@ -2928,7 +2928,7 @@ lb_input_password() {
 	local password_confirm=$lb_input_password
 
 	# print confirmation question (if not quiet mode)
-	lb_istrue $lb_quietmode || echo -n -e "$confirm_label "
+	[ "$lb_quietmode" != true ] && echo -n -e "$confirm_label "
 
 	# prompt password confirmation
 	read -s -r password_confirm
