@@ -149,7 +149,7 @@ lb_test_arguments() {
 	[ $# -ge 2 ] || return 1
 
 	# arg 2 should be an integer
-	lb_is_integer $2 || return 1
+	[[ $2 =~ ^-?[0-9]+$ ]] || return 1
 
 	local operator=$1 value=$2
 	shift 2
@@ -265,7 +265,7 @@ lb_exit() {
 	# if exit code is set,
 	if [ -n "$1" ] ; then
 		# set exitcode
-		if lb_is_integer $1 ; then
+		if [[ $1 =~ ^-?[0-9]+$ ]] ; then
 			lb_exitcode=$1
 		else
 			# if not an integer, set to 255
@@ -599,7 +599,7 @@ lb_result() {
 				;;
 			-e|--error-exitcode)
 				# check type and validity
-				lb_is_integer $2 || return 1
+				[[ $2 =~ ^-?[0-9]+$ ]] || return 1
 				error_exitcode=$2
 				shift
 				;;
@@ -619,7 +619,7 @@ lb_result() {
 	# specified exit code
 	if [ -n "$1" ] ; then
 		# test type
-		lb_is_integer $1 || return 1
+		[[ $1 =~ ^-?[0-9]+$ ]] || return 1
 		result=$1
 	fi
 
@@ -1118,7 +1118,7 @@ lb_import_config() {
 			[ -n "$section" ] && param_filter=$section.$param
 
 			# not in filter list: continue
-			lb_array_contains "$param_filter" "${filters[@]}" || continue
+			lb_in_array "$param_filter" "${filters[@]}" || continue
 		fi
 
 		# get parameter and value
@@ -1718,7 +1718,7 @@ lb_timestamp2date() {
 	done
 
 	# first argument should be an integer
-	lb_is_integer $1 || return 1
+	[[ $1 =~ ^-?[0-9]+$ ]] || return 1
 
 	# prepare command
 	case $lb_current_os in
@@ -1818,7 +1818,8 @@ lb_compare_versions() {
 				continue
 			fi
 
-			if lb_is_integer $version1_num && lb_is_integer $version2_num ; then
+			# version numbers should be integer
+			if [[ $version1_num =~ ^-?[0-9]+$ ]] && [[ $version2_num =~ ^-?[0-9]+$ ]] ; then
 				# compare versions and quit
 				if [ "$version1_num" $operator "$version2_num" ] ; then
 					return 0
@@ -1946,7 +1947,7 @@ lb_df_fstype() {
 			;;
 
 		*)
-			if lb_command_exists lsblk ; then
+			if which lsblk &> /dev/null ; then
 				# get device
 				local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
 				[ -z "$device" ] && return 3
@@ -2053,7 +2054,7 @@ lb_df_uuid() {
 
 		*)
 			# lsblk does not exists (BSD systems or Linux busybox): not supported
-			lb_command_exists lsblk || return 4
+			which lsblk &> /dev/null || return 4
 
 			# get device
 			local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
@@ -2348,7 +2349,7 @@ lb_generate_password() {
 	# get size option
 	if [ -n "$1" ] ; then
 		# check if is integer
-		lb_is_integer $1 || return 1
+		[[ $1 =~ ^-?[0-9]+$ ]] || return 1
 
 		# size must be between 1 and 32
 		if [ $size -ge 1 ] && [ $size -le 32 ] ; then
@@ -2370,12 +2371,12 @@ lb_generate_password() {
 	for i in $(seq 1 10) ; do
 
 		# generate password
-		if lb_command_exists openssl ; then
+		if which openssl &> /dev/null ; then
 			# with openssl random command; filter alphanumeric characters only
 			password=$(openssl rand -base64 48 | tr -dc '[:alnum:]')
 		else
 			# test md5 and base64
-			lb_command_exists $hasher base64 || return 2
+			which $hasher base64 &> /dev/null || return 2
 
 			# print date timestamp + nanoseconds, generate md5 checksum,
 			# encode it in base64 and delete spaces
@@ -2451,7 +2452,7 @@ lb_email() {
 				shift
 				;;
 			--mail-command)
-				lb_array_contains "$2" "${email_commands[@]}" || return 1
+				lb_in_array "$2" "${email_commands[@]}" || return 1
 				cmd=$2
 				shift
 				;;
@@ -2488,7 +2489,7 @@ $t"
 	if [ -z "$cmd" ] ; then
 		local c
 		for c in ${email_commands[@]} ; do
-			if lb_command_exists "$c" ; then
+			if which "$c" &> /dev/null ; then
 				cmd=$c
 				break
 			fi
@@ -2720,7 +2721,8 @@ lb_choose_option() {
 	if [ ${#default[@]} -gt 0 ] ; then
 		local d
 		for d in "${default[@]}" ; do
-			lb_is_integer "$d" || return 1
+			# check if integer
+			[[ $d =~ ^-?[0-9]+$ ]] || return 1
 
 			if [ $d -lt 1 ] || [ $d -gt $# ] ; then
 				return 1
@@ -2786,8 +2788,8 @@ lb_choose_option() {
 			return 2
 		fi
 
-		# check type
-		if ! lb_is_integer "$o" ; then
+		# if not integer
+		if ! [[ $o =~ ^-?[0-9]+$ ]] ; then
 			lb_choose_option=()
 			return 3
 		fi
@@ -2889,7 +2891,8 @@ lb_input_password() {
 				shift
 				;;
 			-m|--min-size)
-				lb_is_integer $2 || return 1
+				# check if integer
+				[[ $2 =~ ^-?[0-9]+$ ]] || return 1
 				[ $2 -lt 1 ] && return 1
 				min_size=$2
 				shift

@@ -282,7 +282,7 @@ lbg_set_gui() {
 		fi
 
 		# test if command exists
-		if ! lb_command_exists "$gui" ; then
+		if ! which "$gui" &> /dev/null ; then
 			result=3
 			continue
 		fi
@@ -378,7 +378,7 @@ lbg_notify() {
 				shift
 				;;
 			--timeout)
-				lb_is_integer $2 || return 1
+				[[ $2 =~ ^-?[0-9]+$ ]] || return 1
 				timeout=$2
 				shift
 				;;
@@ -415,7 +415,7 @@ $t"
 
 	# if notify-send is installed, use it by default,
 	# as it is better than zenity or other system
-	if $use_notifysend && lb_command_exists notify-send ; then
+	if $use_notifysend && which notify-send &> /dev/null ; then
 		# do not override kdialog because it has the best integration to KDE desktop
 		# do not use it on macOS nor in console mode
 		if ! lb_in_array "$lbg__gui" kdialog osascript console ; then
@@ -643,7 +643,7 @@ lbg_choose_option() {
 	if [ ${#default[@]} -gt 0 ] ; then
 		local d
 		for d in "${default[@]}" ; do
-			lb_is_integer "$d" || return 1
+			[[ $d =~ ^-?[0-9]+$ ]] || return 1
 
 			if [ $d -lt 1 ] || [ $d -gt $# ] ; then
 				return 1
@@ -843,7 +843,7 @@ EOF)
 	# parsing choices
 	for o in ${choices[*]} ; do
 		# strict check type
-		if ! lb_is_integer "$o" ; then
+		if ! [[ $o =~ ^-?[0-9]+$ ]] ; then
 			lb_choose_option=()
 			return 3
 		fi
@@ -980,7 +980,7 @@ lbg_input_password() {
 				shift
 				;;
 			-m|--min-size)
-				lb_is_integer $2 || return 1
+				[[ $2 =~ ^-?[0-9]+$ ]] || return 1
 				[ $2 -lt 1 ] && return 1
 				min_size=$2
 				shift
@@ -1470,7 +1470,7 @@ lbg_open_directory() {
 	fi
 
 	# test explorer command
-	lb_command_exists "$explorer" || return 2
+	which "$explorer" &> /dev/null || return 2
 
 	# open directories one by one
 	local i path
