@@ -44,7 +44,7 @@ You can also add your own translation in `locales` directory.
 When you load libbash.sh, you can have the following return codes:
 - 0: libbash.sh is loaded
 - 1: libbash.sh file does not exists (in most cases), or is corrupted
-- 2: cannot load libbash.sh GUI
+- 2: cannot load libbash.sh GUI or some dependencies
 - 3: cannot load translation file
 - 4: some variables could not be initialized
 - 5: cannot set a GUI interface (if GUI loaded)

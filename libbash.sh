@@ -2248,7 +2248,7 @@ lb_current_os() {
 # Detect current UID
 # Usage: lb_current_uid
 lb_current_uid() {
-	id -u $(whoami) 2> /dev/null
+	id -u 2> /dev/null
 }
 
 
@@ -3110,7 +3110,7 @@ lb_exit_cmd=()
 declare -r lb_current_os=$(lb_current_os)
 declare -r lb_current_hostname=$(hostname 2> /dev/null)
 declare -r lb_current_user=$(whoami)
-declare -r lb_current_uid=$(lb_current_uid)
+declare -r lb_current_uid=$(id -u 2> /dev/null)
 declare -r lb_current_path=$(pwd)
 
 # libbash context
@@ -3125,8 +3125,23 @@ lb_current_script_name=$(basename "$lb_current_script")
 # if macOS, disable text formatting in console
 [ "$lb_current_os" = macOS ] && lb__format_print=false
 
-# detect old sed command (mostly on macOS)
-sed --version &> /dev/null || lb__oldsed=true
+# Test sed command
+sed --version &> /dev/null
+case $? in
+	0)
+		# normal sed command
+		declare -r lb__oldsed=false
+		;;
+	127)
+		# command sed not found
+		lb_error "libbash.sh: [ERROR] cannot found sed command. Some functions will not work properly."
+		lb__load_result=2
+		;;
+	*)
+		# old sed command (mostly on macOS)
+		declare -r lb__oldsed=true
+		;;
+esac
 
 # Check variables
 for v in lb_current_os lb_current_hostname lb_current_user lb_current_path \
