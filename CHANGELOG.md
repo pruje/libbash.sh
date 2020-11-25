@@ -1,6 +1,14 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## 1.18.0 (2020-11-25)
+### New features
+- New function `lb_ami_root` to test if current user is root
+### Changes
+- Improve `lb_current_uid`
+- Improve performance by removing internal functions calls
+- Improves functions independence if you want to copy/paste one of them in a script without loading libbash.sh
+
 ## 1.17.1 (2020-07-17)
 ### Bugfixes
 - Fix bug that could run false commands on Windows

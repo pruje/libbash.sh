@@ -7,11 +7,11 @@
 #  Copyright (c) 2017-2020 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.17.1 (2020-07-17)                         #
+#  Version 1.18.0 (2020-11-25)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.17.1
+declare -r lb_version=1.18.0
 
 # Index
 #
@@ -2595,6 +2595,11 @@ lb_yesno() {
 
 	# question is missing
 	[ -z "$1" ] && return 1
+
+	# set labels if missing
+	[ -z "$yes_label" ] && yes_label=y
+	[ -z "$no_label" ] && no_label=n
+	[ -z "$cancel_label" ] && cancel_label=c
 
 	# print question (if not quiet mode)
 	if [ "$lb_quietmode" != true ] ; then

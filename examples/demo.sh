@@ -109,9 +109,7 @@ lb_istrue $consolemode && lbg_set_gui console
 
 # set log level
 if ! $debugmode ; then
-	if ! lb_set_loglevel "$log_level" ; then
-		lb_display_error "Cannot set log level!"
-	fi
+	lb_set_loglevel "$log_level" || lb_display_error "Cannot set log level!"
 fi
 
 lb_display_debug "libbash.sh DEMO running in DEBUG mode...\n"
