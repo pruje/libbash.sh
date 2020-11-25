@@ -72,6 +72,7 @@ declare -r lb_version=1.17.1
 #       lb_current_os
 #       lb_current_uid
 #       lb_user_exists
+#       lb_ami_root
 #       lb_in_group
 #       lb_group_exists
 #       lb_group_members
@@ -2265,6 +2266,14 @@ lb_user_exists() {
 		# check groups of the user
 		groups $user &> /dev/null || return 1
 	done
+}
+
+
+# Test if current user is root
+# Usage: lb_ami_root
+lb_ami_root() {
+	# test id instead of whoami because in some cases, root is renamed
+	[ $(id -u 2> /dev/null) = 0 ]
 }
 
 
