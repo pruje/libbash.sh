@@ -56,7 +56,6 @@
 #   0: OK
 #   1: No terminal available
 lbg__get_console_size() {
-
 	# get console width and height
 	lbg__console_width=$(tput cols 2> /dev/null)
 	lbg__console_height=$(tput lines 2> /dev/null)
@@ -73,7 +72,6 @@ lbg__get_console_size() {
 # Return: HEIGHT WIDTH
 # e.g. dialog --msgbox "Hello world" $(lbg__dialog_size 50 10)
 lbg__dialog_size() {
-
 	# given size
 	local dialog_width=$1 dialog_height=$2
 
@@ -95,7 +93,6 @@ lbg__dialog_size() {
 # Display message box
 # Usage: lbg__display_msgbox TYPE [OPTIONS] TEXT
 lbg__display_msgbox() {
-
 	# default options
 	local type=$1 title=$lb_current_script_name
 	shift
@@ -246,7 +243,6 @@ EOF) || return 2
 # Get current GUI tool
 # Usage: lbg_get_gui
 lbg_get_gui() {
-
 	# no GUI tool defined
 	[ -z "$lbg__gui" ] && return 1
 
@@ -258,7 +254,6 @@ lbg_get_gui() {
 # Set GUI display to use
 # Usage: lbg_set_gui [GUI_TOOL...]
 lbg_set_gui() {
-
 	# default options
 	local gui_tools=(${lbg__supported_gui[@]}) result=0
 
@@ -365,7 +360,6 @@ lbg_display_error() {
 # Display a notification popup
 # Usage: lbg_notify [OPTIONS] TEXT
 lbg_notify() {
-
 	# default options
 	local timeout use_notifysend=true title=$lb_current_script_name
 
@@ -468,7 +462,6 @@ EOF) || return 2
 # Usage: lbg_yesno [OPTIONS] TEXT
 # SOME OPTIONS ARE NOT AVAILABLE ON WINDOWS
 lbg_yesno() {
-
 	# default options
 	local yes_label no_label yes_default=false title=$lb_current_script_name
 
@@ -598,7 +591,6 @@ EOF)
 # Usage: lbg_choose_option [OPTIONS] CHOICE [CHOICE...]
 lbg_choose_option=()
 lbg_choose_option() {
-
 	# reset result
 	lbg_choose_option=()
 
@@ -864,7 +856,6 @@ EOF)
 # Usage: lbg_input_text [OPTIONS] TEXT
 lbg_input_text=""
 lbg_input_text() {
-
 	# reset result
 	lbg_input_text=""
 
@@ -955,7 +946,6 @@ EOF)
 # Usage: lbg_input_password [OPTIONS] [TEXT]
 lbg_input_password=""
 lbg_input_password() {
-
 	# reset result
 	lbg_input_password=""
 
@@ -1091,7 +1081,6 @@ EOF)
 # Usage: lbg_choose_directory [OPTIONS] [PATH]
 lbg_choose_directory=""
 lbg_choose_directory() {
-
 	# reset result
 	lbg_choose_directory=""
 
@@ -1217,7 +1206,6 @@ EOF)
 # Usage: lbg_choose_file [OPTIONS] [PATH]
 lbg_choose_file=""
 lbg_choose_file() {
-
 	# reset result
 	lbg_choose_file=""
 
@@ -1418,7 +1406,6 @@ EOF)
 # Open a directory in the folder explorer
 # Usage: lbg_open_directory [OPTIONS] [PATH...]
 lbg_open_directory() {
-
 	# default options
 	local explorer result=0 paths=()
 

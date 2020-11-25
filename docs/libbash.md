@@ -135,6 +135,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_current_os](#lb_current_os)
 	* [lb_current_uid](#lb_current_uid)
 	* [lb_user_exists](#lb_user_exists)
+	* [lb_ami_root](#lb_ami_root)
 	* [lb_in_group](#lb_in_group)
 	* [lb_group_exists](#lb_group_exists)*
 	* [lb_group_members](#lb_group_members)*
@@ -1263,7 +1264,7 @@ date=$(lb_timestamp2date -f '%Y-%m-%d %H:%M:%S' 1514764799)
 ### lb_compare_versions
 Compare 2 software versions.
 
-Versions must be in semantic versionning format (http://semver.org),
+Versions must be in semantic versionning format (https://semver.org),
 but the function can support incomplete versions
 (e.g. 1.0 and 2 are converted to 1.0.0 and 2.0.0 respectively).
 
@@ -1640,6 +1641,28 @@ fi
 ```
 
 ---------------------------------------------------------------
+<a name="lb_ami_root"></a>
+### lb_ami_root
+Test if current user is root.
+
+#### Usage
+```bash
+lb_ami_root
+```
+
+#### Exit codes
+- 0: User is root
+- 1: User is not root
+
+#### Example
+```bash
+if lb_ami_root ; then
+    apt-get install -y somepackage
+else
+    echo "You must be root to do that!"
+fi
+```
+---------------------------------------------------------------
 <a name="lb_in_group"></a>
 ### lb_in_group
 Test if an user is member of a group.
@@ -1924,6 +1947,6 @@ fi
 libbash.sh is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for the full license text.
 
 ## Credits
-Author: Jean Prunneaux  [http://jean.prunneaux.com](http://jean.prunneaux.com)
+Author: Jean Prunneaux https://jean.prunneaux.com
 
-Website: [https://github.com/pruje/libbash.sh](https://github.com/pruje/libbash.sh)
+Website: https://github.com/pruje/libbash.sh

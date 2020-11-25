@@ -1,5 +1,5 @@
 # Changelog
-This project adheres to [Semantic Versioning](http://semver.org/).
+This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## 1.17.1 (2020-07-17)
 ### Bugfixes
@@ -316,6 +316,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 libbash.sh is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for the full license text.
 
 ## Credits
-Author: Jean Prunneaux  [http://jean.prunneaux.com](http://jean.prunneaux.com)
+Author: Jean Prunneaux https://jean.prunneaux.com
 
-Website: [https://github.com/pruje/libbash.sh](https://github.com/pruje/libbash.sh)
+Website: https://github.com/pruje/libbash.sh

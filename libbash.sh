@@ -122,7 +122,6 @@ lb_command_exists() {
 # Check if function(s) exists
 # Usage: lb_function_exists FUNCTION [FUNCTION...]
 lb_function_exists() {
-
 	# usage error
 	[ $# -gt 0 ] || return 1
 
@@ -142,7 +141,6 @@ lb_function_exists() {
 # Test number of arguments passed to a script/function
 # Usage: lb_test_arguments OPERATOR N [ARG...]
 lb_test_arguments() {
-
 	# NOTE: be careful with improving this function to not use
 	# third-party functions which are using this function to avoid infinite loops
 
@@ -243,7 +241,6 @@ lb_getopt() {
 # Exit script with defined exit code
 # Usage: lb_exit [OPTIONS] [EXIT_CODE]
 lb_exit() {
-
 	# default options
 	local forward_code=false quiet_mode=false
 
@@ -302,7 +299,6 @@ lb_exit() {
 # Get current display level
 # Usage: lb_get_display_level [OPTIONS] [LEVEL_NAME]
 lb_get_display_level() {
-
 	# default options
 	local i get_id=false level=$lb__display_level
 
@@ -358,7 +354,6 @@ lb_get_display_level() {
 # Set log level
 # Usage: lb_set_display_level LEVEL_NAME
 lb_set_display_level() {
-
 	# usage error: must be non empty
 	[ -z "$1" ] && return 1
 
@@ -380,7 +375,6 @@ lb_set_display_level() {
 # Print a message to the console, with colors and formatting
 # Usage: lb_print [OPTIONS] TEXT
 lb_print() {
-
 	# quiet mode: do not print anything
 	[ "$lb_quietmode" = true ] && return 0
 
@@ -451,7 +445,6 @@ lb_print() {
 # Print a message to the console, can set a verbose level and can append to logs
 # Usage: lb_display [OPTIONS] TEXT
 lb_display() {
-
 	# default options
 	local opts=() display_level display_prefix=false log_message=false
 
@@ -557,7 +550,6 @@ $t"
 # Manage command result and display label
 # Usage: lb_result [OPTIONS] [EXIT_CODE]
 lb_result() {
-
 	# get last command result
 	local result=$?
 
@@ -686,7 +678,6 @@ lb_short_result() {
 # Return path of the defined log file
 # Usage: lb_get_logfile
 lb_get_logfile() {
-
 	# if no log file defined, error
 	[ -z "$lb_logfile" ] && return 1
 
@@ -704,7 +695,6 @@ lb_get_logfile() {
 # Set path of the log file
 # Usage: lb_set_logfile [OPTIONS] PATH
 lb_set_logfile() {
-
 	# default options
 	local overwrite=false append=false win_format=false
 
@@ -770,7 +760,6 @@ lb_set_logfile() {
 # Get current log level
 # Usage: lb_get_log_level [OPTIONS] [LEVEL_NAME]
 lb_get_log_level() {
-
 	# default options
 	local i get_id=false level=$lb__log_level
 
@@ -826,7 +815,6 @@ lb_get_log_level() {
 # Set log level
 # Usage: lb_set_log_level LEVEL_NAME
 lb_set_log_level() {
-
 	# usage error
 	[ -z "$1" ] && return 1
 
@@ -848,7 +836,6 @@ lb_set_log_level() {
 # Print text into log file
 # Usage: lb_log [OPTIONS] TEXT
 lb_log() {
-
 	# exit if log file is not set
 	[ -z "$lb_logfile" ] && return 1
 
@@ -941,7 +928,6 @@ $t"
 # Usage: lb_read_config [OPTIONS] PATH
 lb_read_config=()
 lb_read_config() {
-
 	# reset variable
 	lb_read_config=()
 
@@ -1038,7 +1024,6 @@ lb_read_config() {
 # Import a config file into bash variables
 # Usage: lb_import_config [OPTIONS] PATH [PARAMETERS]
 lb_import_config() {
-
 	# local variables and default options
 	local sections=() return_errors=false secure_mode=true
 
@@ -1188,7 +1173,6 @@ lb_migrate_config() {
 # Get config value
 # Usage: lb_get_config [OPTIONS] FILE PARAM
 lb_get_config() {
-
 	# default options
 	local section text
 
@@ -1282,7 +1266,6 @@ $t"
 # Set config value
 # Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
 lb_set_config() {
-
 	# local variables
 	local section strict_mode=false no_spaces=false
 
@@ -1509,7 +1492,6 @@ lb_is_email() {
 # Test if a text is a comment
 # Usage: lb_is_comment [OPTIONS] TEXT
 lb_is_comment() {
-
 	# default options
 	local symbols=() empty_is_comment=true
 
@@ -1567,7 +1549,6 @@ lb_is_comment() {
 # Deletes spaces before and after a string
 # Usage: lb_trim STRING
 lb_trim() {
-
 	local string=$*
 
 	# test if text passed by stdin
@@ -1597,7 +1578,6 @@ lb_trim() {
 # Usage: lb_split DELIMITER STRING
 lb_split=()
 lb_split() {
-
 	# reset result
 	lb_split=()
 
@@ -1618,7 +1598,6 @@ lb_split() {
 # Join an array into string
 # Usage: lb_join DELIMITER "${ARRAY[@]}"
 lb_join() {
-
 	# usage error
 	[ -z "$1" ] && return 1
 
@@ -1634,7 +1613,6 @@ lb_join() {
 # Check if an array contains a value
 # Usage: lb_in_array VALUE "${ARRAY[@]}"
 lb_in_array() {
-
 	# usage error
 	[ -z "$1" ] && return 1
 
@@ -1658,7 +1636,6 @@ lb_in_array() {
 # Convert a date to timestamp
 # Usage: lb_date2timestamp [OPTIONS] DATE
 lb_date2timestamp() {
-
 	# default options
 	local cmd=(date)
 
@@ -1696,7 +1673,6 @@ lb_date2timestamp() {
 # Convert timestamp to an user readable date
 # Usage: lb_timestamp2date [OPTIONS] TIMESTAMP
 lb_timestamp2date() {
-
 	# default options
 	local format cmd=(date)
 
@@ -1741,7 +1717,6 @@ lb_timestamp2date() {
 # Compare software versions using semantic versionning
 # Usage: lb_compare_versions VERSION_1 OPERATOR VERSION_2
 lb_compare_versions() {
-
 	# we wait for at least an operator and 2 versions
 	[ $# -lt 3 ] && return 1
 
@@ -1930,7 +1905,6 @@ lb_compare_versions() {
 # Get filesystem type
 # Usage: lb_df_fstype PATH
 lb_df_fstype() {
-
 	# usage error
 	[ $# = 0 ] && return 1
 
@@ -1976,7 +1950,6 @@ lb_df_fstype() {
 # Get space left on partition in bytes
 # Usage: lb_df_space_left PATH
 lb_df_space_left() {
-
 	# usage error
 	[ $# = 0 ] && return 1
 
@@ -1998,7 +1971,6 @@ lb_df_space_left() {
 # Get mount point path of a partition
 # Usage: lb_df_mountpoint PATH
 lb_df_mountpoint() {
-
 	# usage error
 	[ $# = 0 ] && return 1
 
@@ -2036,7 +2008,6 @@ lb_df_mountpoint() {
 # Usage: lb_df_uuid PATH
 # NOT SUPPORTED ON WINDOWS
 lb_df_uuid() {
-
 	# usage error
 	[ $# = 0 ] && return 1
 
@@ -2077,7 +2048,6 @@ lb_df_uuid() {
 # Get user's home directory
 # Usage: lb_get_home_directory [USER]
 lb_homepath() {
-
 	local path
 
 	# get ~user value
@@ -2094,7 +2064,6 @@ lb_homepath() {
 # Test if a directory is empty
 # Usage: lb_is_dir_empty PATH
 lb_is_dir_empty() {
-
 	# test if directory exists
 	[ -d "$*" ] || return 1
 
@@ -2113,7 +2082,6 @@ lb_is_dir_empty() {
 # Get absolute path of a file/directory
 # Usage: lb_abspath [OPTIONS] PATH
 lb_abspath() {
-
 	local test_dir=true
 
 	# get options
@@ -2161,7 +2129,6 @@ lb_abspath() {
 # Get real path of a file/directory
 # Usage: lb_realpath PATH
 lb_realpath() {
-
 	# test if path exists
 	[ -e "$1" ] || return 1
 
@@ -2188,7 +2155,6 @@ lb_realpath() {
 # Test if a path is writable
 # Usage: lb_is_writable PATH
 lb_is_writable() {
-
 	# usage error
 	[ -z "$1" ] && return 1
 
@@ -2256,7 +2222,6 @@ lb_current_uid() {
 # Test if a user exists
 # Usage: lb_user_exists USER [USER...]
 lb_user_exists() {
-
 	# usage error
 	[ $# = 0 ] && return 1
 
@@ -2280,7 +2245,6 @@ lb_ami_root() {
 # Test if an user is in a group
 # Usage: lb_in_group GROUP [USER]
 lb_in_group() {
-
 	# usage error
 	[ -z "$1" ] && return 1
 
@@ -2303,7 +2267,6 @@ lb_in_group() {
 # Test if a group exists
 # Usage: lb_group_exists GROUP [GROUP...]
 lb_group_exists() {
-
 	# usage error
 	[ $# = 0 ] && return 1
 
@@ -2326,7 +2289,6 @@ lb_group_exists() {
 # Get users members of a group
 # Usage: lb_group_members GROUP
 lb_group_members() {
-
 	# usage error
 	[ -z "$1" ] && return 1
 
@@ -2351,7 +2313,6 @@ lb_group_members() {
 # Generate a random password
 # Usage: lb_generate_password [SIZE]
 lb_generate_password() {
-
 	# default options
 	local size=16
 
@@ -2409,7 +2370,6 @@ lb_generate_password() {
 # Send an email
 # Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 lb_email() {
-
 	# usage error
 	[ $# = 0 ] && return 1
 
@@ -2598,7 +2558,6 @@ $(base64 "$attachment")
 # Ask a question to user to answer by yes or no
 # Usage: lb_yesno [OPTIONS] TEXT
 lb_yesno() {
-
 	# default options
 	local yes_default=false cancel_mode=false
 	local yes_label=$lb__yes_shortlabel no_label=$lb__no_shortlabel cancel_label=$lb__cancel_shortlabel
@@ -2685,7 +2644,6 @@ lb_yesno() {
 # Usage: lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 lb_choose_option=()
 lb_choose_option() {
-
 	# reset result
 	lb_choose_option=()
 
@@ -2819,7 +2777,6 @@ lb_choose_option() {
 # Usage: lb_input_text [OPTIONS] TEXT
 lb_input_text=""
 lb_input_text() {
-
 	# reset result
 	lb_input_text=""
 
@@ -2875,7 +2832,6 @@ lb_input_text() {
 # Usage: lb_input_password [OPTIONS] [TEXT]
 lb_input_password=""
 lb_input_password() {
-
 	# reset result
 	lb_input_password=""
 

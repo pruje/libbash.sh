@@ -4,7 +4,7 @@ A Bash library that features common functions useful for Bash developpers.
 Tired to search the web any time you don't know or remember how to do a basic action in a bash script?
 Just include libbash.sh to your script and use the functions!
 
-libbash.sh features **more than 50 functions** to:
+libbash.sh features **more than 60 functions** to:
 - test if a program is installed
 - search a value in an array
 - ask user to confirm an action by yes or no
@@ -41,14 +41,14 @@ That's all! To use more powerful features like interactive windows, please read 
 
 ## Examples
 - A simple demo of libbash.sh: [examples](examples)
-- A complete project using libbash.sh: [time2backup](https://github.com/time2backup/time2backup)
+- A major project that uses libbash.sh: [time2backup](https://time2backup.org)
 
 ## License
 libbash.sh is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for the full license text.
 
 ## Credits
-Author: Jean Prunneaux  [https://jean.prunneaux.com](https://jean.prunneaux.com)
+Author: Jean Prunneaux https://jean.prunneaux.com
 
-Website: [https://github.com/pruje/libbash.sh](https://github.com/pruje/libbash.sh)
+Website: https://github.com/pruje/libbash.sh
 
 Help us to improve libbash.sh in [submitting issues](https://github.com/pruje/libbash.sh/issues) to report a bug or request new features!
