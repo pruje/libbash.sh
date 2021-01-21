@@ -2422,6 +2422,10 @@ lb_email() {
 				;;
 			--mail-command)
 				lb_in_array "$2" "${email_commands[@]}" || return 1
+				# detect if old version of mail command
+				if [ "$2" = /usr/bin/mail ] && ! /usr/bin/mail --version &> /dev/null ; then
+					return 2
+				fi
 				cmd=$2
 				shift
 				;;
@@ -2458,7 +2462,13 @@ $t"
 	if [ -z "$cmd" ] ; then
 		local c
 		for c in ${email_commands[@]} ; do
+			# test command
 			if which "$c" &> /dev/null ; then
+				# skip if old version of mail command
+				if [ "$c" = /usr/bin/mail ] && ! /usr/bin/mail --version &> /dev/null ; then
+					continue
+				fi
+
 				cmd=$c
 				break
 			fi
@@ -2467,11 +2477,6 @@ $t"
 
 	# if no command to send email, error
 	[ -z "$cmd" ] && return 2
-
-	# detect if old version of mail command
-	if [ "$cmd" = /usr/bin/mail ] && ! /usr/bin/mail --version &> /dev/null ; then
-		return 2
-	fi
 
 	# set email header
 	[ -n "$sender" ] && message+="From: $sender
