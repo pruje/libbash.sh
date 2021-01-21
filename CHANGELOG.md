@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## 1.18.1 (2021-01-21)
+### Bugfixes
+- Fix bug that prevented email to be sent if old mail command was installed
+
 ## 1.18.0 (2020-11-25)
 ### New features
 - New function `lb_ami_root` to test if current user is root

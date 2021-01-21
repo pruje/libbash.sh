@@ -4,7 +4,7 @@
 ' #  Functions for display GUI tools using VBScript      #
 ' #                                                      #
 ' #  MIT License                                         #
-' #  Copyright (c) 2017-2020 Jean Prunneaux              #
+' #  Copyright (c) 2017-2021 Jean Prunneaux              #
 ' #  Website: https://github.com/pruje/libbash.sh        #
 ' #                                                      #
 ' ########################################################
