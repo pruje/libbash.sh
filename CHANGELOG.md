@@ -1,6 +1,12 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## 1.19.0 (2021-02-04)
+### New features
+- New `--template` option to `lb_import_config` to import variables only defined in a template file
+### Changes
+- `lb_test_arguments` is deprecated, but not removed to not break compatibility
+
 ## 1.18.1 (2021-01-21)
 ### Bugfixes
 - Fix bug that prevented email to be sent if old mail command was installed

@@ -762,17 +762,12 @@ lb_read_config [OPTIONS] PATH
 - 3: Specified section was not found
 
 #### Examples
-1. Read and print values
+Read and print values
 ```bash
 lb_read_config my_config.conf
 for i in "${lb_read_config[@]}" ; do
 	echo "$i"
 done
-```
-2. Analyse config file to secure import
-```bash
-lb_read_config --analyse template.conf
-lb_import_config my_config.conf "${lb_read_config[@]}"
 ```
 
 ---------------------------------------------------------------
@@ -795,7 +790,7 @@ lb_import_config [OPTIONS] PATH [FILTERS...]
 #### Options
 ```
 -s, --section SECTION     Import parameters only in the specified section(s)
--t, --template-file FILE  Use a config file as reference to import only parameters
+-t, --template-file FILE  Use a config file as reference to import only defined parameters
 -e, --all-errors          Return all errors in exit codes
 -u, --unsecure            Do not prevent shell injection (could be dangerous)
 
@@ -814,13 +809,32 @@ FILTERS                   List of parameters that should be imported (others wil
 #### Example
 ```bash
 ### content of my_config.conf
-# my config file
-hello_message="Hello dear users"
+hello_message = "Hello dear users"
 
 users = (John Mark)
-### end content of my_config.conf
 
+other_thing = "Something useless"
+### end content of my_config.conf
+```
+
+1. Simple import of config:
+```bash
 lb_import_config my_config.conf
+
+# print bye message
+echo "$hello_message ${users[@]}"
+```
+
+2. Secure import with a template:
+```bash
+### content of template.conf
+hello_message = ""
+users = ()
+### end content of template.conf
+
+lb_import_config --template template.conf my_config.conf
+
+# $other_thing will be empty
 
 # print bye message
 echo "$hello_message ${users[@]}"
