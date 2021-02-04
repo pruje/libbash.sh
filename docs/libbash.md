@@ -794,11 +794,12 @@ lb_import_config [OPTIONS] PATH [FILTERS...]
 
 #### Options
 ```
--s, --section SECTION  Import parameters only in the specified section(s)
--e, --all-errors       Return all errors in exit codes
--u, --unsecure         Do not prevent shell injection (could be dangerous)
+-s, --section SECTION     Import parameters only in the specified section(s)
+-t, --template-file FILE  Use a config file as reference to import only parameters
+-e, --all-errors          Return all errors in exit codes
+-u, --unsecure            Do not prevent shell injection (could be dangerous)
 
-FILTERS                List of parameters that should be imported (others will be ignored)
+FILTERS                   List of parameters that should be imported (others will be ignored)
 ```
 
 #### Exit codes
@@ -808,6 +809,7 @@ FILTERS                List of parameters that should be imported (others will b
 - 3: One or more line has a bad syntax (if `--all-errors` option is enabled)
 - 4: One or more line contains shell commands or variables (if `--all-errors` option is enabled)
 - 5: File exists but is not readable
+- 6: Read template failed
 
 #### Example
 ```bash

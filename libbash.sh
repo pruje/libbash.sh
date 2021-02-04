@@ -1024,7 +1024,7 @@ lb_read_config() {
 # Usage: lb_import_config [OPTIONS] PATH [PARAMETERS]
 lb_import_config() {
 	# local variables and default options
-	local sections=() return_errors=false secure_mode=true
+	local sections=() template return_errors=false secure_mode=true
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -1032,6 +1032,11 @@ lb_import_config() {
 			-s|--section)
 				[ -z "$2" ] && return 1
 				sections+=("[$2]")
+				shift
+				;;
+			-t|--template-file)
+				[ -f "$2" ] || return 1
+				template=$2
 				shift
 				;;
 			-e|--all-errors)
@@ -1057,6 +1062,12 @@ lb_import_config() {
 	shift
 
 	local filters=("$@") result=0 line s section param param_filter value good_section=false section_found=false
+
+	# read config template
+	if [ -n "$template" ] ; then
+		lb_read_config -a "$template" || return 6
+		filters=("${lb_read_config[@]}")
+	fi
 
 	# read file line by line; backslashes are not escaped
 	while read -r line ; do
