@@ -18,7 +18,6 @@ declare -r lb_version=1.18.1
 #   * Bash utilities
 #       lb_command_exists
 #       lb_function_exists
-#       lb_test_arguments
 #       lb_cmd_to_array
 #       lb_getargs
 #       lb_getopt
@@ -104,6 +103,7 @@ declare -r lb_version=1.18.1
 #       lb_detect_os
 #       lb_array_contains
 #       lb_dir_is_empty
+#       lb_test_arguments
 #   * Variables
 #   * Initialization
 
@@ -138,35 +138,6 @@ lb_function_exists() {
 }
 
 
-# Test number of arguments passed to a script/function
-# Usage: lb_test_arguments OPERATOR N [ARG...]
-lb_test_arguments() {
-	# NOTE: be careful with improving this function to not use
-	# third-party functions which are using this function to avoid infinite loops
-
-	# we wait for at least an operator and a number
-	[ $# -ge 2 ] || return 1
-
-	# arg 2 should be an integer
-	[[ $2 =~ ^-?[0-9]+$ ]] || return 1
-
-	local operator=$1 value=$2
-	shift 2
-
-	# test if operator is ok
-	case $operator in
-		-eq|-ne|-lt|-le|-gt|-ge)
-			# execute test on arguments number
-			[ $# $operator $value ] || return 2
-			;;
-		*)
-			# syntax error
-			return 1
-			;;
-	esac
-}
-
-
 # Get result of a command and put it in array
 # Usage: lb_cmd_to_array CMD [ARGS]
 lb_cmd_to_array=()
@@ -193,7 +164,7 @@ lb_cmd_to_array() {
 # Usage: lb_getargs "$@"
 lb_getargs=()
 lb_getargs() {
-	# reset arguments
+	# reset variable
 	lb_getargs=()
 
 	# no arguments
@@ -239,6 +210,8 @@ lb_getopt() {
 
 
 # Exit script with defined exit code
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_exit [OPTIONS] [EXIT_CODE]
 lb_exit() {
 	# default options
@@ -297,6 +270,8 @@ lb_exit() {
 #############
 
 # Get current display level
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_get_display_level [OPTIONS] [LEVEL_NAME]
 lb_get_display_level() {
 	# default options
@@ -352,6 +327,8 @@ lb_get_display_level() {
 
 
 # Set log level
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_set_display_level LEVEL_NAME
 lb_set_display_level() {
 	# usage error: must be non empty
@@ -373,6 +350,8 @@ lb_set_display_level() {
 
 
 # Print a message to the console, with colors and formatting
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_print [OPTIONS] TEXT
 lb_print() {
 	# quiet mode: do not print anything
@@ -443,6 +422,8 @@ lb_print() {
 
 
 # Print a message to the console, can set a verbose level and can append to logs
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_display [OPTIONS] TEXT
 lb_display() {
 	# default options
@@ -548,6 +529,8 @@ $t"
 
 
 # Manage command result and display label
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_result [OPTIONS] [EXIT_CODE]
 lb_result() {
 	# get last command result
@@ -661,6 +644,8 @@ lb_result() {
 
 
 # Manage command result and display label in short mode
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_short_result [OPTIONS] [EXIT_CODE]
 lb_short_result() {
 	# get last command result
@@ -676,6 +661,8 @@ lb_short_result() {
 ##########
 
 # Return path of the defined log file
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_get_logfile
 lb_get_logfile() {
 	# if no log file defined, error
@@ -693,6 +680,8 @@ lb_get_logfile() {
 
 
 # Set path of the log file
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_set_logfile [OPTIONS] PATH
 lb_set_logfile() {
 	# default options
@@ -758,6 +747,8 @@ lb_set_logfile() {
 
 
 # Get current log level
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_get_log_level [OPTIONS] [LEVEL_NAME]
 lb_get_log_level() {
 	# default options
@@ -813,6 +804,8 @@ lb_get_log_level() {
 
 
 # Set log level
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_set_log_level LEVEL_NAME
 lb_set_log_level() {
 	# usage error
@@ -834,6 +827,8 @@ lb_set_log_level() {
 
 
 # Print text into log file
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_log [OPTIONS] TEXT
 lb_log() {
 	# exit if log file is not set
@@ -925,6 +920,8 @@ $t"
 ########################
 
 # Read a config file
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_read_config [OPTIONS] PATH
 lb_read_config=()
 lb_read_config() {
@@ -1022,6 +1019,8 @@ lb_read_config() {
 
 
 # Import a config file into bash variables
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_import_config [OPTIONS] PATH [PARAMETERS]
 lb_import_config() {
 	# local variables and default options
@@ -1133,6 +1132,8 @@ lb_import_config() {
 
 
 # Migrate config file to another version
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_migrate_config OLD_FILE NEW_FILE
 lb_migrate_config() {
 	# test if files exists
@@ -1264,6 +1265,8 @@ $t"
 
 
 # Set config value
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_set_config [OPTIONS] FILE PARAM VALUE
 lb_set_config() {
 	# local variables
@@ -1634,6 +1637,8 @@ lb_in_array() {
 
 
 # Convert a date to timestamp
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_date2timestamp [OPTIONS] DATE
 lb_date2timestamp() {
 	# default options
@@ -1671,6 +1676,8 @@ lb_date2timestamp() {
 
 
 # Convert timestamp to an user readable date
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_timestamp2date [OPTIONS] TIMESTAMP
 lb_timestamp2date() {
 	# default options
@@ -1903,6 +1910,8 @@ lb_compare_versions() {
 ################
 
 # Get filesystem type
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_df_fstype PATH
 lb_df_fstype() {
 	# usage error
@@ -1969,6 +1978,8 @@ lb_df_space_left() {
 
 
 # Get mount point path of a partition
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_df_mountpoint PATH
 lb_df_mountpoint() {
 	# usage error
@@ -2005,6 +2016,8 @@ lb_df_mountpoint() {
 
 
 # Get disk UUID
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_df_uuid PATH
 # NOT SUPPORTED ON WINDOWS
 lb_df_uuid() {
@@ -2127,6 +2140,8 @@ lb_abspath() {
 
 
 # Get real path of a file/directory
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_realpath PATH
 lb_realpath() {
 	# test if path exists
@@ -2175,6 +2190,8 @@ lb_is_writable() {
 
 
 # Edit a file with sed command
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_edit PATTERN FILE
 lb_edit() {
 	# usage error
@@ -2243,6 +2260,8 @@ lb_ami_root() {
 
 
 # Test if an user is in a group
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_in_group GROUP [USER]
 lb_in_group() {
 	# usage error
@@ -2265,6 +2284,8 @@ lb_in_group() {
 
 
 # Test if a group exists
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_group_exists GROUP [GROUP...]
 lb_group_exists() {
 	# usage error
@@ -2287,6 +2308,8 @@ lb_group_exists() {
 
 
 # Get users members of a group
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_group_members GROUP
 lb_group_members() {
 	# usage error
@@ -2311,6 +2334,8 @@ lb_group_members() {
 
 
 # Generate a random password
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_generate_password [SIZE]
 lb_generate_password() {
 	# default options
@@ -2368,6 +2393,8 @@ lb_generate_password() {
 
 
 # Send an email
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 lb_email() {
 	# usage error
@@ -2567,6 +2594,11 @@ lb_yesno() {
 	local yes_default=false cancel_mode=false
 	local yes_label=$lb__yes_shortlabel no_label=$lb__no_shortlabel cancel_label=$lb__cancel_shortlabel
 
+	# set labels if missing
+	[ -z "$yes_label" ] && yes_label=y
+	[ -z "$no_label" ] && no_label=n
+	[ -z "$cancel_label" ] && cancel_label=c
+
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
@@ -2600,11 +2632,6 @@ lb_yesno() {
 
 	# question is missing
 	[ -z "$1" ] && return 1
-
-	# set labels if missing
-	[ -z "$yes_label" ] && yes_label=y
-	[ -z "$no_label" ] && no_label=n
-	[ -z "$cancel_label" ] && cancel_label=c
 
 	# print question (if not quiet mode)
 	if [ "$lb_quietmode" != true ] ; then
@@ -2651,6 +2678,8 @@ lb_yesno() {
 
 
 # Ask user to choose one or multiple options
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
 # Usage: lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 lb_choose_option=()
 lb_choose_option() {
@@ -2849,6 +2878,10 @@ lb_input_password() {
 	local label=$lb__pwd_label confirm_label=$lb__pwd_confirm_label
 	local confirm=false min_size=0
 
+	# set labels if missing
+	[ -z "$label" ] && label="Password:"
+	[ -z "$confirm_label" ] && confirm_label="Confirm password:"
+
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
@@ -3020,6 +3053,33 @@ lb_array_contains() {
 }
 lb_dir_is_empty() {
 	lb_is_dir_empty "$@"
+}
+
+
+# Test number of arguments passed to a script/function
+# DEPRECATED: this function is useless and can be easely replaced by [ $# -op N ]
+# Usage: lb_test_arguments OPERATOR N [ARG...]
+lb_test_arguments() {
+	# we wait for at least an operator and a number
+	[ $# -ge 2 ] || return 1
+
+	# arg 2 should be an integer
+	[[ $2 =~ ^-?[0-9]+$ ]] || return 1
+
+	local operator=$1 value=$2
+	shift 2
+
+	# test if operator is ok
+	case $operator in
+		-eq|-ne|-lt|-le|-gt|-ge)
+			# execute test on arguments number
+			[ $# $operator $value ] || return 2
+			;;
+		*)
+			# syntax error
+			return 1
+			;;
+	esac
 }
 
 

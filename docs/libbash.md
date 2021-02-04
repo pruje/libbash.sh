@@ -78,7 +78,6 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 * Bash utilities
 	* [lb_command_exists](#lb_command_exists)
 	* [lb_function_exists](#lb_function_exists)
-	* [lb_test_arguments](#lb_test_arguments)
 	* [lb_cmd_to_array](#lb_cmd_to_array)
 	* [lb_getargs](#lb_getargs)
 	* [lb_getopt](#lb_getopt)
@@ -195,38 +194,6 @@ print_hello() {
 
 if lb_function_exists print_hello ; then
     print_hello
-fi
-```
-
----------------------------------------------------------------
-<a name="lb_test_arguments"></a>
-### lb_test_arguments
-Test number of non-empty arguments passed to a script/function.
-
-Note: A common usage of this function would be `lb_test_arguments -ge 1 $*`
-to test if user has passed at least one argument to your script/function.
-
-#### Usage
-```bash
-lb_test_arguments OPERATOR N [ARG...]
-```
-
-#### Arguments
-```
-OPERATOR  common bash comparison pattern: -eq|-ne|-lt|-le|-gt|-ge
-N         expected number to compare to
-ARG       your arguments; (e.g. $* without quotes)
-```
-
-#### Exit codes
-- 0: Arguments OK
-- 1: Usage error
-- 2: Arguments not OK
-
-#### Example
-```bash
-if lb_test_arguments -lt 2 $* ; then
-    echo "You have to give at least 2 arguments to this script."
 fi
 ```
 
