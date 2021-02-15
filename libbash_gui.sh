@@ -1308,6 +1308,17 @@ lbg_choose_file() {
 				fi
 
 				opts="default name \"$filename\""
+			else
+				# prepare filters (works only in open mode)
+				if [ ${#filters[@]} -gt 0 ] ; then
+					local i
+					for ((i=0; i<${#filters[@]}; i++)) ; do
+						# remove '*.' from extensions
+						filters[i]=$(echo "\"${filters[i]}\"" | sed 's/\*.//')
+					done
+
+					opts="of type {$(lb_join , "${filters[@]}")}"
+				fi
 			fi
 
 			choice=$(osascript 2> /dev/null <<EOF

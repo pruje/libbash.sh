@@ -497,7 +497,7 @@ lbg_choose_file [OPTIONS] [PATH]
 PATH                 Starting path or default file path (open current directory by default)
 ```
 
-**WARNING**: File filters are not supported yet with dialog command neither with macOS osascript dialogs.
+**WARNING**: File filters are not supported yet with dialog command.
 
 #### Exit codes
 - 0: OK
@@ -511,7 +511,7 @@ PATH                 Starting path or default file path (open current directory 
 #### Example
 ```bash
 if lbg_choose_file --filter "*.txt" ; then
-    text_file="$lbg_choose_file"
+    text_file=$lbg_choose_file
 fi
 ```
 
