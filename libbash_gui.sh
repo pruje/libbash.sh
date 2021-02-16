@@ -96,7 +96,7 @@ lbg__dialog_size() {
 # Run osascript command
 # Usage: lbg__osascript COMMAND
 lbg__osascript() {
-	osascript &> /dev/null <<EOF
+	osascript 2> /dev/null <<EOF
  $*
 EOF
 }
@@ -213,7 +213,7 @@ $t"
 			esac
 
 			# run command
-			lbg__osascript "display dialog \"$text\" with title \"$title\" with icon $icon buttons {\"$lb__ok_label\"} default button 1" || return 2
+			lbg__osascript "display dialog \"$text\" with title \"$title\" with icon $icon buttons {\"$lb__ok_label\"} default button 1" &> /dev/null || return 2
 			return 0
 			;;
 
@@ -458,7 +458,7 @@ $t"
 			;;
 
 		osascript)
-			lbg__osascript "display notification \"$text\" with title \"$title\"" || return 2
+			lbg__osascript "display notification \"$text\" with title \"$title\"" &> /dev/null || return 2
 			;;
 
 		cscript)
