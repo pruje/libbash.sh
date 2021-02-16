@@ -1038,7 +1038,7 @@ lbg_input_password() {
 		[ -n "$lbg_input_password" ] || return 2
 
 		# check password size (if --min-size option is set)
-		if [ $min_size -gt 0 ] && [ $(echo -n "$lbg_input_password" | wc -m) -lt $min_size ] ; then
+		if [ $min_size -gt 0 ] && [ ${#lbg_input_password} -lt $min_size ] ; then
 			lbg_input_password=""
 			return 4
 		fi

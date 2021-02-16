@@ -2938,7 +2938,7 @@ lb_input_password() {
 	[ -z "$lb_input_password" ] && return 2
 
 	# check password size (if --min-size option is set)
-	if [ $min_size -gt 0 ] && [ $(echo -n "$lb_input_password" | wc -m) -lt $min_size ] ; then
+	if [ $min_size -gt 0 ] && [ ${#lb_input_password} -lt $min_size ] ; then
 		lb_input_password=""
 		return 4
 	fi

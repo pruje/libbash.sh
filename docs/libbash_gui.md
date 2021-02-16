@@ -56,8 +56,8 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_input_text](#lbg_input_text)
 	* [lbg_input_password](#lbg_input_password)*
 * Files and directories
-	* [lbg_choose_directory](#lbg_choose_directory)*
-	* [lbg_choose_file](#lbg_choose_file)*
+	* [lbg_choose_directory](#lbg_choose_directory)
+	* [lbg_choose_file](#lbg_choose_file)
 	* [lbg_open_directory](#lbg_open_directory)
 
 ---------------------------------------------------------------
@@ -455,7 +455,7 @@ lbg_choose_directory [OPTIONS] [PATH]
 PATH                 Starting path (current directory by default)
 ```
 
-**WARNING**: On Windows, starting path is not working with cscript dialogs (but works in console mode).
+**WARNING**: On Windows, starting path is not working when using cscript dialogs (but works in console mode).
 
 #### Exit codes
 - 0: OK
@@ -533,7 +533,7 @@ PATH                Directory path (current directory by default)
 - 3: Unknown error (happens often on Windows)
 - 4: One or more of the specified paths are not existing directories
 
-**Note**: On some OS like Windows, this function may work but return a bad exit code.
+**Note**: On some OS like Windows, this function may work but returns a bad exit code.
 
 #### Example
 ```bash
