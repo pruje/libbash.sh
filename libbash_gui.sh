@@ -16,6 +16,7 @@
 #   * Internal functions
 #       lbg__get_console_size
 #       lbg__dialog_size
+#       lbg__cscript
 #       lbg__powershell
 #       lbg__display_msgbox
 #   * GUI tools
@@ -88,6 +89,14 @@ lbg__dialog_size() {
 
 	# return height width
 	echo $dialog_height $dialog_width
+}
+
+
+# Run cscript command
+# Usage: lbg__cscript COMMAND
+lbg__cscript() {
+	# must be ran in relative path context
+	(cd "$lb_directory/inc" && cscript /NoLogo libbash_gui.vbs "$@")
 }
 
 
@@ -203,12 +212,7 @@ EOF) || return 2
 			;;
 
 		cscript)
-			cmd=("${lbg__cscript[@]}")
-			cmd+=(lbg_display_$type "$(echo -e "$text")" "$title")
-
-			# run VBscript into a context (cscript does not work with absolute paths)
-			(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
-			return 0
+			cmd=(lbg__cscript lbg_display_$type "$(echo -e "$text")" "$title")
 			;;
 
 		dialog)
@@ -263,15 +267,14 @@ lbg_get_gui() {
 # Usage: lbg_set_gui [GUI_TOOL...]
 lbg_set_gui() {
 	# default options
-	local gui_tools=(${lbg__supported_gui[@]}) result=0
+	local gui_tools=("${lbg__supported_gui[@]}") result=0
 
 	# if args set, test list of commands
-	[ $# -gt 0 ] && gui_tools=($*)
+	[ $# -gt 0 ] && gui_tools=("$@")
 
 	# test GUI tools
 	local gui
-	for gui in ${gui_tools[@]} ; do
-
+	for gui in "${gui_tools[@]}" ; do
 		# set console mode is always OK
 		if [ "$gui" = console ] ; then
 			result=0
@@ -312,9 +315,13 @@ lbg_set_gui() {
 					result=4
 					continue
 				fi
-
 				# test VB script
-				if ! [ -f "$lbg__vbscript_dir/$lbg__vbscript" ] ; then
+				if ! [ -f "$lb_directory"/inc/libbash_gui.vbs ] ; then
+					result=4
+					continue
+				fi
+				# test PowerShell script
+				if ! [ -f "$lb_directory"/inc/libbash_gui.ps1 ] ; then
 					result=4
 					continue
 				fi
@@ -437,8 +444,6 @@ $t"
 			;;
 
 		zenity)
-			opts=""
-
 			# set a timeout
 			[ -n "$timeout" ] && opts="--timeout=$timeout"
 
@@ -547,13 +552,8 @@ EOF)
 			;;
 
 		cscript)
-			cmd=("${lbg__cscript[@]}")
-			cmd+=(lbg_yesno "$(echo -e "$*")" "$title")
+			cmd=(lbg__cscript lbg_yesno "$(echo -e "$*")" "$title")
 			$yes_default && cmd+=(true)
-
-			# run VBscript into a context (cscript does not work with absolute paths)
-			(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
-			return 0
 			;;
 
 		dialog)
@@ -781,15 +781,10 @@ EOF)
 				i+=1
 			done
 
-			# prepare command (inputbox)
-			cmd=("${lbg__cscript[@]}" lbg_input_text "$label" "$title")
-
 			# avoid empty default values (if multiple choices)
 			[ ${#default[@]} = 0 ] && default=(1)
 
-			# run VBscript into a context (cscript does not work with absolute paths)
-			# error => cancelled
-			choices=$(cd "$lbg__vbscript_dir" && "${cmd[@]}" "${default[*]}") || return 2
+			choices=$(lbg__cscript lbg_input_text "$label" "$title" "${default[*]}") || return 2
 
 			# multiple choices: transform '1,3' to '1 3'
 			# and remove \r ending character
@@ -834,7 +829,7 @@ EOF)
 			$multiple_choices && cmd+=(-m)
 
 			# add default choice(s)
-			[ ${#default[@]} -gt 0 ] && cmd+=(-d $(lb_join , "${default[@]}"))
+			[ ${#default[@]} -gt 0 ] && cmd+=(-d "$(lb_join , "${default[@]}")")
 
 			# execute console function and forward result
 			"${cmd[@]}" "$@" && choices=${lb_choose_option[*]}
@@ -859,7 +854,7 @@ EOF)
 		fi
 
 		# save choice
-		lbg_choose_option+=($o)
+		lbg_choose_option+=("$o")
 	done
 }
 
@@ -916,13 +911,10 @@ EOF)
 
 		cscript)
 			# prepare command
-			cmd=("${lbg__cscript[@]}")
-			cmd+=(lbg_input_text "$(echo -e "$*")" "$title")
+			cmd=(lbg_input_text "$(echo -e "$*")" "$title")
 			[ -n "$default" ] && cmd+=("$default")
 
-			# run VBscript into a context (cscript does not work with absolute paths)
-			# error => cancelled
-			lbg_input_text=$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
+			lbg_input_text=$(lbg__cscript "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
@@ -1037,7 +1029,7 @@ EOF)
 				# console mode
 				# execute console function
 				cmd=(lb_input_password --label "$label")
-				[ $min_size -gt 0 ] && cmd+=(--min-size $min_size)
+				[ $min_size -gt 0 ] && cmd+=(--min-size "$min_size")
 
 				result=0
 				"${cmd[@]}" || result=$?
@@ -1146,8 +1138,7 @@ EOF)
 
 		cscript)
 			# prepare command
-			cmd=("${lbg__cscript[@]}")
-			cmd+=(lbg_choose_directory)
+			cmd=(lbg_choose_directory)
 
 			# if title is not defined,
 			if [ "$title" = "$lb_current_script_name" ] ; then
@@ -1158,9 +1149,7 @@ EOF)
 				cmd+=("$title")
 			fi
 
-			# run VBscript into a context (cscript does not work with absolute paths)
-			# error => cancelled
-			choice=$(cd "$lbg__vbscript_dir" && "${cmd[@]}") || return 2
+			choice=$(lbg__cscript "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			choice=${choice:0:${#choice}-1}
@@ -1312,7 +1301,7 @@ lbg_choose_file() {
 
 			# set save mode
 			if $save_mode ; then
-				mode="name"
+				mode=name
 
 				if ! [ -d "$path" ] ; then
 					filename=$(basename "$path")
@@ -1562,13 +1551,6 @@ lbg__gui=""
 # console size
 lbg__console_width=""
 lbg__console_height=""
-
-if [ "$lb_current_os" = Windows ] ; then
-	# VB script and cscript command
-	declare -r lbg__vbscript_dir=$lb_directory/inc
-	declare -r lbg__vbscript=libbash_gui.vbs
-	lbg__cscript=(cscript /NoLogo "$lbg__vbscript")
-fi
 
 # Set the default GUI tool
 lbg_set_gui || return 2
