@@ -16,6 +16,7 @@
 #   * Internal functions
 #       lbg__get_console_size
 #       lbg__dialog_size
+#       lbg__powershell
 #       lbg__display_msgbox
 #   * GUI tools
 #       lbg_get_gui
@@ -87,6 +88,13 @@ lbg__dialog_size() {
 
 	# return height width
 	echo $dialog_height $dialog_width
+}
+
+
+# Run powershell command
+# Usage: lbg__powershell COMMAND
+lbg__powershell() {
+	powershell -ExecutionPolicy ByPass -File "$(cygpath -w "$lb_directory"/inc/libbash_gui.ps1)" "$@"
 }
 
 
@@ -444,7 +452,11 @@ display notification "$text" with title "$title"
 EOF) || return 2
 			;;
 
-		# no dialog command, because it doesn't make sense in console
+		cscript)
+			lbg__powershell send-notification "$text" "$title" || return 2
+			;;
+
+		# dialog: nothing, because it doesn't make sense in console
 
 		*)
 			# print in console mode
@@ -1338,7 +1350,7 @@ EOF)
 
 		cscript)
 			# prepare command
-			cmd=("${lbg__powershell[@]}" choosefile "$(cygpath -w "$(lb_abspath "$path")")" "$title")
+			cmd=(choosefile "$(cygpath -w "$(lb_abspath "$path")")" "$title")
 
 			# save mode
 			if $save_mode ; then
@@ -1348,12 +1360,10 @@ EOF)
 			fi
 
 			# add filters
-			if [ ${#filters[@]} -gt 0 ] ; then
-				cmd+=("$(lb_join , "${filters[@]}")")
-			fi
+			[ ${#filters[@]} -gt 0 ] && cmd+=("$(lb_join , "${filters[@]}")")
 
 			# run powershell
-			choice=$("${cmd[@]}") || return 2
+			choice=$(lbg__powershell "${cmd[@]}") || return 2
 
 			# remove \r ending character
 			choice=${choice:0:${#choice}-1}
@@ -1558,9 +1568,6 @@ if [ "$lb_current_os" = Windows ] ; then
 	declare -r lbg__vbscript_dir=$lb_directory/inc
 	declare -r lbg__vbscript=libbash_gui.vbs
 	lbg__cscript=(cscript /NoLogo "$lbg__vbscript")
-
-	# PowerShell command
-	lbg__powershell=(powershell -ExecutionPolicy ByPass -File "$(cygpath -w "$lb_directory"/inc/libbash_gui.ps1)")
 fi
 
 # Set the default GUI tool

@@ -14,14 +14,11 @@ libbash.sh GUI currently supports the following GUI tools:
 - dialog
 
 ## Usage
-libbash.sh GUI needs to be included **after** libbash:
+libbash.sh GUI is loaded with `-g` or `--gui` option:
 ```bash
-source "/path/to/libbash.sh"
-source "/path/to/libbash_gui.sh"
+source "/path/to/libbash.sh" -g
 ```
 Then call the functions described below.
-
-**Note**: The `libash_gui.sh` file does not need to be in the same directory than `libbash.sh`.
 
 ## The case of cron jobs (on Linux)
 If you plan to execute a script from a cron job, dialogs (like notifications) may no be printed.
@@ -52,7 +49,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lbg_display_error, lbg_error](#lbg_display_error)
 	* [lbg_display_critical, lbg_critical](#lbg_display_critical)
 	* [lbg_display_debug, lbg_debug](#lbg_display_debug)
-	* [lbg_notify](#lbg_notify)*
+	* [lbg_notify](#lbg_notify)
 * User interaction
 	* [lbg_yesno](#lbg_yesno)
 	* [lbg_choose_option](#lbg_choose_option)
@@ -270,8 +267,6 @@ lbg_debug "This is a debug message."
 <a name="lbg_notify"></a>
 ### lbg_notify
 Displays a notification popup.
-
-**WARNING**: System notifications are not displayed on Windows yet (messages are displayed in console).
 
 #### Usage
 ```bash
