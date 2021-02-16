@@ -16,6 +16,7 @@
 #   * Internal functions
 #       lbg__get_console_size
 #       lbg__dialog_size
+#       lbg__osascript
 #       lbg__cscript
 #       lbg__powershell
 #       lbg__display_msgbox
@@ -91,6 +92,14 @@ lbg__dialog_size() {
 	echo $dialog_height $dialog_width
 }
 
+
+# Run osascript command
+# Usage: lbg__osascript COMMAND
+lbg__osascript() {
+	osascript &> /dev/null <<EOF
+ $*
+EOF
+}
 
 # Run cscript command
 # Usage: lbg__cscript COMMAND
@@ -204,10 +213,7 @@ $t"
 			esac
 
 			# run command
-			$(osascript &> /dev/null << EOF
-display dialog "$text" with title "$title" with icon $icon buttons {"$lb__ok_label"} default button 1
-EOF) || return 2
-
+			lbg__osascript "display dialog \"$text\" with title \"$title\" with icon $icon buttons {\"$lb__ok_label\"} default button 1" || return 2
 			return 0
 			;;
 
@@ -452,9 +458,7 @@ $t"
 			;;
 
 		osascript)
-			$(osascript &> /dev/null << EOF
-display notification "$text" with title "$title"
-EOF) || return 2
+			lbg__osascript "display notification \"$text\" with title \"$title\"" || return 2
 			;;
 
 		cscript)
@@ -538,15 +542,13 @@ lbg_yesno() {
 			$yes_default && default_button=1
 
 			# run command
-			result=$(osascript << EOF
-set question to (display dialog "$*" with title "$title" buttons {"$yes_label", "$no_label"} default button $default_button)
+			result=$(lbg__osascript "set question to (display dialog \"$*\" with title \"$title\" buttons {\"$yes_label\", \"$no_label\"} default button $default_button)
 set answer to button returned of question
-if answer is equal to "$yes_label" then
+if answer is equal to \"$yes_label\" then
 	return 0
 else
 	return 2
-end if
-EOF)
+end if")
 			# return choice
 			return $result
 			;;
@@ -728,7 +730,7 @@ lbg_choose_option() {
 
 		osascript)
 			# prepare options
-			local default_options=() multiple_option opts=() options
+			local default_options=() multiple_option opts=()
 
 			# security: remove comas and spaces
 			for o in "$@" ; do
@@ -741,17 +743,11 @@ lbg_choose_option() {
 				i+=1
 			done
 
-			# join values
-			options=$(lb_join , "${opts[@]}")
-			default_options=$(lb_join , "${default_options[@]}")
-
 			# add multiple choice option
 			$multiple_choices && multiple_option="with multiple selections allowed"
 
 			# execute command
-			local choice=$(osascript 2> /dev/null <<EOF
-set answer to (choose from list {$options} $multiple_option default items {$default_options} with prompt "$label" with title "$title")
-EOF)
+			local choice=$(lbg__osascript "set answer to (choose from list {$(lb_join , "${opts[@]}")} $multiple_option default items {$(lb_join , "${default_options[@]}")} with prompt \"$label\" with title \"$title\")")
 			# if empty, error
 			[ -z "$choice" ] && return 2
 
@@ -904,9 +900,7 @@ lbg_input_text() {
 			;;
 
 		osascript)
-			lbg_input_text=$(osascript 2> /dev/null << EOF
-set answer to the text returned of (display dialog "$*" with title "$title" default answer "$default")
-EOF)
+			lbg_input_text=$(lbg__osascript "set answer to the text returned of (display dialog \"$*\" with title \"$title\" default answer \"$default\")")
 			;;
 
 		cscript)
@@ -1010,9 +1004,7 @@ lbg_input_password() {
 				;;
 
 			osascript)
-				lbg_input_password=$(osascript 2> /dev/null << EOF
-set answer to the text returned of (display dialog "$label" with title "$title" default answer "" hidden answer true)
-EOF)
+				lbg_input_password=$(lbg__osascript "set answer to the text returned of (display dialog \"$label\" with title \"$title\" default answer \"\" hidden answer true)")
 				;;
 
 			dialog)
@@ -1131,9 +1123,7 @@ lbg_choose_directory() {
 			;;
 
 		osascript)
-			choice=$(osascript 2> /dev/null <<EOF
-set answer to POSIX path of (choose folder with prompt "$title" default location "$path")
-EOF)
+			choice=$(lbg__osascript "set answer to POSIX path of (choose folder with prompt \"$title\" default location \"$path\")")
 			;;
 
 		cscript)
@@ -1322,9 +1312,7 @@ lbg_choose_file() {
 				fi
 			fi
 
-			choice=$(osascript 2> /dev/null <<EOF
-set answer to POSIX path of (choose file $mode with prompt "$title" $opts default location "$path")
-EOF)
+			choice=$(lbg__osascript "set answer to POSIX path of (choose file $mode with prompt \"$title\" $opts default location \"$path\")")
 			;;
 
 		dialog)
