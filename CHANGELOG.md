@@ -1,6 +1,13 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## 1.20.0 (2021-02-17)
+### New features
+- `lbg_notify` is now supported on Windows using PowerShell
+- Filters in `lbg_choose_file` are now supported on macOS
+### Changes
+- Minor code improvements
+
 ## 1.19.0 (2021-02-04)
 ### New features
 - New `--template` option to `lb_import_config` to import variables only defined in a template file
