@@ -145,6 +145,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_choose_option](#lb_choose_option)
 	* [lb_input_text](#lb_input_text)
 	* [lb_input_password](#lb_input_password)
+	* [lb_say](#lb_say)
 
 ---------------------------------------------------------------
 ## Bash utilities
@@ -463,6 +464,7 @@ lb_display [OPTIONS] TEXT
 -l, --level LEVEL  Choose a display level (will be the same for logs)
 -p, --prefix       Print "[LOG_LEVEL] " prefix before text
 --log              Append text to log file if defined
+--say              Say text
 ```
 
 #### Exit codes
@@ -473,7 +475,7 @@ lb_display [OPTIONS] TEXT
 
 #### Example
 ```bash
-lb_display --log "This message you see will be stored in logs."
+lb_display --log --say "This message you see and hear will be stored in logs."
 ```
 
 ---------------------------------------------------------------
@@ -516,10 +518,11 @@ lb_result [OPTIONS] [EXIT_CODE]
 --ok-label LABEL           Set a success label (default: OK)
 --failed-label LABEL       Set a failed label (default: FAILED)
 -d, --display-level LEVEL  Choose a display level
---log                      Append text to log file
+--log                      Append result to log file
 -l, --log-level LEVEL      Choose a log level
 --smart-levels             Set display and log levels to INFO if ok and ERROR if failed
                            (equals calling -d INFO -l INFO if ok and -d ERROR -l ERROR if failed)
+--say                      Say result
 -s, --save-exitcode        Save the result to the $lb_exitcode variable
 -e, --error-exitcode CODE  Set a custom code to the $lb_exitcode variable if error
 -x, --exit-on-error        Exit if result is not ok (exit code not to 0)
@@ -1922,6 +1925,26 @@ QUESTION_TEXT         Set a label for the question
 if lb_input_password --confirm ; then
 	user_password=$lb_input_password
 fi
+```
+
+---------------------------------------------------------------
+<a name="lb_say"></a>
+### lb_say
+Say something with text-to-speech.
+
+#### Usage
+```bash
+lb_say TEXT
+```
+
+#### Exit codes
+- 0: OK
+- 1: Other error
+- 2: No text-to-speech command found
+
+#### Example
+```bash
+lb_say "Hello world!"
 ```
 
 ---------------------------------------------------------------

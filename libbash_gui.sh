@@ -101,6 +101,7 @@ lbg__osascript() {
 EOF
 }
 
+
 # Run cscript command
 # Usage: lbg__cscript COMMAND
 lbg__cscript() {

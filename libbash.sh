@@ -15,6 +15,8 @@ declare -r lb_version=1.20.0
 
 # Index
 #
+#   * Internal functions
+#       lb__powershell
 #   * Bash utilities
 #       lb_command_exists
 #       lb_function_exists
@@ -82,6 +84,7 @@ declare -r lb_version=1.20.0
 #       lb_choose_option
 #       lb_input_text
 #       lb_input_password
+#       lb_say
 #   * Aliases and compatibility
 #       lb_echo
 #       lb_error
@@ -106,6 +109,18 @@ declare -r lb_version=1.20.0
 #       lb_test_arguments
 #   * Variables
 #   * Initialization
+
+
+##################################
+#  INTERNAL FUNCTIONS            #
+#  DO NOT PUBLISH DOCUMENTATION  #
+##################################
+
+# Run powershell command
+# Usage: lb__powershell COMMAND
+lb__powershell() {
+	powershell -ExecutionPolicy ByPass -File "$(cygpath -w "$lb_directory"/inc/libbash.ps1)" "$@"
+}
 
 
 ####################
@@ -427,7 +442,7 @@ lb_print() {
 # Usage: lb_display [OPTIONS] TEXT
 lb_display() {
 	# default options
-	local opts=() display_level display_prefix=false log_message=false
+	local opts=() display_level display_prefix=false log_message=false say=false
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -445,6 +460,9 @@ lb_display() {
 				;;
 			--log)
 				log_message=true
+				;;
+			--say)
+				say=true
 				;;
 			*)
 				break
@@ -497,32 +515,33 @@ $t"
 		fi
 	fi
 
-	# if no need to display, quit
-	$display || return $result
+	if $display ; then
+		# enable coloured prefixes
+		if $display_prefix ; then
+			case $display_level in
+				$lb__critical_label)
+					prefix="[$(lb_print --red "$display_level")]  "
+					;;
+				$lb__error_label)
+					prefix="[$(lb_print --red "$display_level")]  "
+					;;
+				$lb__warning_label)
+					prefix="[$(lb_print --yellow "$display_level")]  "
+					;;
+				$lb__info_label)
+					prefix="[$(lb_print --green "$display_level")]  "
+					;;
+				$lb__debug_label)
+					prefix="[$(lb_print --cyan "$display_level")]  "
+					;;
+			esac
+		fi
 
-	# enable coloured prefixes
-	if $display_prefix ; then
-		case $display_level in
-			$lb__critical_label)
-				prefix="[$(lb_print --red "$display_level")]  "
-				;;
-			$lb__error_label)
-				prefix="[$(lb_print --red "$display_level")]  "
-				;;
-			$lb__warning_label)
-				prefix="[$(lb_print --yellow "$display_level")]  "
-				;;
-			$lb__info_label)
-				prefix="[$(lb_print --green "$display_level")]  "
-				;;
-			$lb__debug_label)
-				prefix="[$(lb_print --cyan "$display_level")]  "
-				;;
-		esac
+		# print text
+		lb_print "${opts[@]}" "$prefix$text" || return 3
 	fi
 
-	# print text
-	lb_print "${opts[@]}" "$prefix$text" || return 3
+	$say && (lb_say "$text" &)
 
 	return $result
 }
@@ -538,7 +557,7 @@ lb_result() {
 
 	# default values and options
 	local ok_label=$lb__result_ok_label failed_label=$lb__result_failed_label
-	local display_cmd=(lb_display) log_cmd=(lb_log) log=false smart_levels=false
+	local display_cmd=(lb_display) log_cmd=(lb_log) log=false say_cmd=(lb_say) say=false smart_levels=false
 	local error_exitcode save_exitcode=false exit_on_error=false quiet_mode=false
 
 	# get options
@@ -569,6 +588,9 @@ lb_result() {
 				;;
 			--smart-levels)
 				smart_levels=true
+				;;
+			--say)
+				say=true
 				;;
 			-s|--save-exitcode)
 				save_exitcode=true
@@ -609,6 +631,8 @@ lb_result() {
 			log_cmd+=("$ok_label")
 		fi
 
+		$say && say_cmd+=("$ok_label")
+
 		if ! $quiet_mode ; then
 			$smart_levels && display_cmd+=(-l INFO)
 			display_cmd+=("$ok_label")
@@ -619,6 +643,8 @@ lb_result() {
 			log_cmd+=("$failed_label")
 		fi
 
+		$say && say_cmd+=("$failed_label")
+
 		if ! $quiet_mode ; then
 			$smart_levels && display_cmd+=(-l ERROR)
 			display_cmd+=("$failed_label")
@@ -628,6 +654,7 @@ lb_result() {
 	# log & display result
 	$log && "${log_cmd[@]}"
 	$quiet_mode || "${display_cmd[@]}"
+	$say && ("${say_cmd[@]}" &)
 
 	if [ $result != 0 ] ; then
 		# if save exit code is not set and error exitcode is specified, save it
@@ -2962,6 +2989,48 @@ lb_input_password() {
 		lb_input_password=""
 		return 3
 	fi
+}
+
+
+# Say something with text-to-speech
+# Usage: lb_say TEXT
+lb_say() {
+	local text=$* cmd=()
+
+	# get text from stdin
+	if [ ${#text} = 0 ] && ! [ -t 0 ] ; then
+		local t
+		while read -r t ; do
+			text+="
+$t"
+		done
+		# delete first line jump
+		text=${text:1}
+	fi
+
+	# easy commands
+	case $lb_current_os in
+		macOS)
+			say "$text" &> /dev/null || return 1
+			;;
+		Windows)
+			lb__powershell say "$text" &> /dev/null || return 1
+			;;
+	esac
+
+	# Linux: check tts software
+	lb_command_exists espeak-ng || return 2
+
+	# search for the current language voice (e.g. check fr-fr then fr)
+	local lg opts=()
+	for lg in $(echo $LANG | cut -d. -f1 | sed 's/_/-/' | tr '[:upper:]' '[:lower:]') $lb__lang ; do
+		if lb_in_array $lg $(espeak-ng --voices 2> /dev/null | awk '{print $2}') ; then
+			opts=(-v $lg)
+			break
+		fi
+	done
+
+	espeak-ng "${opts[@]}" "$text" &> /dev/null || return 1
 }
 
 
