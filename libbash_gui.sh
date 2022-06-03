@@ -4,10 +4,10 @@
 #  Functions to extend bash scripts to GUI tools       #
 #                                                      #
 #  MIT License                                         #
-#  Copyright (c) 2017-2021 Jean Prunneaux              #
+#  Copyright (c) 2017-2022 Jean Prunneaux              #
 #  Website: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.20.0 (2021-02-17)                         #
+#  Version 1.21.0 (2022-06-03)                         #
 #                                                      #
 ########################################################
 

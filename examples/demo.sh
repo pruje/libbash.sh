@@ -2,8 +2,6 @@
 #
 #  libbash.sh complete demo
 #
-#  MIT License
-#  Copyright (c) 2017-2021 Jean Prunneaux
 #  Website: https://github.com/pruje/libbash.sh
 #
 

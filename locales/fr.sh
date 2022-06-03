@@ -4,7 +4,7 @@
 #  This file is part of libbash.sh (https://github.com/pruje/libbash.sh)
 #
 #  MIT License
-#  Copyright (c) 2017-2021 Jean Prunneaux
+#  Copyright (c) 2017-2022 Jean Prunneaux
 #
 
 lb__result_ok_label="... Terminé!"

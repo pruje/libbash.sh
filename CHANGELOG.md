@@ -1,6 +1,11 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## 1.21.0 (2022-06-03)
+### New features
+- New function `lb_say` to say something with text-to-speech
+- New `--say` option to `lb_display` and `lb_result`
+
 ## 1.20.0 (2021-02-17)
 ### New features
 - `lbg_notify` is now supported on Windows using PowerShell
