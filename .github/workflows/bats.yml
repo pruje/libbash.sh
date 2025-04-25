@@ -32,4 +32,4 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Run bats
         run: |
-          cd $GITHUB_WORKSPACE && bats tests/base.bats
+          cd $GITHUB_WORKSPACE && bats tests/*.bats
