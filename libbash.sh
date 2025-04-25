@@ -2713,20 +2713,20 @@ lb_yesno() {
 		fi
 
 		# compare to confirmation string
-		if [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')" ] ; then
-			# cancel case
-			if $cancel_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" = "$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')" ] ; then
-				return 3
-			fi
+		[ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')" ] || return 0
 
-			# force prompt: if not NO, ask question again
-			if $force_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$no_label" | tr '[:upper:]' '[:lower:]')" ] ; then
-				continue
-			fi
-
-			# answer is no
-			return 2
+		# cancel case
+		if $cancel_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" = "$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')" ] ; then
+			return 3
 		fi
+
+		# force prompt: if not NO, ask question again
+		if $force_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$no_label" | tr '[:upper:]' '[:lower:]')" ] ; then
+			continue
+		fi
+
+		# answer is no
+		return 2
 	done
 }
 
