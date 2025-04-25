@@ -3011,10 +3011,12 @@ $t"
 	# easy commands
 	case $lb_current_os in
 		macOS)
-			say "$text" &> /dev/null || return 1
+			say "$text" &> /dev/null
+			return
 			;;
 		Windows)
-			lb__powershell say "$text" &> /dev/null || return 1
+			lb__powershell say "$text" &> /dev/null
+			return
 			;;
 	esac
 
