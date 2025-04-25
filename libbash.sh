@@ -163,7 +163,7 @@ lb_cmd_to_array() {
 	# reset variable
 	lb_cmd_to_array=()
 
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# save current field separator and set a new with line return
 	local old_IFS=$IFS IFS=$'\n'
@@ -186,7 +186,7 @@ lb_getargs() {
 	lb_getargs=()
 
 	# no arguments
-	[ $# = 0 ] && return 1
+	[ $# -gt 0 ] || return 1
 
 	# parse arguments
 	local a
@@ -217,10 +217,10 @@ lb_getopt() {
 	fi
 
 	# if no value, quit
-	[ $# -lt 2 ] && return 1
+	[ $# -ge 2 ] || return 1
 
 	# if next option, quit
-	[ "${2:0:1}" = - ] && return 1
+	[ "${2:0:1}" != - ] || return 1
 
 	# return option value
 	echo "$2"
@@ -350,7 +350,7 @@ lb_get_display_level() {
 # Usage: lb_set_display_level LEVEL_NAME
 lb_set_display_level() {
 	# usage error: must be non empty
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# search if level exists
 	local id
@@ -454,7 +454,7 @@ lb_display() {
 				opts+=($1)
 				;;
 			-l|--level)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				display_level=$2
 				shift
 				;;
@@ -567,17 +567,17 @@ lb_result() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			--ok-label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				ok_label=$2
 				shift
 				;;
 			--failed-label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				failed_label=$2
 				shift
 				;;
 			-d|--display-level)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				display_cmd+=(-l "$2")
 				shift
 				;;
@@ -585,7 +585,7 @@ lb_result() {
 				log=true
 				;;
 			-l|--log-level)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				log_cmd+=(-l "$2")
 				shift
 				;;
@@ -696,7 +696,7 @@ lb_short_result() {
 # Usage: lb_get_logfile
 lb_get_logfile() {
 	# if no log file defined, error
-	[ -z "$lb_logfile" ] && return 1
+	[ -n "$lb_logfile" ] || return 1
 
 	# test if log file is writable
 	if ! lb_is_writable "$lb_logfile" ; then
@@ -839,7 +839,7 @@ lb_get_log_level() {
 # Usage: lb_set_log_level LEVEL_NAME
 lb_set_log_level() {
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# search if level exists
 	local id
@@ -862,7 +862,7 @@ lb_set_log_level() {
 # Usage: lb_log [OPTIONS] TEXT
 lb_log() {
 	# exit if log file is not set
-	[ -z "$lb_logfile" ] && return 1
+	[ -n "$lb_logfile" ] || return 1
 
 	# default options
 	local echo_opts=(-e) level
@@ -875,7 +875,7 @@ lb_log() {
 				echo_opts+=(-n)
 				;;
 			-l|--level)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				level=$2
 				shift
 				;;
@@ -965,7 +965,7 @@ lb_read_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				sections+=("[$2]")
 				shift
 				;;
@@ -1060,7 +1060,7 @@ lb_import_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				sections+=("[$2]")
 				shift
 				;;
@@ -1222,7 +1222,7 @@ lb_get_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				section=$2
 				shift
 				;;
@@ -1234,7 +1234,7 @@ lb_get_config() {
 	done
 
 	# usage error
-	[ $# -lt 2 ] && return 1
+	[ $# -ge 2 ] || return 1
 
 	if [ "$1" = "-" ] ; then
 		# get config from stdin
@@ -1317,7 +1317,7 @@ lb_set_config() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--section)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				section=$2
 				shift
 				;;
@@ -1335,7 +1335,7 @@ lb_set_config() {
 	done
 
 	# usage error
-	[ $# -lt 2 ] && return 1
+	[ $# -ge 2 ] || return 1
 
 	# test is file exists
 	[ -f "$1" ] || return 1
@@ -1543,7 +1543,7 @@ lb_is_comment() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--symbol)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				symbols+=("$2")
 				shift
 				;;
@@ -1699,7 +1699,7 @@ lb_date2timestamp() {
 	done
 
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# prepare command
 	case $lb_current_os in
@@ -1728,7 +1728,7 @@ lb_timestamp2date() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-f|--format)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				format="+$2"
 				shift
 				;;
@@ -2675,7 +2675,7 @@ lb_yesno() {
 	done
 
 	# question is missing
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	local question choice
 	while true ; do
