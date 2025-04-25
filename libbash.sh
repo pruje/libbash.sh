@@ -2934,7 +2934,7 @@ lb_input_text() {
 
 
 # Ask user to enter a password
-# Usage: lb_input_password [OPTIONS] [TEXT]
+# Usage: lb_input_password [OPTIONS] [QUESTION_TEXT]
 lb_input_password=""
 lb_input_password() {
 	# reset result
@@ -2951,12 +2951,6 @@ lb_input_password() {
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
-			-l|--label)
-				# old option kept for compatibility
-				[ -n "$2" ] || return 1
-				label=$2
-				shift
-				;;
 			-c|--confirm)
 				confirm=true
 				;;

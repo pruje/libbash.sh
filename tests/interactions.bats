@@ -157,8 +157,8 @@ EOF
 	echo "$lb_input_password"
 }
 
-@test "lb_input_password -l" {
-	run lb_input_password -l
+@test "lb_input_password --confirm-label" {
+	run lb_input_password --confirm-label
 	[ "$status" = 1 ]
 }
 

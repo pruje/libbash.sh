@@ -942,7 +942,7 @@ lbg_input_text() {
 
 
 # Ask user to enter a password
-# Usage: lbg_input_password [OPTIONS] [TEXT]
+# Usage: lbg_input_password [OPTIONS] [QUESTION_TEXT]
 lbg_input_password=""
 lbg_input_password() {
 	# reset result
@@ -955,11 +955,6 @@ lbg_input_password() {
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
-			-l|--label) # old option kept for compatibility
-				[ -z "$2" ] && return 1
-				label=$2
-				shift
-				;;
 			-c|--confirm)
 				confirm=true
 				;;
@@ -1021,7 +1016,7 @@ lbg_input_password() {
 			*)
 				# console mode
 				# execute console function
-				cmd=(lb_input_password --label "$label")
+				cmd=(lb_input_password "$label")
 				[ $min_size -gt 0 ] && cmd+=(--min-size "$min_size")
 
 				result=0
