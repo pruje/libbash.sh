@@ -27,7 +27,7 @@ jobs:
 
       - name: Install bats
         run: |
-          apt-get update && apt install -y bats
+          sudo apt-get update -qq && sudo apt-get install -yqq bats
 
       # Runs a set of commands using the runners shell
       - name: Run bats
