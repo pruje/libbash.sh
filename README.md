@@ -27,7 +27,7 @@ with [Cygwin](https://www.cygwin.com).
 
 Read our [wiki](https://github.com/pruje/libbash.sh/wiki) for some tips and tricks and other resources.
 
-## Usage
+# Usage
 Add `libbash.sh` to your script:
 ```bash
 source "/path/to/libbash.sh" -
@@ -35,18 +35,26 @@ source "/path/to/libbash.sh" -
 
 That's all! To use more powerful features like interactive windows, please read the documentation.
 
-## Documentation
+# Documentation
 - [libbash.sh](docs/libbash.md)
 - [libbash GUI](docs/libbash_gui.md)
 
-## Examples
+# Examples
 - A simple demo of libbash.sh: [examples](examples)
 - A major project that uses libbash.sh: [time2backup](https://time2backup.org)
 
-## License
+# Tests
+libbash.sh comes with some unit tests powered by [BATS](https://bats-core.readthedocs.io).
+
+To simply run tests, you can execute:
+```bash
+bats tests/*.bats
+```
+
+# License
 libbash.sh is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for the full license text.
 
-## Credits
+# Credits
 Author: Jean Prunneaux https://jean.prunneaux.com
 
 Website: https://github.com/pruje/libbash.sh
