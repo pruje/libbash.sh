@@ -2,6 +2,7 @@
 
 source libbash.sh -
 
+
 #
 #  lb_command_exists
 #
@@ -81,7 +82,7 @@ source libbash.sh -
 # lb_getargs
 #
 
-getargs() {
+test_lb_getargs() {
 	lb_getargs "$@" && echo "${lb_getargs[*]}"
 }
 
@@ -90,20 +91,17 @@ getargs() {
 	[ "$status" = 1 ]
 }
 
-@test "lb_getargs --opt arg" {
-	run getargs --opt arg
+@test "lb_getargs -ab arg --opt" {
+	run test_lb_getargs -ab arg --opt
 	[ "$status" = 0 ]
-	[ "$output" = "--opt arg" ]
-}
-
-@test "lb_getargs -ab arg" {
-	run getargs -ab arg
-	[ "$status" = 0 ]
-	[ "$output" = "-a -b arg" ]
+	[ "$output" = "-a -b arg --opt" ]
 }
 
 
-# get option
+#
+# lb_getopt
+#
+
 @test "lb_getopt" {
 	run lb_getopt
 	[ "$status" = 1 ]
@@ -118,11 +116,13 @@ getargs() {
 	run lb_getopt --opt --opt2
 	[ "$status" = 1 ]
 }
+
 @test "lb_getopt --opt value" {
 	run lb_getopt --opt value
 	[ "$status" = 0 ]
 	[ "$output" = "value" ]
 }
+
 @test "lb_getopt --opt2=value2" {
 	run lb_getopt --opt2=value2
 	[ "$status" = 0 ]
