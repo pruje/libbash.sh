@@ -1807,6 +1807,7 @@ lb_yesno [OPTIONS] TEXT
 ```
 -y, --yes            Set yes as default option
 -c, --cancel         Add a cancel option
+-f, --force          Force user to prompt yes or no (disables default option)
 --yes-label TEXT     Label to use for "YES"
 --no-label TEXT      Label to use for "NO"
 --cancel-label TEXT  Label to use for cancel option
