@@ -2977,7 +2977,7 @@ lb_input_password() {
 	[ -z "$1" ] || label=$*
 
 	# print question (if not quiet mode)
-	[ "$lb_quietmode" != true ] && echo -n -e "$label "
+	[ "$lb_quietmode" = true ] || echo -n -e "$label "
 
 	# prompt user for password
 	read -s -r lb_input_password

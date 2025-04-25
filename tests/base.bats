@@ -4,7 +4,7 @@ source libbash.sh -
 
 
 #
-#  lb_command_exists
+# lb_command_exists
 #
 
 @test "lb_command_exists echo" {
@@ -29,7 +29,7 @@ source libbash.sh -
 
 
 #
-#  lb_function_exists
+# lb_function_exists
 #
 
 @test "lb_function_exists lb_command_exists" {

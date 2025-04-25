@@ -314,7 +314,7 @@ test_lb_split() {
 	[ "$status" = 1 ]
 }
 
-@test "-r 20171231235959 lb_timestamp2date -f '%Y%m%d%H%M%S' --utc 1514764799" {
+@test "lb_timestamp2date -f '%Y%m%d%H%M%S' --utc 1514764799" {
 	run lb_timestamp2date -f '%Y%m%d%H%M%S' --utc 1514764799
 	[ "$status" = 0 ]
 	[ "$output" = 20171231235959 ]

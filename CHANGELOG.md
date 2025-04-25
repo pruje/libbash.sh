@@ -3,7 +3,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 # 1.22.0 (2025-04-25)
 ## New features
-- New option `--force` to `lb_yesno` to force user to prompt yes or no
+- New option `--force` for `lb_yesno` to force user to prompt yes or no
+- Added unit tests powered by BATS
+## Changes
+- Remove `--label` option to `lb_input_password` (deprecated since 1.3.0)
 ## Bugfixes
 - Fixed error in `lb_say` on macOS and Windows
 
