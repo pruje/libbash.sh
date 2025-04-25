@@ -86,13 +86,16 @@ declare -r lb_version=1.21.0
 #       lb_input_password
 #       lb_say
 #   * Aliases and compatibility
+#       lb_critical
 #       lb_echo
+#       lb_err
 #       lb_error
 #       lb_get_loglevel
 #       lb_set_loglevel
 #       lb_display_critical
 #       lb_display_error
 #       lb_display_warning
+#       lb_warn
 #       lb_warning
 #       lb_display_info
 #       lb_info
@@ -3090,12 +3093,24 @@ lb_display_critical() {
 	lb_display -p -l "$lb__critical_label" "$@"
 }
 
+lb_critical() {
+	lb_display_critical "$@"
+}
+
 lb_display_error() {
 	lb_display -p -l "$lb__error_label" "$@"
 }
 
+lb_err() {
+	lb_display_error "$@"
+}
+
 lb_display_warning() {
 	lb_display -p -l "$lb__warning_label" "$@"
+}
+
+lb_warn() {
+	lb_display_warning "$@"
 }
 
 lb_warning() {
