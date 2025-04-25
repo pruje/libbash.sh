@@ -373,7 +373,7 @@ lb_set_display_level() {
 # Usage: lb_print [OPTIONS] TEXT
 lb_print() {
 	# quiet mode: do not print anything
-	[ "$lb_quietmode" = true ] && return 0
+	[ "$lb_quietmode" != true ] || return 0
 
 	local opts reset_color format=()
 
@@ -513,7 +513,7 @@ $t"
 			# Note: if level is unknown, message will be displayed
 			if level_id=$(lb_get_display_level --id "$display_level") ; then
 				# if display level is higher than default, will not display (but can log)
-				[ $level_id -gt $lb__display_level ] && display=false
+				[ $level_id -le $lb__display_level ] || display=false
 			fi
 		fi
 	fi
@@ -922,7 +922,7 @@ $t"
 		# Note: if level unknown, message will be logged
 		if id_level=$(lb_get_log_level --id "$level") ; then
 			# if log level is higher than default, do not log
-			[ $id_level -gt $lb__log_level ] && return 0
+			[ $id_level -le $lb__log_level ] || return 0
 		fi
 	fi
 
@@ -1030,7 +1030,7 @@ lb_read_config() {
 			fi
 
 			result=$(echo "$line" | sed 's/^\#*\;*\([a-zA-Z0-9_]*\)[[:space:]]*=.*/\1/')
-			[ -n "$section" ] && result=$section.$result
+			[ -z "$section" ] || result=$section.$result
 
 			lb_read_config+=("$result")
 		else
@@ -1106,7 +1106,7 @@ lb_import_config() {
 		s=$(echo "$line" | grep -Eo '^\[.*\]')
 
 		# save current section
-		[ -n "$s" ] && section=$(echo "$s" | sed 's/\[\(.*\)\]/\1/')
+		[ -z "$s" ] || section=$(echo "$s" | sed 's/\[\(.*\)\]/\1/')
 
 		# filter by sections
 		if [ ${#sections[@]} -gt 0 ] ; then
@@ -1141,7 +1141,7 @@ lb_import_config() {
 		# filter parameter
 		if [ ${#filters[@]} -gt 0 ] ; then
 			param_filter=$param
-			[ -n "$section" ] && param_filter=$section.$param
+			[ -z "$section" ] || param_filter=$section.$param
 
 			# not in filter list: continue
 			lb_in_array "$param_filter" "${filters[@]}" || continue
@@ -1178,12 +1178,18 @@ lb_import_config() {
 # Usage: lb_migrate_config OLD_FILE NEW_FILE
 lb_migrate_config() {
 	# test if files exists
-	[ -f "$1" ] && [ -f "$2" ]
-	[ $? != 0 ] && return 1
+	if [ -f "$1" ] && [ -f "$2" ] ; then
+		true
+	else
+		return 1
+	fi
 
 	# test if files are readable & writable
-	[ -r "$1" ] && [ -r "$2" ] && [ -w "$2" ]
-	[ $? != 0 ] && return 3
+	if [ -r "$1" ] && [ -r "$2" ] && [ -w "$2" ] ; then
+		true
+	else
+		return 3
+	fi
 
 	# analyse new config
 	lb_read_config -a "$2" || return 4
@@ -1265,7 +1271,7 @@ $t"
 	local config_lines=($(echo "$text" | grep -En "^[[:space:]]*$2[[:space:]]*=" | cut -d: -f1))
 
 	# if line not found, return error
-	[ ${#config_lines[@]} = 0 ] && return 3
+	[ ${#config_lines[@]} -gt 0 ] || return 3
 
 	# sed regex:
 	#   1. extract value
@@ -1341,8 +1347,11 @@ lb_set_config() {
 	[ -f "$1" ] || return 1
 
 	# test if file is readable & writable
-	[ -r "$1" ] && [ -w "$1" ]
-	[ $? != 0 ] && return 2
+	if [ -r "$1" ] && [ -w "$1" ] ; then
+		true
+	else
+		return 2
+	fi
 
 	# test parameter name
 	[[ $2 =~ ^[a-zA-Z0-9_]+$ ]] || return 1
@@ -1577,12 +1586,12 @@ lb_is_comment() {
 	fi
 
 	# set default comment symbol if none is set
-	[ ${#symbols[@]} = 0 ] && symbols+=("#")
+	[ ${#symbols[@]} -gt 0 ] || symbols+=("#")
 
 	# test if text starts with comment symbol
 	local s
 	for s in "${symbols[@]}" ; do
-		[ "${line:0:${#s}}" = "$s" ] && return 0
+		[ "${line:0:${#s}}" != "$s" ] || return 0
 	done
 
 	# symbol not found: not a comment
@@ -1626,7 +1635,7 @@ lb_split() {
 	lb_split=()
 
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# define delimiter
 	local i IFS=$1
@@ -1643,7 +1652,7 @@ lb_split() {
 # Usage: lb_join DELIMITER "${ARRAY[@]}"
 lb_join() {
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# define delimiter
 	local IFS=$1
@@ -1658,18 +1667,18 @@ lb_join() {
 # Usage: lb_in_array VALUE "${ARRAY[@]}"
 lb_in_array() {
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# get search value
 	local value search=$1
 	shift
 
 	# if array is empty, return not found
-	[ $# = 0 ] && return 2
+	[ $# -gt 0 ] || return 2
 
 	# parse array to find value
 	for value in "$@" ; do
-		[ "$value" = "$search" ] && return 0
+		[ "$value" != "$search" ] || return 0
 	done
 
 	# not found
@@ -1755,7 +1764,7 @@ lb_timestamp2date() {
 			;;
 	esac
 
-	[ -n "$format" ] && cmd+=("$format")
+	[ -z "$format" ] || cmd+=("$format")
 
 	# return formatted date
 	"${cmd[@]}" 2> /dev/null || return 2
@@ -1766,7 +1775,7 @@ lb_timestamp2date() {
 # Usage: lb_compare_versions VERSION_1 OPERATOR VERSION_2
 lb_compare_versions() {
 	# we wait for at least an operator and 2 versions
-	[ $# -lt 3 ] && return 1
+	[ $# -ge 3 ] || return 1
 
 	# get operator
 	local operator=$2
@@ -1824,8 +1833,8 @@ lb_compare_versions() {
 
 			# transform simple numbers to dotted numbers
 			# e.g. v3 => v3.0, v2.1 => v2.1.0
-			[ -z "$version1_num" ] && version1_num=0
-			[ -z "$version2_num" ] && version2_num=0
+			[ -n "$version1_num" ] || version1_num=0
+			[ -n "$version2_num" ] || version2_num=0
 
 			if [ "$version1_num" = "$version2_num" ] ; then
 
@@ -1956,7 +1965,7 @@ lb_compare_versions() {
 # Usage: lb_df_fstype PATH
 lb_df_fstype() {
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -1975,12 +1984,12 @@ lb_df_fstype() {
 			if which lsblk &> /dev/null ; then
 				# get device
 				local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
-				[ -z "$device" ] && return 3
+				[ -n "$device" ] || return 3
 
 				# get "real" fs type
 				lsblk --output=FSTYPE "$device" 2> /dev/null | tail -n 1
 
-				[ ${PIPESTATUS[0]} = 0 ] && return 0
+				[ ${PIPESTATUS[0]} != 0 ] || return 0
 			fi
 
 			# no lsblk command or lsblk failed: use df command
@@ -2001,7 +2010,7 @@ lb_df_fstype() {
 # Usage: lb_df_space_left PATH
 lb_df_space_left() {
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -2024,7 +2033,7 @@ lb_df_space_left() {
 # Usage: lb_df_mountpoint PATH
 lb_df_mountpoint() {
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -2063,7 +2072,7 @@ lb_df_mountpoint() {
 # NOT SUPPORTED ON WINDOWS
 lb_df_uuid() {
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	# test if path exists
 	[ -e "$*" ] || return 2
@@ -2084,7 +2093,7 @@ lb_df_uuid() {
 
 			# get device
 			local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
-			[ -z "$device" ] && return 3
+			[ -n "$device" ] || return 3
 
 			# get disk UUID
 			lsblk --output=UUID "$device" 2> /dev/null | tail -n 1
@@ -2147,7 +2156,7 @@ lb_abspath() {
 	esac
 
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	# get directory and file names
 	local path directory=$(dirname "$*") file=$(basename "$*")
@@ -2171,7 +2180,7 @@ lb_abspath() {
 		# case of the current directory (do not put /path/to/./)
 		if [ "$file" != "." ] ; then
 			# do not put //file if parent directory is /
-			[ "$directory" != / ] && path+="/"
+			[ "$directory" = / ] || path+="/"
 			path+=$file
 		fi
 	fi
@@ -2212,7 +2221,7 @@ lb_realpath() {
 # Usage: lb_is_writable PATH
 lb_is_writable() {
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# if file/folder exists
 	if [ -e "$*" ] ; then
@@ -2236,7 +2245,7 @@ lb_is_writable() {
 # Usage: lb_edit PATTERN FILE
 lb_edit() {
 	# usage error
-	[ $# -lt 2 ] && return 1
+	[ $# -ge 2 ] || return 1
 
 	if [ "$lb__oldsed" = true ] ; then
 		sed -i '' "$@"
@@ -2281,11 +2290,11 @@ lb_current_uid() {
 # Usage: lb_user_exists USER [USER...]
 lb_user_exists() {
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	local user
 	for user in "$@" ; do
-		[ -z "$user" ] && return 1
+		[ -n "$user" ] || return 1
 		# check groups of the user
 		groups $user &> /dev/null || return 1
 	done
@@ -2306,18 +2315,18 @@ lb_ami_root() {
 # Usage: lb_in_group GROUP [USER]
 lb_in_group() {
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	local user=$2
 
 	# get current user if not defined
-	[ -z "$user" ] && user=$(whoami)
+	[ -n "$user" ] || user=$(whoami)
 
 	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
 	local groups=($(groups $user 2> /dev/null | cut -d: -f2))
 
 	# no groups found
-	[ ${#groups[@]} = 0 ] && return 3
+	[ ${#groups[@]} -gt 0 ] || return 3
 
 	# find if user is in group
 	lb_in_array "$1" "${groups[@]}"
@@ -2330,7 +2339,7 @@ lb_in_group() {
 # Usage: lb_group_exists GROUP [GROUP...]
 lb_group_exists() {
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	case $lb_current_os in
 		macOS|Windows)
@@ -2341,7 +2350,7 @@ lb_group_exists() {
 
 	local group
 	for group in "$@" ; do
-		[ -z "$group" ] && return 1
+		[ -n "$group" ] || return 1
 		# check if group exists
 		grep -q "^$group:" /etc/group &> /dev/null || return 1
 	done
@@ -2354,7 +2363,7 @@ lb_group_exists() {
 # Usage: lb_group_members GROUP
 lb_group_members() {
 	# usage error
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	case $lb_current_os in
 		macOS|Windows)
@@ -2367,7 +2376,7 @@ lb_group_members() {
 	local group=$(grep -E "^$1:" /etc/group 2> /dev/null)
 
 	# group not found
-	[ -z "$group" ] && return 2
+	[ -n "$group" ] || return 2
 
 	# extract members and return users separated by spaces
 	echo "$group" | sed "s/^$1:.*://; s/,/ /g"
@@ -2453,22 +2462,22 @@ lb_email() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-s|--subject)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				subject=$2
 				shift
 				;;
 			-r|--reply-to)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				replyto=$2
 				shift
 				;;
 			-c|--cc)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				cc=$2
 				shift
 				;;
 			-b|--bcc)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				bcc=$2
 				shift
 				;;
@@ -2478,12 +2487,12 @@ lb_email() {
 				shift
 				;;
 			--sender)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				sender=$2
 				shift
 				;;
 			--html)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				message_html=$2
 				multipart=true
 				shift
@@ -2636,9 +2645,9 @@ lb_yesno() {
 	local yes_label=$lb__yes_shortlabel no_label=$lb__no_shortlabel cancel_label=$lb__cancel_shortlabel
 
 	# set labels if missing
-	[ -z "$yes_label" ] && yes_label=y
-	[ -z "$no_label" ] && no_label=n
-	[ -z "$cancel_label" ] && cancel_label=c
+	[ -n "$yes_label" ] || yes_label=y
+	[ -n "$no_label" ] || no_label=n
+	[ -n "$cancel_label" ] || cancel_label=c
 
 	# get options
 	while [ $# -gt 0 ] ; do
@@ -2653,17 +2662,17 @@ lb_yesno() {
 				force_mode=true
 				;;
 			--yes-label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				yes_label=$2
 				shift
 				;;
 			--no-label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				no_label=$2
 				shift
 				;;
 			--cancel-label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				cancel_label=$2
 				shift
 				;;
@@ -2751,7 +2760,7 @@ lb_choose_option() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				# transform option1,option2,... to array
 				lb_split , $2
 				default=(${lb_split[@]})
@@ -2761,12 +2770,12 @@ lb_choose_option() {
 				multiple_choices=true
 				;;
 			-l|--label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				label=$2
 				shift
 				;;
 			-c|--cancel-label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				cancel_label=$2
 				shift
 				;;
@@ -2778,7 +2787,7 @@ lb_choose_option() {
 	done
 
 	# usage error if missing at least 1 choice option
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# verify if default options are valid
 	if [ ${#default[@]} -gt 0 ] ; then
@@ -2883,7 +2892,7 @@ lb_input_text() {
 	while [ $# -gt 0 ] ; do
 		case $1 in
 			-d|--default)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				default=$2
 				shift
 				;;
@@ -2898,12 +2907,12 @@ lb_input_text() {
 	done
 
 	# text is not defined
-	[ -z "$1" ] && return 1
+	[ -n "$1" ] || return 1
 
 	# print question (if not quiet mode)
 	if [ "$lb_quietmode" != true ] ; then
 		echo -n -e "$*"
-		[ -n "$default" ] && echo -n -e " [$default]"
+		[ -z "$default" ] || echo -n -e " [$default]"
 	fi
 
 	# add separator
@@ -2936,14 +2945,15 @@ lb_input_password() {
 	local confirm=false min_size=0
 
 	# set labels if missing
-	[ -z "$label" ] && label="Password:"
-	[ -z "$confirm_label" ] && confirm_label="Confirm password:"
+	[ -n "$label" ] || label="Password:"
+	[ -n "$confirm_label" ] || confirm_label="Confirm password:"
 
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
-			-l|--label) # old option kept for compatibility
-				[ -z "$2" ] && return 1
+			-l|--label)
+				# old option kept for compatibility
+				[ -n "$2" ] || return 1
 				label=$2
 				shift
 				;;
@@ -2951,14 +2961,14 @@ lb_input_password() {
 				confirm=true
 				;;
 			--confirm-label)
-				[ -z "$2" ] && return 1
+				[ -n "$2" ] || return 1
 				confirm_label=$2
 				shift
 				;;
 			-m|--min-size)
 				# check if integer
 				[[ $2 =~ ^-?[0-9]+$ ]] || return 1
-				[ $2 -lt 1 ] && return 1
+				[ $2 -gt 0 ] || return 1
 				min_size=$2
 				shift
 				;;
@@ -2970,7 +2980,7 @@ lb_input_password() {
 	done
 
 	# text label
-	[ $# -gt 0 ] && label=$*
+	[ -z "$1" ] || label=$*
 
 	# print question (if not quiet mode)
 	[ "$lb_quietmode" != true ] && echo -n -e "$label "
@@ -2981,7 +2991,7 @@ lb_input_password() {
 	echo
 
 	# if empty, exit with error
-	[ -z "$lb_input_password" ] && return 2
+	[ -n "$lb_input_password" ] || return 2
 
 	# check password size (if --min-size option is set)
 	if [ $min_size -gt 0 ] && [ ${#lb_input_password} -lt $min_size ] ; then
@@ -2996,7 +3006,7 @@ lb_input_password() {
 	local password_confirm=$lb_input_password
 
 	# print confirmation question (if not quiet mode)
-	[ "$lb_quietmode" != true ] && echo -n -e "$confirm_label "
+	[ "$lb_quietmode" = true ] || echo -n -e "$confirm_label "
 
 	# prompt password confirmation
 	read -s -r password_confirm
