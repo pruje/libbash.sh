@@ -1,13 +1,9 @@
-' ########################################################
-' #                                                      #
-' #  libbash.sh GUI for Windows                          #
-' #  Functions for display GUI tools using VBScript      #
-' #                                                      #
-' #  MIT License                                         #
-' #  Copyright (c) 2017-2022 Jean Prunneaux              #
-' #  Website: https://github.com/pruje/libbash.sh        #
-' #                                                      #
-' ########################################################
+' #
+' #  libbash.sh GUI for Windows
+' #  Functions for display GUI tools using VBScript
+' #
+' #  Sources: https://github.com/pruje/libbash.sh
+' #
 
 ' Index
 '

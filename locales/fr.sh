@@ -1,10 +1,7 @@
 #
 #  libbash.sh French translations
 #
-#  This file is part of libbash.sh (https://github.com/pruje/libbash.sh)
-#
-#  MIT License
-#  Copyright (c) 2017-2022 Jean Prunneaux
+#  Sources: https://github.com/pruje/libbash.sh
 #
 
 lb__result_ok_label="... Terminé!"

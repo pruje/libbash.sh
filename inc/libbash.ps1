@@ -1,11 +1,9 @@
-##################################################
-#                                                #
-#  libbash.sh for Windows                        #
-#  Functions using PowerShell                    #
-#                                                #
-#  Sources: https://github.com/pruje/libbash.sh  #
-#                                                #
-##################################################
+#
+#  libbash.sh for Windows
+#  Functions using PowerShell
+#
+#  Sources: https://github.com/pruje/libbash.sh
+#
 
 Param(
 [String] [Parameter(Mandatory=$true, Position=0)] $Method,

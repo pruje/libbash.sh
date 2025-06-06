@@ -1,13 +1,9 @@
-########################################################
-#                                                      #
-#  libbash.sh GUI for Windows                          #
-#  Functions for display GUI tools using PowerShell    #
-#                                                      #
-#  MIT License                                         #
-#  Copyright (c) 2017-2021 Jean Prunneaux              #
-#  Website: https://github.com/pruje/libbash.sh        #
-#                                                      #
-########################################################
+#
+#  libbash.sh GUI for Windows
+#  Functions for display GUI tools using PowerShell
+#
+#  Sources: https://github.com/pruje/libbash.sh
+#
 
 Param(
 [String] [Parameter(Mandatory=$true, Position=0)] $Method,
