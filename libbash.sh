@@ -2643,7 +2643,7 @@ $(base64 "$attachment")
 # Usage: lb_yesno [OPTIONS] TEXT
 lb_yesno() {
 	# default options
-	local yes_default=false cancel_mode=false force_mode=false
+	local yes_default=false cancel_mode=false strict_mode=false
 	local yes_label=$lb__yes_shortlabel no_label=$lb__no_shortlabel cancel_label=$lb__cancel_shortlabel
 
 	# set labels if missing
@@ -2660,8 +2660,8 @@ lb_yesno() {
 			-c|--cancel)
 				cancel_mode=true
 				;;
-			-f|--force)
-				force_mode=true
+			--strict)
+				strict_mode=true
 				;;
 			--yes-label)
 				[ -n "$2" ] || return 1
@@ -2693,7 +2693,7 @@ lb_yesno() {
 		# print question (if not quiet mode)
 		if [ "$lb_quietmode" != true ] ; then
 			# defines question
-			if $force_mode ; then
+			if $strict_mode ; then
 				question="$yes_label/$no_label"
 			else
 				if $yes_default ; then
@@ -2715,8 +2715,8 @@ lb_yesno() {
 
 		# if input is empty
 		if [ -z "$choice" ] ; then
-			# force prompt: ask question again
-			! $force_mode || continue
+			# strict prompt: ask question again
+			! $strict_mode || continue
 
 			# default option
 			if $yes_default ; then
@@ -2734,8 +2734,8 @@ lb_yesno() {
 			return 3
 		fi
 
-		# force prompt: if not NO, ask question again
-		if $force_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$no_label" | tr '[:upper:]' '[:lower:]')" ] ; then
+		# strict prompt: if not NO, ask question again
+		if $strict_mode && [ "$(echo "$choice" | tr '[:upper:]' '[:lower:]')" != "$(echo "$no_label" | tr '[:upper:]' '[:lower:]')" ] ; then
 			continue
 		fi
 
