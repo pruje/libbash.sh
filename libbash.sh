@@ -3332,6 +3332,7 @@ while [ $# -gt 0 ] ; do
 			;;
 		--ignore-errors)
 			lb__ignore_load_errors=true
+			;;
 		*)
 			break
 			;;
@@ -3353,7 +3354,7 @@ case $lb__lang in
 esac
 
 # Ignore non-critical loads errors (> 2)
-if lb__ignore_load_errors ; then
+if $lb__ignore_load_errors ; then
 	[ $lb__load_result -le 2 ] || lb__load_result=0
 fi
 
