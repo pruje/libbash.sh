@@ -2755,7 +2755,7 @@ lb_choose_option() {
 	lb_choose_option=()
 
 	# default options
-	local default=() multiple_choices=false
+	local default=() multiple_choices=false strict_mode=false
 	local label=$lb__chopt_label cancel_label=$lb__cancel_shortlabel
 
 	# get options
@@ -2775,6 +2775,9 @@ lb_choose_option() {
 				[ -n "$2" ] || return 1
 				label=$2
 				shift
+				;;
+			--strict)
+				strict_mode=true
 				;;
 			-c|--cancel-label)
 				[ -n "$2" ] || return 1
@@ -2811,71 +2814,94 @@ lb_choose_option() {
 
 	local o choices
 
-	# print question (if not quiet mode)
-	if [ "$lb_quietmode" != true ] ; then
-		# print question
-		echo -e "$label"
+	while true ; do
+		# print question (if not quiet mode)
+		if [ "$lb_quietmode" != true ] ; then
+			# print question
+			echo -e "$label"
 
-		# print options
-		local -i i=1
-		for o in "$@" ; do
-			echo "  $i. $o"
-			i+=1
+			# print options
+			local -i i=1
+			for o in "$@" ; do
+				echo "  $i. $o"
+				i+=1
+			done
+
+			echo
+
+			# print default option
+			if [ ${#default[@]} -gt 0 ] ; then
+				echo -n "[$(lb_join , ${default[@]})]: "
+			else
+				echo -n "[$cancel_label]: "
+			fi
+		fi
+
+		# read user input
+		read choices
+
+		# defaut behaviour if input is empty
+		if [ -z "$choices" ] ; then
+			# strict prompt: ask question again
+			! $strict_mode || continue
+
+			if [ ${#default[@]} -gt 0 ] ; then
+				# return default option(s)
+				lb_choose_option=(${default[@]})
+				return 0
+			else
+				# cancel code
+				return 2
+			fi
+		fi
+
+		# convert choices to an array
+		if $multiple_choices ; then
+			lb_split , $choices
+			choices=(${lb_split[@]})
+		fi
+
+		# parsing choices
+		local bad_choice=false
+		lb_choose_option=()
+		for o in ${choices[*]} ; do
+			# check cancel option
+			if [ "$o" = "$cancel_label" ] ; then
+				lb_choose_option=()
+				return 2
+			fi
+
+			# if not integer
+			if ! [[ $o =~ ^-?[0-9]+$ ]] ; then
+				lb_choose_option=()
+				if $strict_mode ; then
+					# try again
+					bad_choice=true
+					break
+				else
+					# quit with bad code
+					return 3
+				fi
+			fi
+
+			# check if user choice is valid
+			if [ $o -lt 1 ] || [ $o -gt $# ] ; then
+				lb_choose_option=()
+				if $strict_mode ; then
+					# try again
+					bad_choice=true
+					break
+				else
+					# quit with bad code
+					return 3
+				fi
+			fi
+
+			# save choice (prevent duplicates)
+			lb_in_array $o "${lb_choose_option[@]}" || lb_choose_option+=($o)
 		done
 
-		echo
-
-		# print default option
-		if [ ${#default[@]} -gt 0 ] ; then
-			echo -n "[$(lb_join , ${default[@]})]: "
-		else
-			echo -n "[$cancel_label]: "
-		fi
-	fi
-
-	# read user input
-	read choices
-
-	# defaut behaviour if input is empty
-	if [ -z "$choices" ] ; then
-		if [ ${#default[@]} -gt 0 ] ; then
-			# return default option(s)
-			lb_choose_option=(${default[@]})
-			return 0
-		else
-			# cancel code
-			return 2
-		fi
-	fi
-
-	# convert choices to an array
-	if $multiple_choices ; then
-		lb_split , $choices
-		choices=(${lb_split[@]})
-	fi
-
-	# parsing choices
-	for o in ${choices[*]} ; do
-		# check cancel option
-		if [ "$o" = "$cancel_label" ] ; then
-			lb_choose_option=()
-			return 2
-		fi
-
-		# if not integer
-		if ! [[ $o =~ ^-?[0-9]+$ ]] ; then
-			lb_choose_option=()
-			return 3
-		fi
-
-		# check if user choice is valid
-		if [ $o -lt 1 ] || [ $o -gt $# ] ; then
-			lb_choose_option=()
-			return 3
-		fi
-
-		# save choice (prevent duplicates)
-		lb_in_array $o "${lb_choose_option[@]}" || lb_choose_option+=($o)
+		$bad_choice || return 0
 	done
 }
 
