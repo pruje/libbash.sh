@@ -3334,6 +3334,7 @@ for v in lb_current_os lb_current_hostname lb_current_user lb_current_path \
 done
 
 # Get options
+lb__ignore_load_errors=false
 while [ $# -gt 0 ] ; do
 	case $1 in
 		-g|--gui)
@@ -3367,6 +3368,8 @@ while [ $# -gt 0 ] ; do
 			# activate quiet mode
 			lb_quietmode=true
 			;;
+		--ignore-errors)
+			lb__ignore_load_errors=true
 		*)
 			break
 			;;
@@ -3386,5 +3389,10 @@ case $lb__lang in
 		fi
 		;;
 esac
+
+# Ignore non-critical loads errors (> 2)
+if lb__ignore_load_errors ; then
+	[ $lb__load_result -le 2 ] || lb__load_result=0
+fi
 
 return $lb__load_result

@@ -3,6 +3,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 # 1.22.0 (2025-04-25)
 ## New features
+- New `--ignore-errors` option when loading libbash.sh to ignore non-critical loading errors
 - New `--strict` option for `lb_yesno` to force user to prompt yes or no
 - New `--strict` option for `lb_choose_option` to force user to choose an option
 - Added unit tests powered by BATS

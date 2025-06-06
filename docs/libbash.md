@@ -15,6 +15,7 @@ Then call the functions described below.
 -g, --gui        Load libbash.sh GUI
 -l, --lang LANG  Load a specific translation (by default the current terminal language)
 -q, --quiet      Disable any output in functions
+--ignore-errors  Ignore non-critical errors when loading libbash.sh ([return code](#return-codes) > 2)
 ```
 
 Note: If you call libbash.sh without any of these options and if you want to use some options in your own script, you have to add a simple character at the end of the source command to avoid overwriting your own options.
@@ -40,6 +41,7 @@ Currently supported languages:
 
 You can also add your own translation in `locales` directory.
 
+<a name="return-codes"></a>
 ## Return codes
 When you load libbash.sh, you can have the following return codes:
 - 0: libbash.sh is loaded
@@ -1843,6 +1845,7 @@ lb_choose_option [OPTIONS] CHOICE [CHOICE...]
 -d, --default ID[,ID...]  Option(s) to use by default (IDs starts to 1)
 -m, --multiple            Allow user to choose between multiple options
 -l, --label TEXT          Set a question label (default: "Choose an option:")
+--strict                  Force user to choose an option (disables default option)
 -c, --cancel-label TEXT   Set a cancel label (default: c)
 ```
 
