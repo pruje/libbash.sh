@@ -104,6 +104,7 @@ declare -r lb_version=1.21.0
 #       lb_log_critical
 #       lb_log_error
 #       lb_log_warning
+#       lb_log_warn
 #       lb_log_info
 #       lb_log_debug
 #   * Variables
@@ -3174,6 +3175,10 @@ lb_log_error() {
 
 lb_log_warning() {
 	lb_log -p -l "$lb__warning_label" "$@"
+}
+
+lb_log_warn() {
+	lb_log_warning "$@"
 }
 
 lb_log_info() {
