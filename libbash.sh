@@ -275,7 +275,7 @@ lb_exit() {
 		fi
 
 		# forward exit code option
-		$forward_code && exit $result
+		! $forward_code || exit $result
 	fi
 
 	# exit with exitcode variable
@@ -489,13 +489,15 @@ $t"
 	fi
 
 	# set level prefix
-	$display_prefix && [ -n "$display_level" ] && prefix="[$display_level]  "
+	if $display_prefix ; then
+		[ -z "$display_level" ] || prefix="[$display_level]  "
+	fi
 
 	# print into logfile
 	if $log_message ; then
 		# prepare command to log
 		local log_opts=("${opts[@]}")
-		[ -n "$display_level" ] && log_opts+=(--level "$display_level")
+		[ -z "$display_level" ] || log_opts+=(--level "$display_level")
 
 		# write log
 		lb_log "${log_opts[@]}" "$prefix$text" || result=2
@@ -544,7 +546,7 @@ $t"
 		lb_print "${opts[@]}" "$prefix$text" || return 3
 	fi
 
-	$say && (lb_say "$text" &)
+	! $say || (lb_say "$text" &)
 
 	return $result
 }
@@ -625,39 +627,39 @@ lb_result() {
 	fi
 
 	# save result to exit code
-	$save_exitcode && lb_exitcode=$result
+	! $save_exitcode || lb_exitcode=$result
 
 	# log & display result
 	if [ $result = 0 ] ; then
 		if $log ; then
-			$smart_levels && log_cmd+=(-l INFO)
+			! $smart_levels || log_cmd+=(-l INFO)
 			log_cmd+=("$ok_label")
 		fi
 
-		$say && say_cmd+=("$ok_label")
+		! $say || say_cmd+=("$ok_label")
 
 		if ! $quiet_mode ; then
-			$smart_levels && display_cmd+=(-l INFO)
+			! $smart_levels || display_cmd+=(-l INFO)
 			display_cmd+=("$ok_label")
 		fi
 	else
 		if $log ; then
-			$smart_levels && log_cmd+=(-l ERROR)
+			! $smart_levels || log_cmd+=(-l ERROR)
 			log_cmd+=("$failed_label")
 		fi
 
-		$say && say_cmd+=("$failed_label")
+		! $say || say_cmd+=("$failed_label")
 
 		if ! $quiet_mode ; then
-			$smart_levels && display_cmd+=(-l ERROR)
+			! $smart_levels || display_cmd+=(-l ERROR)
 			display_cmd+=("$failed_label")
 		fi
 	fi
 
 	# log & display result
-	$log && "${log_cmd[@]}"
+	! $log || "${log_cmd[@]}"
 	$quiet_mode || "${display_cmd[@]}"
-	$say && ("${say_cmd[@]}" &)
+	! $say || ("${say_cmd[@]}" &)
 
 	if [ $result != 0 ] ; then
 		# if save exit code is not set and error exitcode is specified, save it
@@ -666,7 +668,7 @@ lb_result() {
 		fi
 
 		# if exit on error, exit
-		$exit_on_error && lb_exit
+		! $exit_on_error || lb_exit
 	fi
 
 	return $result
@@ -913,7 +915,7 @@ $t"
 	fi
 
 	# windows format
-	[ "$lb__log_winformat" = true ] && text+="\r"
+	[ "$lb__log_winformat" != true ] || text+="\r"
 
 	# if a default log level is set, test it
 	if [ -n "$level" ] && [ -n "$lb__log_level" ] ; then
@@ -930,7 +932,7 @@ $t"
 	local log_prefix tee_opts=()
 
 	# add date prefix
-	$date_prefix && log_prefix+="$(date +"%d %b %Y %H:%M:%S %z") "
+	! $date_prefix || log_prefix+="$(date +"%d %b %Y %H:%M:%S %z") "
 
 	# add level prefix
 	if $prefix && [ -n "$level" ] ; then
@@ -988,7 +990,7 @@ lb_read_config() {
 	local line s section good_section=false section_found=false filters=(-v '^[[:space:]]*(#|;|$)') result
 
 	# analyse mode: do not filter comments
-	$analyse && filters=('^(\[|(#|;)*[a-zA-Z0-9_]+[[:space:]]*=)')
+	! $analyse || filters=('^(\[|(#|;)*[a-zA-Z0-9_]+[[:space:]]*=)')
 
 	# read config file line by line; backslashes are not escaped
 	while read -r line ; do
@@ -1130,7 +1132,7 @@ lb_import_config() {
 		if ! echo "$line" | grep -Eq '^[[:space:]]*[a-zA-Z0-9_]+[[:space:]]*=.*' ; then
 			# if section definition, do nothing (not error)
 			if ! echo "$line" | grep -Eq '^\[.*\][[:space:]]*$' ; then
-				$return_errors && result=3
+				! $return_errors || result=3
 			fi
 			continue
 		fi
@@ -1153,7 +1155,7 @@ lb_import_config() {
 
 		# secure config values with prevent bash injection
 		if $secure_mode && echo "$value" | grep -Eq '\$|`|<|>' ; then
-			$return_errors && result=4
+			! $return_errors || result=4
 			continue
 		fi
 
@@ -1290,7 +1292,7 @@ $t"
 	local i j current_section
 	for ((i=${#config_lines[@]}-1; i>=0; i--)) ; do
 		# if first line, cannot go up
-		[ ${config_lines[i]} = 1 ] && continue
+		[ ${config_lines[i]} != 1 ] || continue
 
 		for ((j=${config_lines[i]}-1; j>=1; j--)) ; do
 			current_section=$(echo "$text" | sed "${j}q;d" | grep -Eo '^\[.*\]')
@@ -1372,7 +1374,7 @@ lb_set_config() {
 	fi
 
 	# Windows files: append \r at the end of line
-	[ "$lb_current_os" = Windows ] && value+="\r"
+	[ "$lb_current_os" != Windows ] || value+="\r"
 
 	# prepare line for sed command
 	local sed_line=$param
@@ -1402,7 +1404,7 @@ lb_set_config() {
 			# parse every results (saved before)
 			for i in "${results[@]}" ; do
 				# if first line, cannot go up
-				[ $i = 1 ] && continue
+				[ $i != 1 ] || continue
 
 				for ((j=$i-1; j>=1; j--)) ; do
 					current_section=$(sed "${j}q;d" "$config_file" | grep -Eo '^\[.*\]')
@@ -1450,7 +1452,7 @@ lb_set_config() {
 	# if line not found (or not in the right section)
 
 	# if strict mode, quit
-	$strict_mode && return 3
+	! $strict_mode || return 3
 
 	# prepare sed insert command
 	local sed_insert='$a'
@@ -1464,7 +1466,7 @@ lb_set_config() {
 		# if section exists,
 		if [ -n "$section_line" ] ; then
 			# if not last line, change sed append command
-			[ "$((${section_line[0]}+1))" -le "$(cat "$config_file" | wc -l)" ] && sed_insert=$((${section_line[0]}+1))i
+			[ "$((${section_line[0]}+1))" -gt "$(cat "$config_file" | wc -l)" ] || sed_insert=$((${section_line[0]}+1))i
 		else
 			# if section not found, append it
 
@@ -1480,7 +1482,7 @@ lb_set_config() {
 			section_line="[$section]"
 
 			# Windows files: add \r at the end of line
-			[ "$lb_current_os" = Windows ] && section_line+="\r"
+			[ "$lb_current_os" != Windows ] || section_line+="\r"
 
 			# append section to file
 			echo -e "$section_line" >> "$config_file" || return 4
@@ -2208,7 +2210,7 @@ lb_realpath() {
 			local path=$1
 
 			# convert windows paths (C:\dir\file -> /cygdrive/c/dir/file)
-			[ "$lb_current_os" = Windows ] && path=$(cygpath "$1")
+			[ "$lb_current_os" != Windows ] || path=$(cygpath "$1")
 
 			# find real path
 			readlink -f "$path" 2> /dev/null || return 2
@@ -2448,7 +2450,7 @@ lb_generate_password() {
 # Usage: lb_email [OPTIONS] RECIPIENT[,RECIPIENT,...] MESSAGE
 lb_email() {
 	# usage error
-	[ $# = 0 ] && return 1
+	[ -n "$1" ] || return 1
 
 	# default options and local variables
 	local subject sender replyto cc bcc message message_html
@@ -2515,7 +2517,7 @@ lb_email() {
 
 	local recipients=$1
 	# usage error if missing recipients
-	[ ${#recipients} = 0 ] && return 1
+	[ ${#recipients} -gt 0 ] || return 1
 
 	shift
 	local text=$*
@@ -2533,7 +2535,7 @@ $t"
 
 	# usage error if missing message
 	# could be not detected by test above if recipients field has some spaces
-	[ ${#text} = 0 ] && return 1
+	[ ${#text} -gt 0 ] || return 1
 
 	# search compatible command to send email
 	if [ -z "$cmd" ] ; then
@@ -2553,32 +2555,32 @@ $t"
 	fi
 
 	# if no command to send email, error
-	[ -z "$cmd" ] && return 2
+	[ -n "$cmd" ] || return 2
 
 	# set email header
-	[ -n "$sender" ] && message+="From: $sender
+	[ -z "$sender" ] || message+="From: $sender
 "
 	message+="To: $recipients
 "
-	[ -n "$cc" ] && message+="Cc: $cc
+	[ -z "$cc" ] || message+="Cc: $cc
 "
-	[ -n "$bcc" ] && message+="Bcc: $bcc
+	[ -z "$bcc" ] || message+="Bcc: $bcc
 "
-	[ -n "$replyto" ] && message+="Reply-To: $replyto
+	[ -z "$replyto" ] || message+="Reply-To: $replyto
 "
-	[ -n "$subject" ] && message+="Subject: $subject
+	[ -z "$subject" ] || message+="Subject: $subject
 "
 	message+="MIME-Version: 1.0
 "
 
 	# mixed definition (if attachments)
-	[ ${#attachments[@]} -gt 0 ] && message+="Content-Type: multipart/mixed; boundary=\"${separator}_mixed\"
+	[ ${#attachments[@]} = 0 ] || message+="Content-Type: multipart/mixed; boundary=\"${separator}_mixed\"
 
 --${separator}_mixed
 "
 
 	# multipart definition (if HTML + TXT)
-	$multipart && message+="Content-Type: multipart/alternative; boundary=\"$separator\"
+	! $multipart || message+="Content-Type: multipart/alternative; boundary=\"$separator\"
 
 --$separator
 "
@@ -2590,7 +2592,7 @@ $text
 "
 
 	# mail in HTML + close multipart
-	$multipart && message+="
+	! $multipart || message+="
 --$separator
 Content-Type: text/html; charset=\"utf-8\"
 
@@ -2702,7 +2704,7 @@ lb_yesno() {
 			fi
 
 			# add cancel choice
-			$cancel_mode && question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
+			! $cancel_mode || question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
 
 			# print question
 			echo -e -n "$* ($question): "
@@ -2804,7 +2806,7 @@ lb_choose_option() {
 
 	# change default label if multiple options
 	if $multiple_choices ; then
-		[ "$label" = "$lb__chopt_label" ] && label=$lb__chopts_label
+		[ "$label" != "$lb__chopt_label" ] || label=$lb__chopts_label
 	fi
 
 	local o choices
@@ -3275,7 +3277,7 @@ declare -r lb_current_script_directory=$(dirname "$lb_current_script")
 lb_current_script_name=$(basename "$lb_current_script")
 
 # if macOS, disable text formatting in console
-[ "$lb_current_os" = macOS ] && lb__format_print=false
+[ "$lb_current_os" != macOS ] || lb__format_print=false
 
 # Test sed command
 sed --version &> /dev/null
@@ -3328,7 +3330,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		-l|--lang)
 			# no errors if bad options
-			lb__lang=$(lb_getopt "$@") && shift
+			lb__lang=$(lb_getopt "$@")
+			[ $? != 0 ] || shift
 			;;
 		--lang=*)
 			# no errors if bad options
