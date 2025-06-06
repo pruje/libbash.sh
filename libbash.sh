@@ -106,10 +106,6 @@ declare -r lb_version=1.21.0
 #       lb_log_warning
 #       lb_log_info
 #       lb_log_debug
-#       lb_detect_os
-#       lb_array_contains
-#       lb_dir_is_empty
-#       lb_test_arguments
 #   * Variables
 #   * Initialization
 
@@ -3186,45 +3182,6 @@ lb_log_info() {
 
 lb_log_debug() {
 	lb_log -p -l "$lb__debug_label" "$@"
-}
-
-
-# Aliases for old functions compatibility
-lb_detect_os() {
-	lb_current_os
-}
-lb_array_contains() {
-	lb_in_array "$@"
-}
-lb_dir_is_empty() {
-	lb_is_dir_empty "$@"
-}
-
-
-# Test number of arguments passed to a script/function
-# DEPRECATED: this function is useless and can be easely replaced by [ $# -op N ]
-# Usage: lb_test_arguments OPERATOR N [ARG...]
-lb_test_arguments() {
-	# we wait for at least an operator and a number
-	[ $# -ge 2 ] || return 1
-
-	# arg 2 should be an integer
-	[[ $2 =~ ^-?[0-9]+$ ]] || return 1
-
-	local operator=$1 value=$2
-	shift 2
-
-	# test if operator is ok
-	case $operator in
-		-eq|-ne|-lt|-le|-gt|-ge)
-			# execute test on arguments number
-			[ $# $operator $value ] || return 2
-			;;
-		*)
-			# syntax error
-			return 1
-			;;
-	esac
 }
 
 

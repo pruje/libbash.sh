@@ -1167,10 +1167,6 @@ echo "Users: $(lb_join ", " "${users[@]}")"
 ### lb_in_array
 Check if an array contains a value.
 
-Note: This function was called `lb_array_contains()` and has been renamed in
-version 1.9.0. You can still use the old name because there is an alias for
-compatibility, but it is no longer recommended.
-
 #### Usage
 ```bash
 lb_in_array VALUE "${ARRAY[@]}"
@@ -1420,10 +1416,6 @@ home=$(lb_homepath)
 <a name="lb_is_dir_empty"></a>
 ### lb_is_dir_empty
 Test if a directory is empty.
-
-Note: This function was called `lb_dir_is_empty()` and has been renamed in
-version 1.9.0. You can still use the old name because there is an alias for
-compatibility, but it is no longer recommended.
 
 #### Usage
 ```bash

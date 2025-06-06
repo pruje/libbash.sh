@@ -9,6 +9,11 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Added unit tests powered by BATS
 ## Changes
 - Remove `--label` option to `lb_input_password` (deprecated since 1.3.0)
+- Remove `lb_detect_os` alias (deprecated since 1.0.0)
+- Remove `lb_array_contains` alias (deprecated since 1.9.0)
+- Remove `lb_dir_is_empty` alias (deprecated since 1.9.0)
+- Remove `lb_test_arguments` (deprecated since 1.19.0)
+
 ## Bugfixes
 - Fixed error in `lb_say` on macOS and Windows
 
