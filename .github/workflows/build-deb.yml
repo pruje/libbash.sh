@@ -33,10 +33,10 @@ jobs:
           Priority: optional
           Maintainer: Jean Prunneaux <jean@prunneaux.com>
           Homepage: https://github.com/${{ github.repository }}
-          Standards-Version: 4.5.0
+          Build-Depends: debhelper-compat (= 13)
+          Standards-Version: 4.5.1
 
           Package: $APP_NAME
-          Version: $VERSION
           Architecture: all
           Depends: bash
           Description: Library of useful Bash functions.
@@ -51,9 +51,7 @@ jobs:
           chmod +x debian/rules
 
           # Other required files
-          echo "9" > debian/compat
-          echo "3.0 (quilt)" > debian/source/format
-          mkdir -p debian/source
+          echo 1.0 > debian/source/format
 
           # Changelog
           dch --create -v "$VERSION" --package libbash.sh "Release $VERSION"
