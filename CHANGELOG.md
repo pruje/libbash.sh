@@ -1,7 +1,7 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-# 1.22.5 (2025-06-07)
+# 1.22.6 (2025-06-07)
 ## New features
 - New deb package auomatic builder for GitHub
 - New rpm package auomatic builder for GitHub
