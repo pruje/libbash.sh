@@ -15,7 +15,7 @@ jobs:
           sudo apt-get install -y rpm rpm2cpio build-essential
 
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set version and app name
         run: |
