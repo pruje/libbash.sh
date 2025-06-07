@@ -56,11 +56,13 @@ jobs:
           # Changelog
           dch --create -v "$VERSION" --package libbash.sh "Release $VERSION"
 
-          # copy files
-          find . -maxdepth 1 -mindepth 1 ! -name ".git*" ! -name "debian" ! -name "examples" ! -name "tests" -exec mkdir -p "debian/$APP_NAME/$INSTALL_DIR" \; -exec cp -r {} "debian/$APP_NAME/$INSTALL_DIR/" \;
-
-          # tell package to copy files
-          echo "* usr/lib/libbash.sh/" > debian/install
+          # Copy files instructions
+          cat <<EOF > debian/install
+          *.md usr/lib/$APP_NAME/
+          *.sh usr/lib/$APP_NAME/
+          docs usr/lib/$APP_NAME/
+          locales usr/lib/$APP_NAME/
+          EOF
 
       - name: Build the deb package
         run: |
