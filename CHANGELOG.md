@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+# 1.22.1 (2025-04-25)
+## New features
+- New deb package auomatic builder for GitHub
+
 # 1.22.0 (2025-04-25)
 ## New features
 - New `--ignore-errors` option when loading libbash.sh to ignore non-critical loading errors
@@ -13,7 +17,6 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - Remove `lb_array_contains` alias (deprecated since 1.9.0)
 - Remove `lb_dir_is_empty` alias (deprecated since 1.9.0)
 - Remove `lb_test_arguments` (deprecated since 1.19.0)
-
 ## Bugfixes
 - Fixed error in `lb_say` on macOS and Windows
 
