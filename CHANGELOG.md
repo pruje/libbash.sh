@@ -1,7 +1,7 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-# 1.22.2 (2025-06-07)
+# 1.22.3 (2025-06-07)
 ## Bugfixes
 - Fixed bugs in deb builder
 

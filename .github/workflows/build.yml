@@ -1,4 +1,4 @@
-name: Build packages on Release
+name: Build packages on release
 
 on:
   release:
@@ -20,6 +20,7 @@ jobs:
       - name: Set up Debian packaging
         run: |
           APP_NAME=libbash.sh
+          VERSION="${GITHUB_REF##*/}"
           INSTALL_DIR="usr/lib/$APP_NAME"
 
           mkdir -p debian/source
@@ -34,6 +35,7 @@ jobs:
           Standards-Version: 4.5.0
 
           Package: $APP_NAME
+          Version: $VERSION
           Architecture: all
           Depends: bash
           Description: Library of useful Bash functions
@@ -53,10 +55,9 @@ jobs:
           mkdir -p debian/source
 
           # Changelog
-          VERSION="${GITHUB_REF##*/}"
           dch --create -v "$VERSION" --package libbash.sh "Release $VERSION"
 
-          # install file (copies everything except .github/ into /usr/lib/myapp/)
+          # copy files
           find . -maxdepth 1 -mindepth 1 ! -name ".git*" ! -name "debian" ! -name "examples" ! -name "tests" -exec mkdir -p "debian/$APP_NAME/$INSTALL_DIR" \; -exec cp -r {} "debian/$APP_NAME/$INSTALL_DIR/" \;
 
           # empty install file to avoid dh_install warnings
