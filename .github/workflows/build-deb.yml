@@ -59,8 +59,8 @@ jobs:
           # copy files
           find . -maxdepth 1 -mindepth 1 ! -name ".git*" ! -name "debian" ! -name "examples" ! -name "tests" -exec mkdir -p "debian/$APP_NAME/$INSTALL_DIR" \; -exec cp -r {} "debian/$APP_NAME/$INSTALL_DIR/" \;
 
-          # empty install file to avoid dh_install warnings
-          touch debian/install
+          # tell package to copy files
+          echo "* usr/lib/libbash.sh/" > debian/install
 
       - name: Build the deb package
         run: |
