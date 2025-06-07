@@ -1,7 +1,7 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-# 1.22.7 (2025-06-07)
+# 1.22.8 (2025-06-07)
 ## New features
 - New deb & rpm packages automatic builder for GitHub
 
