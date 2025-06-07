@@ -1,4 +1,4 @@
-name: Build packages on release
+name: Build deb package on release
 
 on:
   release:
@@ -20,8 +20,9 @@ jobs:
       - name: Set up Debian packaging
         run: |
           APP_NAME=libbash.sh
-          VERSION="${GITHUB_REF##*/}"
-          INSTALL_DIR="usr/lib/$APP_NAME"
+          # get release version without the "v"
+          VERSION="$(echo ${GITHUB_REF##*/} | sed 's/^v//')"
+          INSTALL_DIR=usr/lib/$APP_NAME
 
           mkdir -p debian/source
           
@@ -31,14 +32,14 @@ jobs:
           Section: libs
           Priority: optional
           Maintainer: Jean Prunneaux <jean@prunneaux.com>
-          Homepage: https://github.com/pruje/libbash.sh
+          Homepage: https://github.com/${{ github.repository }}
           Standards-Version: 4.5.0
 
           Package: $APP_NAME
           Version: $VERSION
           Architecture: all
           Depends: bash
-          Description: Library of useful Bash functions
+          Description: Library of useful Bash functions.
           EOF
 
           # Minimal rules file
@@ -63,8 +64,9 @@ jobs:
           # empty install file to avoid dh_install warnings
           touch debian/install
 
-      - name: Build the package
+      - name: Build the deb package
         run: |
+          # build without signing
           dpkg-buildpackage -us -uc
 
       - name: Upload .deb to release
