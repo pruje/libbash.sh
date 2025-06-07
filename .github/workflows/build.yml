@@ -22,7 +22,7 @@ jobs:
           APP_NAME=libbash.sh
           INSTALL_DIR="usr/lib/$APP_NAME"
 
-          mkdir -p debian
+          mkdir -p debian/source
           
           # Create control file (adjust fields accordingly)
           cat <<EOF > debian/control

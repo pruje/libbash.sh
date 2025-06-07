@@ -1,11 +1,11 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-# 1.22.1 (2025-04-25)
+# 1.22.1 (2025-06-07)
 ## New features
 - New deb package auomatic builder for GitHub
 
-# 1.22.0 (2025-04-25)
+# 1.22.0 (2025-06-06)
 ## New features
 - New `--ignore-errors` option when loading libbash.sh to ignore non-critical loading errors
 - New `--strict` option for `lb_yesno` to force user to prompt yes or no
