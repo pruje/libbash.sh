@@ -59,7 +59,20 @@ source libbash.sh -
 	[ "$status" = 2 ]
 }
 
+@test "lb_df_uuid . without lsblk" {
+	if command -v lsblk &> /dev/null; then
+		skip "lsblk is installed"
+	fi
+
+	run lb_df_uuid .
+	[ "$status" = 4 ]
+}
+
 @test "lb_df_uuid ." {
+	if ! command -v lsblk &> /dev/null; then
+		skip "lsblk is not installed"
+	fi
+
 	run lb_df_uuid .
 	[ -n "$output" ]
 	[ "$status" = 0 ]
