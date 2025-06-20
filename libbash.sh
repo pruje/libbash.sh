@@ -2300,8 +2300,7 @@ lb_user_exists() {
 	local user
 	for user in "$@" ; do
 		[ -n "$user" ] || return 1
-		# check groups of the user
-		groups $user &> /dev/null || return 1
+		id "$user" &> /dev/null || return 1
 	done
 }
 
@@ -2327,8 +2326,8 @@ lb_in_group() {
 	# get current user if not defined
 	[ -n "$user" ] || user=$(whoami)
 
-	# get groups of the user: 2nd part of the groups result (user : group1 group2 ...)
-	local groups=($(groups $user 2> /dev/null | cut -d: -f2))
+	# get groups of the user
+	local groups=($(id -nG "$user" 2> /dev/null))
 
 	# no groups found
 	[ ${#groups[@]} -gt 0 ] || return 3
