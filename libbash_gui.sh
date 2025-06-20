@@ -3,11 +3,9 @@
 #  libbash.sh GUI                                      #
 #  Functions to extend bash scripts to GUI tools       #
 #                                                      #
-#  MIT License                                         #
-#  Copyright (c) 2017-2025 Jean Prunneaux              #
-#  Website: https://github.com/pruje/libbash.sh        #
+#  Sources: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.22.8 (2025-06-07)                         #
+#  Version 1.22.9 (2025-06-20)                         #
 #                                                      #
 ########################################################
 

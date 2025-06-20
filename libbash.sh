@@ -3,15 +3,13 @@
 #  libbash.sh                                          #
 #  A library of useful functions for bash developers   #
 #                                                      #
-#  MIT License                                         #
-#  Copyright (c) 2017-2025 Jean Prunneaux              #
-#  Website: https://github.com/pruje/libbash.sh        #
+#  Sources: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.22.8 (2025-06-07)                         #
+#  Version 1.22.9 (2025-06-20)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.22.8
+declare -r lb_version=1.22.9
 
 # Index
 #

@@ -1,6 +1,12 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+# 1.22.9 (2025-06-20)
+## Changes
+- Use `command -v` instead of `which` to check if a command exists
+- Use `id -nG` instead of `groups` to list user groups
+- Improvements in unit tests
+
 # 1.22.8 (2025-06-07)
 ## New features
 - New deb & rpm packages automatic builder for GitHub

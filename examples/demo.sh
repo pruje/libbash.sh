@@ -2,7 +2,7 @@
 #
 #  libbash.sh complete demo
 #
-#  Website: https://github.com/pruje/libbash.sh
+#  Sources: https://github.com/pruje/libbash.sh
 #
 
 
