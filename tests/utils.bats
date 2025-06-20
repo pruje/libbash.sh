@@ -61,12 +61,12 @@ source libbash.sh -
 	[ "$status" = 1 ]
 }
 
-@test "lb_user_exists badUserName $USER" {
-	run lb_user_exists badUserName $USER
+@test "lb_user_exists badUserName \$(whoami)" {
+	run lb_user_exists badUserName $(whoami)
 	[ "$status" = 1 ]
 }
 
-@test "lb_user_exists $USER" {
-	run lb_user_exists $USER
+@test "lb_user_exists \$(whoami)" {
+	run lb_user_exists $(whoami)
 	[ "$status" = 0 ]
 }
