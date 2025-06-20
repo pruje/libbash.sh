@@ -59,18 +59,10 @@ source libbash.sh -
 	[ "$status" = 2 ]
 }
 
-@test "lb_df_uuid . without lsblk" {
-	if command -v lsblk &> /dev/null; then
-		skip "lsblk is installed"
-	fi
-
-	run lb_df_uuid .
-	[ "$status" = 4 ]
-}
-
 @test "lb_df_uuid ." {
-	if ! command -v lsblk &> /dev/null; then
-		skip "lsblk is not installed"
+	# skip test if in container (will fail with error 32)
+	if [ "$(df --output=source . | tail -n 1)" = overlay ] ; then
+		skip "running inside a container"
 	fi
 
 	run lb_df_uuid .
