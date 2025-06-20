@@ -130,7 +130,13 @@ lb__powershell() {
 # Check if command(s) exists
 # Usage: lb_command_exists COMMAND [COMMAND...]
 lb_command_exists() {
-	which "$@" &> /dev/null
+	# usage error
+	[ $# -gt 0 ] || return 1
+
+	local cmd
+	for cmd in "$@" ; do
+		command -v "$cmd" &> /dev/null || return 1
+	done
 }
 
 
@@ -1980,7 +1986,7 @@ lb_df_fstype() {
 			;;
 
 		*)
-			if which lsblk &> /dev/null ; then
+			if command -v lsblk ; then
 				# get device
 				local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
 				[ -n "$device" ] || return 3
@@ -2088,7 +2094,7 @@ lb_df_uuid() {
 
 		*)
 			# lsblk does not exists (BSD systems or Linux busybox): not supported
-			which lsblk &> /dev/null || return 4
+			command -v lsblk &> /dev/null || return 4
 
 			# get device
 			local device=$(df --output=source "$*" 2> /dev/null | tail -n 1)
@@ -2415,12 +2421,12 @@ lb_generate_password() {
 	for i in $(seq 1 10) ; do
 
 		# generate password
-		if which openssl &> /dev/null ; then
+		if lb_command_exists openssl ; then
 			# with openssl random command; filter alphanumeric characters only
 			password=$(openssl rand -base64 48 | tr -dc '[:alnum:]')
 		else
 			# test md5 and base64
-			which $hasher base64 &> /dev/null || return 2
+			lb_command_exists $hasher base64 || return 2
 
 			# print date timestamp + nanoseconds, generate md5 checksum,
 			# encode it in base64 and delete spaces
@@ -2539,7 +2545,7 @@ $t"
 		local c
 		for c in ${email_commands[@]} ; do
 			# test command
-			if which "$c" &> /dev/null ; then
+			if command -v "$c" ; then
 				# skip if old version of mail command
 				if [ "$c" = /usr/bin/mail ] && ! /usr/bin/mail --version &> /dev/null ; then
 					continue
