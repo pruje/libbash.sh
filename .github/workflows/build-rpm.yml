@@ -39,11 +39,14 @@ jobs:
           Name:           ${APP_NAME}
           Version:        ${VERSION}
           Release:        1%{?dist}
-          Summary:        MyApp RPM package
+          Summary:        Functions for bash scripting
 
           License:        MIT
           URL:            https://github.com/${{ github.repository }}
           Source0:        %{name}-%{version}.tar.gz
+
+          Requires: bash
+          Requires: hostname
 
           BuildArch:      noarch
           BuildRoot:      %{_tmppath}/%{name}-%{version}-build
