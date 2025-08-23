@@ -41,7 +41,7 @@ That's all! To use more powerful features like interactive windows, please read 
 
 # Examples
 - A simple demo of libbash.sh: [examples](examples)
-- A major project that uses libbash.sh: [time2backup](https://time2backup.org)
+- A major project that uses libbash.sh: [time2backup](https://github.com/time2backup/time2backup)
 
 # Tests
 libbash.sh comes with some unit tests powered by [BATS](https://bats-core.readthedocs.io).
@@ -57,6 +57,6 @@ libbash.sh is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for t
 # Credits
 Author: Jean Prunneaux https://jean.prunneaux.com
 
-Website: https://github.com/pruje/libbash.sh
+Sources: https://github.com/pruje/libbash.sh
 
 Help us to improve libbash.sh in [submitting issues](https://github.com/pruje/libbash.sh/issues) to report a bug or request new features!
