@@ -9,13 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Install RPM build tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y rpm rpm2cpio build-essential
-
-      - name: Checkout source
-        uses: actions/checkout@v4
+          sudo apt-get update -qq && \
+          sudo apt-get install -yqq rpm rpm2cpio build-essential
 
       - name: Set version and app name
         run: |
