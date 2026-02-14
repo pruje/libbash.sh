@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+# 1.22.10 (2026-02-14)
+## Changes
+- Improved support of `sed` command on macOS + add GNU sed support
+
 # 1.22.9 (2025-06-20)
 ## Changes
 - Use `command -v` instead of `which` to check if a command exists
