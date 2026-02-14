@@ -2250,11 +2250,7 @@ lb_edit() {
 	# usage error
 	[ $# -ge 2 ] || return 1
 
-	if [ "$lb__oldsed" = true ] ; then
-		sed -i '' "$@"
-	else
-		sed -i "$@"
-	fi
+	"${lb__sed[@]}" "$@"
 }
 
 
@@ -3271,11 +3267,12 @@ lb_current_script_name=$(basename "$lb_current_script")
 [ "$lb_current_os" != macOS ] || lb__format_print=false
 
 # Test sed command
+lb__sed=(sed -i)
 sed --version &> /dev/null
 case $? in
 	0)
-		# normal sed command
-		declare -r lb__oldsed=false
+		# normal sed command: do nothing
+		true
 		;;
 	127)
 		# command sed not found
@@ -3283,8 +3280,13 @@ case $? in
 		lb__load_result=2
 		;;
 	*)
-		# old sed command (mostly on macOS)
-		declare -r lb__oldsed=true
+		# check if GNU sed is installed (brew on macOS)
+		if lb_command_exists gsed ; then
+			lb__sed=(gsed -i)
+		else
+			# if not, old sed command (default on macOS, may not work properly with regex)
+			lb__sed=(sed -i "''")
+		fi
 		;;
 esac
 

@@ -1526,7 +1526,7 @@ fi
 ---------------------------------------------------------------
 <a name="lb_edit"></a>
 ### lb_edit
-Edit a file withe the `sed -i` command.
+Edit a file with the `sed -i` command.
 
 #### Usage
 ```bash
