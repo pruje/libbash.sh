@@ -1,7 +1,7 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-# 1.23.0 (2026-0X-XX)
+# 1.23.0 (2026-05-15)
 ## New features
 - New variable: `$lb_use_defaults` for non-interactive scripts
 
