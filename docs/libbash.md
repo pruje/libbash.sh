@@ -67,7 +67,7 @@ You can use the following variables that are initialized when you include libbas
 You can use and modify the following variables in your scripts:
 - `$lb_current_script_name`: name of your current script (same as `basename $0` by default)
 - `$lb_quietmode`: (boolean, false by default) if set to `true`, it will disable any display in console (including questions in `lb_yesno` and `lb_choose_option`)
-- `$lb_use_defaults`: (boolean, false by default) if set to `true`, it will answer the default choices in `lb_yesno`, `lb_choose_option` and `lb_input_text` (useful for non-interactive scripts)
+- `$lb_use_defaults`: (boolean, false by default) if set to `true`, it will answer the default choices in `lb_yesno`, `lb_choose_option` and `lb_input_text` (useful for non-interactive scripts, also works for `lbg_*` equivalents)
 - `$lb_exitcode`: script exit code (integer, 0 by default) that will be send if using `lb_exit` (same as `exit $lb_exitcode`)
 - `$lb_exit_cmd`: array that contains a command to execute when `lb_exit()` function is called (empty by default)
 

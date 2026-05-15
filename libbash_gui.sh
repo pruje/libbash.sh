@@ -516,84 +516,84 @@ lbg_yesno() {
 	# usage error if no text to display
 	[ -z "$1" ] && return 1
 
-	local cmd result=0
+	local result=0
 
-	# prepare command
-	case $lbg__gui in
-		kdialog)
-			cmd=(kdialog --title "$title")
-			[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
-			[ -n "$no_label" ] && cmd+=(--no-label "$no_label")
-			cmd+=(--yesno "$*")
-			;;
+	# default command: console mode
+	local cmd=(lb_yesno)
+	! $yes_default || cmd+=(-y)
+	[ -z "$yes_label" ] || cmd+=(--yes-label "$yes_label")
+	[ -z "$no_label" ] || cmd+=(--no-label "$no_label")
+	cmd+=("$*")
 
-		zenity)
-			cmd=(zenity --question --title "$title" --text "$*")
-			;;
+	if ! $lb_use_defaults ; then
+		# prepare command
+		case $lbg__gui in
+			kdialog)
+				cmd=(kdialog --title "$title")
+				[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
+				[ -n "$no_label" ] && cmd+=(--no-label "$no_label")
+				cmd+=(--yesno "$*")
+				;;
 
-		osascript)
-			# set button labels
-			[ -z "$yes_label" ] && yes_label=$lb__yes_label
-			[ -z "$no_label" ] && no_label=$lb__no_label
+			zenity)
+				cmd=(zenity --question --title "$title" --text "$*")
+				;;
 
-			# set options
-			local default_button=2
-			$yes_default && default_button=1
+			osascript)
+				# set button labels
+				[ -z "$yes_label" ] && yes_label=$lb__yes_label
+				[ -z "$no_label" ] && no_label=$lb__no_label
 
-			# run command
-			result=$(lbg__osascript "set question to (display dialog \"$*\" with title \"$title\" buttons {\"$yes_label\", \"$no_label\"} default button $default_button)
+				# set options
+				local default_button=2
+				$yes_default && default_button=1
+
+				# run command
+				result=$(lbg__osascript "set question to (display dialog \"$*\" with title \"$title\" buttons {\"$yes_label\", \"$no_label\"} default button $default_button)
 set answer to button returned of question
 if answer is equal to \"$yes_label\" then
 	return 0
 else
 	return 2
 end if")
-			# return choice
-			return $result
-			;;
+				# return choice
+				return $result
+				;;
 
-		cscript)
-			cmd=(lbg__cscript lbg_yesno "$(echo -e "$*")" "$title")
-			$yes_default && cmd+=(true)
-			;;
+			cscript)
+				cmd=(lbg__cscript lbg_yesno "$(echo -e "$*")" "$title")
+				$yes_default && cmd+=(true)
+				;;
 
-		dialog)
-			cmd=(dialog --title "$title")
-			$yes_default || cmd+=(--defaultno)
-			[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
-			[ -n "$no_label" ] && cmd+=(--no-label "$no_label")
-			cmd+=(--clear --yesno "$*" $(lbg__dialog_size 100 10))
+			dialog)
+				cmd=(dialog --title "$title")
+				$yes_default || cmd+=(--defaultno)
+				[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
+				[ -n "$no_label" ] && cmd+=(--no-label "$no_label")
+				cmd+=(--clear --yesno "$*" $(lbg__dialog_size 100 10))
 
-			# run command
-			"${cmd[@]}" || result=$?
+				# run command
+				"${cmd[@]}" || result=$?
 
-			# clear console
-			clear
+				# clear console
+				clear
 
-			# return result
-			case $result in
-				0)
-					return 0
-					;;
-				255)
-					# cancelled
-					return 3
-					;;
-				*)
-					return 2
-					;;
-			esac
-			;;
-
-		*)
-			# console mode
-			cmd=(lb_yesno)
-			$yes_default && cmd+=(-y)
-			[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
-			[ -n "$no_label" ] && cmd+=(--no-label "$no_label")
-			cmd+=("$*")
-			;;
-	esac
+				# return result
+				case $result in
+					0)
+						return 0
+						;;
+					255)
+						# cancelled
+						return 3
+						;;
+					*)
+						return 2
+						;;
+				esac
+				;;
+		esac
+	fi
 
 	# run command
 	"${cmd[@]}" 2> /dev/null || return 2
@@ -666,170 +666,173 @@ lbg_choose_option() {
 		[ "$label" = "$lb__chopt_label" ] && label=$lb__chopts_label
 	fi
 
-	local o choices cmd
+	local o choices
 	local -i i=1
 
-	case $lbg__gui in
-		kdialog)
-			cmd=(kdialog --title "$title")
+	# default command: console mode
+	local cmd=(lb_choose_option -l "$label")
+	! $multiple_choices || cmd+=(-m)
+	# add default choice(s)
+	[ ${#default[@]} = 0 ] || cmd+=(-d "$(lb_join , "${default[@]}")")
 
-			if $multiple_choices ; then
-				cmd+=(--checklist)
-			else
-				cmd+=(--radiolist)
-			fi
+	if $lb_use_defaults ; then
+		# execute console function and forward result
+		"${cmd[@]}" "$@" && choices=${lb_choose_option[*]}
+	else
+		case $lbg__gui in
+			kdialog)
+				cmd=(kdialog --title "$title")
 
-			cmd+=("$label")
-
-			# add options
-			for o in "$@" ; do
-				cmd+=($i "$o")
-				if lb_in_array $i "${default[@]}" ; then
-					cmd+=(on)
+				if $multiple_choices ; then
+					cmd+=(--checklist)
 				else
-					cmd+=(off)
-				fi
-				i+=1
-			done
-
-			# run command
-			choices=$("${cmd[@]}" 2> /dev/null)
-
-			# multiple choices: transform '"1" "3"' to '1 3'
-			choices=$(echo $choices | sed 's/"//g')
-			;;
-
-		zenity)
-			cmd=(zenity --list --title "$title" --text "$label" --column "" --column "" --column "")
-
-			if $multiple_choices ; then
-				cmd+=(--checklist)
-			else
-				cmd+=(--radiolist)
-			fi
-
-			# add options
-			for o in "$@" ; do
-				if lb_in_array $i "${default[@]}" ; then
-					cmd+=(TRUE)
-				else
-					cmd+=(FALSE)
+					cmd+=(--radiolist)
 				fi
 
-				cmd+=($i "$o")
-				i+=1
-			done
+				cmd+=("$label")
 
-			# run command
-			choices=$("${cmd[@]}" 2> /dev/null)
-
-			# multiple choices: transform '1|3' to '1 3'
-			choices=$(echo $choices | sed 's/|/ /g')
-			;;
-
-		osascript)
-			# prepare options
-			local default_options=() multiple_option opts=()
-
-			# security: remove comas and spaces
-			for o in "$@" ; do
-				o=$(echo "$o" | sed 's/,//g' | lb_trim)
-				opts+=("\"$o\"")
-
-				# set default option
-				lb_in_array $i "${default[@]}" && default_options+=("\"$o\"")
-
-				i+=1
-			done
-
-			# add multiple choice option
-			$multiple_choices && multiple_option="with multiple selections allowed"
-
-			# execute command
-			local choice=$(lbg__osascript "set answer to (choose from list {$(lb_join , "${opts[@]}")} $multiple_option default items {$(lb_join , "${default_options[@]}")} with prompt \"$label\" with title \"$title\")")
-			# if empty, error
-			[ -z "$choice" ] && return 2
-
-			# split choices
-			lb_split , "$choice"
-
-			# find choice IDs
-			for c in "${lb_split[@]}" ; do
-				i=1
-				for o in "${opts[@]}" ; do
-					if [ "\"$(lb_trim "$c")\"" = "$o" ] ; then
-						choices+="$i "
-						break
+				# add options
+				for o in "$@" ; do
+					cmd+=($i "$o")
+					if lb_in_array $i "${default[@]}" ; then
+						cmd+=(on)
+					else
+						cmd+=(off)
 					fi
 					i+=1
 				done
-			done
-			;;
 
-		cscript)
-			# avoid \n in label
-			label=$(echo -e "$label")
+				# run command
+				choices=$("${cmd[@]}" 2> /dev/null)
 
-			# add options to the label, with a line return between each option
-			for o in "$@" ; do
-				label+=$(echo -e "\n   $i. $o")
-				i+=1
-			done
+				# multiple choices: transform '"1" "3"' to '1 3'
+				choices=$(echo $choices | sed 's/"//g')
+				;;
 
-			# avoid empty default values (if multiple choices)
-			[ ${#default[@]} = 0 ] && default=(1)
+			zenity)
+				cmd=(zenity --list --title "$title" --text "$label" --column "" --column "" --column "")
 
-			choices=$(lbg__cscript lbg_input_text "$label" "$title" "${default[*]}") || return 2
-
-			# multiple choices: transform '1,3' to '1 3'
-			# and remove \r ending character
-			choices=$(echo $choices | sed 's/,/ /g; s/[[:space:]]*$//')
-			;;
-
-		dialog)
-			cmd=(dialog --title "$title" --clear)
-
-			if $multiple_choices ; then
-				cmd+=(--checklist)
-			else
-				cmd+=(--radiolist)
-			fi
-
-			cmd+=("$label" $(lbg__dialog_size 100 30) 1000)
-
-			# add options
-			for o in "$@" ; do
-				cmd+=($i "$o")
-				if lb_in_array $i "${default[@]}" ; then
-					cmd+=(on)
+				if $multiple_choices ; then
+					cmd+=(--checklist)
 				else
-					cmd+=(off)
+					cmd+=(--radiolist)
 				fi
-				i+=1
-			done
 
-			# run command (complex case)
-			exec 3>&1
-			choices=$("${cmd[@]}" 2>&1 1>&3)
-			exec 3>&-
+				# add options
+				for o in "$@" ; do
+					if lb_in_array $i "${default[@]}" ; then
+						cmd+=(TRUE)
+					else
+						cmd+=(FALSE)
+					fi
 
-			# clear console
-			clear
-			;;
+					cmd+=($i "$o")
+					i+=1
+				done
 
-		*)
-			# console mode
-			cmd=(lb_choose_option -l "$label")
+				# run command
+				choices=$("${cmd[@]}" 2> /dev/null)
 
-			$multiple_choices && cmd+=(-m)
+				# multiple choices: transform '1|3' to '1 3'
+				choices=$(echo $choices | sed 's/|/ /g')
+				;;
 
-			# add default choice(s)
-			[ ${#default[@]} -gt 0 ] && cmd+=(-d "$(lb_join , "${default[@]}")")
+			osascript)
+				# prepare options
+				local default_options=() multiple_option opts=()
 
-			# execute console function and forward result
-			"${cmd[@]}" "$@" && choices=${lb_choose_option[*]}
-			;;
-	esac
+				# security: remove comas and spaces
+				for o in "$@" ; do
+					o=$(echo "$o" | sed 's/,//g' | lb_trim)
+					opts+=("\"$o\"")
+
+					# set default option
+					lb_in_array $i "${default[@]}" && default_options+=("\"$o\"")
+
+					i+=1
+				done
+
+				# add multiple choice option
+				$multiple_choices && multiple_option="with multiple selections allowed"
+
+				# execute command
+				local choice=$(lbg__osascript "set answer to (choose from list {$(lb_join , "${opts[@]}")} $multiple_option default items {$(lb_join , "${default_options[@]}")} with prompt \"$label\" with title \"$title\")")
+				# if empty, error
+				[ -z "$choice" ] && return 2
+
+				# split choices
+				lb_split , "$choice"
+
+				# find choice IDs
+				for c in "${lb_split[@]}" ; do
+					i=1
+					for o in "${opts[@]}" ; do
+						if [ "\"$(lb_trim "$c")\"" = "$o" ] ; then
+							choices+="$i "
+							break
+						fi
+						i+=1
+					done
+				done
+				;;
+
+			cscript)
+				# avoid \n in label
+				label=$(echo -e "$label")
+
+				# add options to the label, with a line return between each option
+				for o in "$@" ; do
+					label+=$(echo -e "\n   $i. $o")
+					i+=1
+				done
+
+				# avoid empty default values (if multiple choices)
+				[ ${#default[@]} = 0 ] && default=(1)
+
+				choices=$(lbg__cscript lbg_input_text "$label" "$title" "${default[*]}") || return 2
+
+				# multiple choices: transform '1,3' to '1 3'
+				# and remove \r ending character
+				choices=$(echo $choices | sed 's/,/ /g; s/[[:space:]]*$//')
+				;;
+
+			dialog)
+				cmd=(dialog --title "$title" --clear)
+
+				if $multiple_choices ; then
+					cmd+=(--checklist)
+				else
+					cmd+=(--radiolist)
+				fi
+
+				cmd+=("$label" $(lbg__dialog_size 100 30) 1000)
+
+				# add options
+				for o in "$@" ; do
+					cmd+=($i "$o")
+					if lb_in_array $i "${default[@]}" ; then
+						cmd+=(on)
+					else
+						cmd+=(off)
+					fi
+					i+=1
+				done
+
+				# run command (complex case)
+				exec 3>&1
+				choices=$("${cmd[@]}" 2>&1 1>&3)
+				exec 3>&-
+
+				# clear console
+				clear
+				;;
+
+			*)
+				# execute console function and forward result
+				"${cmd[@]}" "$@" && choices=${lb_choose_option[*]}
+				;;
+		esac
+	fi
 
 	# if empty, cancelled
 	[ -z "$choices" ] && return 2
@@ -887,52 +890,55 @@ lbg_input_text() {
 	# usage error if no text to display
 	[ -z "$1" ] && return 1
 
-	# run command
-	local cmd
-	case $lbg__gui in
-		kdialog)
-			lbg_input_text=$(kdialog --title "$title" --inputbox "$*" "$default" 2> /dev/null)
-			;;
+	# default command: console mode
+	local cmd=(lb_input_text)
+	[ -z "$default" ] || cmd+=(-d "$default")
+	cmd+=("$*")
 
-		zenity)
-			lbg_input_text=$(zenity --entry --title "$title" --entry-text "$default" --text "$*" 2> /dev/null)
-			;;
+	if $lb_use_defaults ; then
+		# execute console function and forward result
+		"${cmd[@]}" "$@" && choices=${lb_choose_option[*]}
+	else
+		case $lbg__gui in
+			kdialog)
+				lbg_input_text=$(kdialog --title "$title" --inputbox "$*" "$default" 2> /dev/null)
+				;;
 
-		osascript)
-			lbg_input_text=$(lbg__osascript "set answer to the text returned of (display dialog \"$*\" with title \"$title\" default answer \"$default\")")
-			;;
+			zenity)
+				lbg_input_text=$(zenity --entry --title "$title" --entry-text "$default" --text "$*" 2> /dev/null)
+				;;
 
-		cscript)
-			# prepare command
-			cmd=(lbg_input_text "$(echo -e "$*")" "$title")
-			[ -n "$default" ] && cmd+=("$default")
+			osascript)
+				lbg_input_text=$(lbg__osascript "set answer to the text returned of (display dialog \"$*\" with title \"$title\" default answer \"$default\")")
+				;;
 
-			lbg_input_text=$(lbg__cscript "${cmd[@]}") || return 2
+			cscript)
+				# prepare command
+				cmd=(lbg_input_text "$(echo -e "$*")" "$title")
+				[ -n "$default" ] && cmd+=("$default")
 
-			# remove \r ending character
-			lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
-			;;
+				lbg_input_text=$(lbg__cscript "${cmd[@]}") || return 2
 
-		dialog)
-			# run command (complex case)
-			exec 3>&1
-			lbg_input_text=$(dialog --title "$title" --clear --inputbox "$*" $(lbg__dialog_size 100 10) "$default" 2>&1 1>&3)
-			exec 3>&-
+				# remove \r ending character
+				lbg_input_text=${lbg_input_text:0:${#lbg_input_text}-1}
+				;;
 
-			# clear console
-			clear
-			;;
+			dialog)
+				# run command (complex case)
+				exec 3>&1
+				lbg_input_text=$(dialog --title "$title" --clear --inputbox "$*" $(lbg__dialog_size 100 10) "$default" 2>&1 1>&3)
+				exec 3>&-
 
-		*)
-			# console mode
-			cmd=(lb_input_text)
-			[ -n "$default" ] && cmd+=(-d "$default")
-			cmd+=("$*")
+				# clear console
+				clear
+				;;
 
-			# execute console function and forward result
-			"${cmd[@]}" && lbg_input_text=$lb_input_text
-			;;
-	esac
+			*)
+				# execute console function and forward result
+				"${cmd[@]}" && lbg_input_text=$lb_input_text
+				;;
+		esac
+	fi
 
 	# if empty, return cancelled
 	[ -n "$lbg_input_text" ] || return 2
