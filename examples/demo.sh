@@ -132,10 +132,10 @@ case $lbg_choose_option in
 esac
 
 # compare
-if [ "$(lb_detect_os)" = "$chosen_os" ] ; then
-	lbg_display_info "Correct! You are on $(lb_detect_os)!"
+if [ "$(lb_current_os)" = "$chosen_os" ] ; then
+	lbg_display_info "Correct! You are on $(lb_current_os)!"
 else
-	lbg_display_error "Incorrect! You are on $(lb_detect_os)!"
+	lbg_display_error "Incorrect! You are on $(lb_current_os)!"
 fi
 
 # send notification
