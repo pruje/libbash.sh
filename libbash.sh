@@ -2684,30 +2684,36 @@ lb_yesno() {
 	# question is missing
 	[ -n "$1" ] || return 1
 
-	local question choice
+	local question default choice
+
+	# defines question
+	if $strict_mode ; then
+		question="$yes_label/$no_label"
+	else
+		if $yes_default ; then
+			default=$yes_label
+			question="$(echo "$yes_label" | tr '[:lower:]' '[:upper:]')/$(echo "$no_label" | tr '[:upper:]' '[:lower:]')"
+		else
+			default=$no_label
+			question="$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')/$(echo "$no_label" | tr '[:lower:]' '[:upper:]')"
+		fi
+	fi
+
+	# add cancel choice
+	if $cancel_mode ; then
+		question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
+	fi
+
 	while true ; do
 		# print question (if not quiet mode)
-		if [ "$lb_quietmode" != true ] ; then
-			# defines question
-			if $strict_mode ; then
-				question="$yes_label/$no_label"
-			else
-				if $yes_default ; then
-					question="$(echo "$yes_label" | tr '[:lower:]' '[:upper:]')/$(echo "$no_label" | tr '[:upper:]' '[:lower:]')"
-				else
-					question="$(echo "$yes_label" | tr '[:upper:]' '[:lower:]')/$(echo "$no_label" | tr '[:lower:]' '[:upper:]')"
-				fi
-			fi
+		[ "$lb_quietmode" = true ] || echo -e -n "$* ($question): "
 
-			# add cancel choice
-			! $cancel_mode || question+="/$(echo "$cancel_label" | tr '[:upper:]' '[:lower:]')"
-
-			# print question
-			echo -e -n "$* ($question): "
+		# prompt if no use defaults
+		if [ "$lb_use_defaults" = true ] && ! $strict_mode ; then
+			[ "$lb_quietmode" = true ] || echo "$default"
+		else
+			read choice
 		fi
-
-		# read user input
-		read choice
 
 		# if input is empty
 		if [ -z "$choice" ] ; then
@@ -2833,8 +2839,18 @@ lb_choose_option() {
 			fi
 		fi
 
-		# read user input
-		read choices
+		# prompt if no use defaults
+		if [ "$lb_use_defaults" = true ] && ! $strict_mode ; then
+			if [ "$lb_quietmode" != true ] ; then
+				if [ ${#default[@]} -gt 0 ] ; then
+					echo "${default[*]}"
+				else
+					echo "$cancel_label"
+				fi
+			fi
+		else
+			read choices
+		fi
 
 		# defaut behaviour if input is empty
 		if [ -z "$choices" ] ; then
@@ -2937,13 +2953,16 @@ lb_input_text() {
 	if [ "$lb_quietmode" != true ] ; then
 		echo -n -e "$*"
 		[ -z "$default" ] || echo -n -e " [$default]"
+		# add separator
+		echo $opts " "
 	fi
 
-	# add separator
-	echo $opts " "
-
-	# read user input without ignoring backslashes
-	read -r lb_input_text
+	if [ "$lb_use_defaults" = true ] ; then
+		[ "$lb_quietmode" = true ] || echo "$default"
+	else
+		# read user input without ignoring backslashes
+		read -r lb_input_text
+	fi
 
 	# if empty
 	if [ -z "$lb_input_text" ] ; then
@@ -3265,6 +3284,9 @@ lb_current_script_name=$(basename "$lb_current_script")
 
 # if macOS, disable text formatting in console
 [ "$lb_current_os" != macOS ] || lb__format_print=false
+
+# use defaults for prompts
+lb_use_defaults=false
 
 # Test sed command
 lb__sed=(sed -i)

@@ -18,9 +18,23 @@ EOF
 	[ "$status" = 2 ]
 }
 
+@test "lb_yesno 'No?' (use default)" {
+	lb_use_defaults=true
+	run lb_yesno 'No?'
+	lb_use_defaults=false
+	[ "$status" = 2 ]
+}
+
 @test "lb_yesno -y 'Yes?'" {
 	run lb_yesno -y 'Yes?' << EOF
 EOF
+	[ "$status" = 0 ]
+}
+
+@test "lb_yesno -y 'Yes?' (use default)" {
+	lb_use_defaults=true
+	run lb_yesno -y 'Yes?'
+	lb_use_defaults=false
 	[ "$status" = 0 ]
 }
 
@@ -54,9 +68,15 @@ EOF
 test_lb_choose_option() {
 	local input=$1 result=0
 	shift
-	lb_choose_option "$@" &> /dev/null << EOF
+
+	if $lb_use_defaults ; then
+		lb_choose_option "$@" &> /dev/null
+	else
+		lb_choose_option "$@" &> /dev/null << EOF
 $input
 EOF
+	fi
+
 	result=$?
 	[ $result = 0 ] || return $result
 	echo "${lb_choose_option[*]}"
@@ -69,6 +89,13 @@ EOF
 
 @test "lb_choose_option cancel" {
 	run test_lb_choose_option '' cancel
+	[ "$status" = 2 ]
+}
+
+@test "lb_choose_option cancel (use default)" {
+	lb_use_defaults=true
+	run test_lb_choose_option '' cancel
+	lb_use_defaults=false
 	[ "$status" = 2 ]
 }
 
@@ -89,6 +116,14 @@ EOF
 
 @test "lb_choose_option -d 1 -l 'TypeEnter:' ok" {
 	run test_lb_choose_option '' -d 1 -l 'TypeEnter:' ok
+	[ "$output" = 1 ]
+	[ "$status" = 0 ]
+}
+
+@test "lb_choose_option -d 1 -l 'TypeEnter:' ok (use default)" {
+	lb_use_defaults=true
+	run test_lb_choose_option '' -d 1 -l 'TypeEnter:' ok
+	lb_use_defaults=false
 	[ "$output" = 1 ]
 	[ "$status" = 0 ]
 }
@@ -114,9 +149,15 @@ EOF
 test_lb_input_text() {
 	local input=$1 result=0
 	shift
-	lb_input_text "$@" &> /dev/null << EOF
+
+	if $lb_use_defaults ; then
+		lb_input_text "$@" &> /dev/null
+	else
+		lb_input_text "$@" &> /dev/null << EOF
 $input
 EOF
+	fi
+
 	result=$?
 	[ $result = 0 ] || return $result
 	echo "$lb_input_text"
@@ -135,6 +176,14 @@ EOF
 
 @test "lb_input_text -d 'zzz' 'Please enter nothing:'" {
 	run test_lb_input_text "" -d 'zzz' 'Please enter nothing:'
+	[ "$output" = zzz ]
+	[ "$status" = 0 ]
+}
+
+@test "lb_input_text -d 'zzz' 'Please enter nothing:' (use default)" {
+	lb_use_defaults=true
+	run test_lb_input_text "" -d 'zzz' 'Please enter nothing:'
+	lb_use_defaults=false
 	[ "$output" = zzz ]
 	[ "$status" = 0 ]
 }

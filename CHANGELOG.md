@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+# 1.23.0 (2026-0X-XX)
+## New features
+- New variable: `$lb_use_defaults` for non-interactive scripts
+
 # 1.22.10 (2026-02-14)
 ## Changes
 - Improved support of `sed` command on macOS + add GNU sed support
