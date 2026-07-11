@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+# 1.24.0 (2026-07-11)
+## New features
+- New variable: `$lb_yes_mode` for non-interactive scripts
+
 # 1.23.0 (2026-05-15)
 ## New features
 - New variable: `$lb_use_defaults` for non-interactive scripts

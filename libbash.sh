@@ -5,11 +5,11 @@
 #                                                      #
 #  Sources: https://github.com/pruje/libbash.sh        #
 #                                                      #
-#  Version 1.23.0 (2026-05-15)                         #
+#  Version 1.24.0 (2026-07-11)                         #
 #                                                      #
 ########################################################
 
-declare -r lb_version=1.23.0
+declare -r lb_version=1.24.0
 
 # Index
 #
