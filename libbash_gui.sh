@@ -525,7 +525,7 @@ lbg_yesno() {
 	[ -z "$no_label" ] || cmd+=(--no-label "$no_label")
 	cmd+=("$*")
 
-	if ! $lb_use_defaults ; then
+	if ! $lb_use_defaults && ! $lb_yes_mode ; then
 		# prepare command
 		case $lbg__gui in
 			kdialog)

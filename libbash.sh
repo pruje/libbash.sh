@@ -2642,11 +2642,6 @@ lb_yesno() {
 	local yes_default=false cancel_mode=false strict_mode=false
 	local yes_label=$lb__yes_shortlabel no_label=$lb__no_shortlabel cancel_label=$lb__cancel_shortlabel
 
-	# set labels if missing
-	[ -n "$yes_label" ] || yes_label=y
-	[ -n "$no_label" ] || no_label=n
-	[ -n "$cancel_label" ] || cancel_label=c
-
 	# get options
 	while [ $# -gt 0 ] ; do
 		case $1 in
@@ -2708,11 +2703,17 @@ lb_yesno() {
 		# print question (if not quiet mode)
 		[ "$lb_quietmode" = true ] || echo -e -n "$* ($question): "
 
-		# prompt if no use defaults
-		if [ "$lb_use_defaults" = true ] && ! $strict_mode ; then
-			[ "$lb_quietmode" = true ] || echo "$default"
+		# yes mode
+		if [ "$lb_yes_mode" = true ] ; then
+			[ "$lb_quietmode" = true ] || echo "$yes_label"
+			choice=$yes_label
 		else
-			read choice
+			# prompt if no use defaults
+			if [ "$lb_use_defaults" = true ] && ! $strict_mode ; then
+				[ "$lb_quietmode" = true ] || echo "$default"
+			else
+				read choice
+			fi
 		fi
 
 		# if input is empty
@@ -3284,6 +3285,9 @@ lb_current_script_name=$(basename "$lb_current_script")
 
 # if macOS, disable text formatting in console
 [ "$lb_current_os" != macOS ] || lb__format_print=false
+
+# always answer yes to questions
+lb_yes_mode=false
 
 # use defaults for prompts
 lb_use_defaults=false

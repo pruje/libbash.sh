@@ -25,6 +25,13 @@ EOF
 	[ "$status" = 2 ]
 }
 
+@test "lb_yesno 'No?' (use yes mode)" {
+	lb_yes_mode=true
+	run lb_yesno 'No?'
+	lb_yes_mode=false
+	[ "$status" = 0 ]
+}
+
 @test "lb_yesno -y 'Yes?'" {
 	run lb_yesno -y 'Yes?' << EOF
 EOF
@@ -35,6 +42,13 @@ EOF
 	lb_use_defaults=true
 	run lb_yesno -y 'Yes?'
 	lb_use_defaults=false
+	[ "$status" = 0 ]
+}
+
+@test "lb_yesno -y 'Yes?' (use yes mode)" {
+	lb_yes_mode=true
+	run lb_yesno -y 'Yes?'
+	lb_yes_mode=false
 	[ "$status" = 0 ]
 }
 
