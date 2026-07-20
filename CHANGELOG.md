@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+# 1.25.0 (2026-07-20)
+## Changes
+- GUI functions on Linux are now running on user DBUS, allowing working inside cron tasks
+
 # 1.24.0 (2026-07-11)
 ## New features
 - New variable: `$lb_yes_mode` for non-interactive scripts
