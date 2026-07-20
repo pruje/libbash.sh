@@ -3271,7 +3271,7 @@ lb_exit_cmd=()
 declare -r lb_current_os=$(lb_current_os)
 declare -r lb_current_hostname=$(hostname 2> /dev/null)
 declare -r lb_current_user=$(whoami)
-declare -r lb_current_uid=$(id -u 2> /dev/null)
+declare -r lb_current_uid=$(lb_current_uid)
 declare -r lb_current_path=$(pwd)
 
 # libbash context

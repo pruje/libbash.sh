@@ -17,6 +17,7 @@
 #       lbg__osascript
 #       lbg__cscript
 #       lbg__powershell
+#       lbg__run_dbus
 #       lbg__display_msgbox
 #   * GUI tools
 #       lbg_get_gui
@@ -115,6 +116,34 @@ lbg__powershell() {
 }
 
 
+# Run a command on user DBUS channel
+# lbg__run_dbus COMMAND [ARG...]
+lbg__run_dbus() {
+	local uid=$(lb_current_uid)
+
+	if [ -n "$uid" ] ; then
+		if [ "$uid" != 0 ] ; then
+			# normal user: execute command on its bus
+			DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" "$@"
+			return
+		else
+			# root: search for an active user
+			if lb_command_exists loginctl && lb_command_exists sudo ; then
+				for uid in $(loginctl list-users --no-legend | grep -Ew 'active$' | grep -Ewv 'gdm|lightdm|plasmalogin|sddm|root' | awk '{print $1}') ; do
+					if [ -e "/run/user/$uid/bus" ] ; then
+						sudo -u "#$uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" "$@"
+						return
+					fi
+				done
+			fi
+		fi
+	fi
+
+	# run normal command
+	"$@"
+}
+
+
 # Display message box
 # Usage: lbg__display_msgbox TYPE [OPTIONS] TEXT
 lbg__display_msgbox() {
@@ -159,7 +188,7 @@ $t"
 	local cmd
 	case $lbg__gui in
 		kdialog)
-			cmd=(kdialog --title "$title")
+			cmd=(lbg__run_dbus kdialog --title "$title")
 
 			case $type in
 				error)
@@ -178,7 +207,7 @@ $t"
 			;;
 
 		zenity)
-			cmd=(zenity --title "$title")
+			cmd=(lbg__run_dbus zenity --title "$title")
 
 			case $type in
 				error)
@@ -437,7 +466,7 @@ $t"
 			[ -n "$timeout" ] && opts="-t $(($timeout * 1000)) "
 
 			# push notification and return
-			notify-send $opts"$title" "$text" || return 2
+			lbg__run_dbus notify-send $opts"$title" "$text" || return 2
 			return 0
 		fi
 	fi
@@ -445,7 +474,7 @@ $t"
 	# run command
 	case $lbg__gui in
 		kdialog)
-			kdialog --title "$title" --passivepopup "$text" $timeout 2> /dev/null || return 2
+			lbg__run_dbus kdialog --title "$title" --passivepopup "$text" $timeout 2> /dev/null || return 2
 			;;
 
 		zenity)
@@ -453,7 +482,7 @@ $t"
 			[ -n "$timeout" ] && opts="--timeout=$timeout"
 
 			# run command
-			zenity --notification $opts --text "$text" 2> /dev/null || return 2
+			lbg__run_dbus zenity --notification $opts --text "$text" 2> /dev/null || return 2
 			;;
 
 		osascript)
@@ -529,14 +558,14 @@ lbg_yesno() {
 		# prepare command
 		case $lbg__gui in
 			kdialog)
-				cmd=(kdialog --title "$title")
+				cmd=(lbg__run_dbus kdialog --title "$title")
 				[ -n "$yes_label" ] && cmd+=(--yes-label "$yes_label")
 				[ -n "$no_label" ] && cmd+=(--no-label "$no_label")
 				cmd+=(--yesno "$*")
 				;;
 
 			zenity)
-				cmd=(zenity --question --title "$title" --text "$*")
+				cmd=(lbg__run_dbus zenity --question --title "$title" --text "$*")
 				;;
 
 			osascript)
@@ -681,7 +710,7 @@ lbg_choose_option() {
 	else
 		case $lbg__gui in
 			kdialog)
-				cmd=(kdialog --title "$title")
+				cmd=(lbg__run_dbus kdialog --title "$title")
 
 				if $multiple_choices ; then
 					cmd+=(--checklist)
@@ -710,7 +739,7 @@ lbg_choose_option() {
 				;;
 
 			zenity)
-				cmd=(zenity --list --title "$title" --text "$label" --column "" --column "" --column "")
+				cmd=(lbg__run_dbus zenity --list --title "$title" --text "$label" --column "" --column "" --column "")
 
 				if $multiple_choices ; then
 					cmd+=(--checklist)
@@ -901,11 +930,11 @@ lbg_input_text() {
 	else
 		case $lbg__gui in
 			kdialog)
-				lbg_input_text=$(kdialog --title "$title" --inputbox "$*" "$default" 2> /dev/null)
+				lbg_input_text=$(lbg__run_dbus kdialog --title "$title" --inputbox "$*" "$default" 2> /dev/null)
 				;;
 
 			zenity)
-				lbg_input_text=$(zenity --entry --title "$title" --entry-text "$default" --text "$*" 2> /dev/null)
+				lbg_input_text=$(lbg__run_dbus zenity --entry --title "$title" --entry-text "$default" --text "$*" 2> /dev/null)
 				;;
 
 			osascript)
@@ -995,12 +1024,12 @@ lbg_input_password() {
 		# run command
 		case $lbg__gui in
 			kdialog)
-				lbg_input_password=$(kdialog --title "$title" --password "$label" 2> /dev/null)
+				lbg_input_password=$(lbg__run_dbus kdialog --title "$title" --password "$label" 2> /dev/null)
 				;;
 
 			zenity)
 				# zenity does not support labels, so we put it in the dialog title
-				lbg_input_password=$(zenity --title "$label" --password 2> /dev/null)
+				lbg_input_password=$(lbg__run_dbus zenity --title "$label" --password 2> /dev/null)
 				;;
 
 			osascript)
@@ -1115,11 +1144,11 @@ lbg_choose_directory() {
 	local cmd choice
 	case $lbg__gui in
 		kdialog)
-			choice=$(kdialog --title "$title" --getexistingdirectory "$path" 2> /dev/null)
+			choice=$(lbg__run_dbus kdialog --title "$title" --getexistingdirectory "$path" 2> /dev/null)
 			;;
 
 		zenity)
-			choice=$(zenity --title "$title" --file-selection --directory --filename "$path" 2> /dev/null)
+			choice=$(lbg__run_dbus zenity --title "$title" --file-selection --directory --filename "$path" 2> /dev/null)
 			;;
 
 		osascript)
@@ -1266,7 +1295,7 @@ lbg_choose_file() {
 			fi
 
 			# go into the directory then open kdialog
-			choice=$(cd "$path" &> /dev/null && kdialog --title "$title" $mode "$filename" "${filters[@]}" 2> /dev/null)
+			choice=$(cd "$path" &> /dev/null && lbg__run_dbus kdialog --title "$title" $mode "$filename" "${filters[@]}" 2> /dev/null)
 			;;
 
 		zenity)
@@ -1275,7 +1304,7 @@ lbg_choose_file() {
 				path+=/$filename
 			fi
 
-			cmd=(zenity --title "$title" --file-selection --filename "$path")
+			cmd=(lbg__run_dbus zenity --title "$title" --file-selection --filename "$path")
 
 			# set save mode
 			$save_mode && cmd+=(--save)
@@ -1522,7 +1551,7 @@ lbg_error() {
 
 # check if libbash.sh is loaded
 if [ -z "$lb_version" ] ; then
-	echo >&2 "Error: libbash core not loaded!"
+	echo >&2 "Error: libbash.sh core not loaded!"
 	echo >&2 "Please load it in your script before loading this library with command:"
 	echo >&2 "   source \"/path/to/libbash.sh\""
 	return 1
