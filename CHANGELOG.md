@@ -1,6 +1,10 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+# 1.26.0 (2026-10-12)
+## New features
+- New function `lb_run_to_log` to put a command result into the log file
+
 # 1.25.0 (2026-07-20)
 ## Changes
 - GUI functions on Linux are now running on user DBUS, allowing working inside cron tasks
