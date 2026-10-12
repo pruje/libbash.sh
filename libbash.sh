@@ -35,6 +35,7 @@ declare -r lb_version=1.25.0
 #       lb_get_log_level
 #       lb_set_log_level
 #       lb_log
+#       lb_run_to_log
 #   * Configuration files
 #       lb_read_config
 #       lb_import_config
@@ -945,6 +946,22 @@ $t"
 
 	# print into log file; do not output text or errors
 	echo "${echo_opts[@]}" "$log_prefix$text" | tee "${tee_opts[@]}" "$lb_logfile" &> /dev/null || return 2
+}
+
+
+# Run a command and put stdout & stderr into log file
+# WARNING: This function has dependencies. You cannot copy/paste it to use it
+# without including libbash.sh file.
+# Usage: lb_run_to_log COMMAND [ARGS]
+lb_run_to_log() {
+	# exit if log file is not set
+	[ -n "$lb_logfile" ] || return 1
+
+	# run command, put stderr to stdout and append to log file
+	"$@" 2>&1 | tee -a "$lb_logfile"
+
+	# return the exit code of the command
+	return ${PIPESTATUS[0]}
 }
 
 

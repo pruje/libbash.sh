@@ -101,6 +101,7 @@ Functions with a `*` are not fully supported on every OS yet (may change in the 
 	* [lb_get_log_level](#lb_get_log_level)
 	* [lb_set_log_level](#lb_set_log_level)
 	* [lb_log](#lb_log)
+	* [lb_run_to_log](#lb_run_to_log)
 	* [lb_log_critical, lb_log_error, lb_log_warning, lb_log_info, lb_log_debug](#lb_log_presets)
 * Configuration files
 	* [lb_read_config](#lb_read_config)
@@ -719,6 +720,28 @@ Note: you can also give `TEXT` argument using stdin or pipes.
 #### Example
 ```bash
 lb_log "This line will be printed in the log file."
+```
+
+---------------------------------------------------------------
+<a name="lb_run_to_log"></a>
+### lb_run_to_log
+Run a command and put the result (stdout + stderr) in the log file.
+
+To set a log file, see [lb_set_logfile](#lb_set_logfile).
+
+#### Usage
+```bash
+lb_run_to_log COMMAND [ARGS]
+```
+
+#### Exit codes
+- 0: OK
+- 1: Log file is not set or command returned 1
+- else: Any other return code by the command
+
+#### Example
+```bash
+lb_run_log rsync -av src/ dest/
 ```
 
 ---------------------------------------------------------------
